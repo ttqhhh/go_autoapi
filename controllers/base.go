@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
+	"strings"
 )
 
 type BaseController struct {
@@ -9,8 +11,8 @@ type BaseController struct {
 }
 
 type ReturnMsg struct {
-	Code int `json:"code"`
-	Msg  string `json:"msg"`
+	Code int         `json:"code"`
+	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
 
@@ -33,4 +35,10 @@ func (b *BaseController) ErrorJson(code int, msg string, data interface{}) {
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出
 	b.StopRun()
+}
+
+func (b *BaseController) GetMethodName() (do string) {
+	do = b.Ctx.Request.URL.Path
+	fmt.Println("url is ", do)
+	return strings.Split(do, "/")[2]
 }
