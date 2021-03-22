@@ -37,8 +37,7 @@ func (a *AdMockCase) TableName() string {
 
 func (a *AdMockCase) QueryByUUid(uuid string) (AdMockCase, error) {
 	amc := AdMockCase{Uuid: uuid}
-	o := orm.NewOrm()
-	qs := o.QueryTable("ad_case")
+	qs := ORM.QueryTable("ad_case")
 	err := qs.Filter("uuid", uuid).One(&amc)
 	//err := o.Read(&amc)
 	if err != nil {
