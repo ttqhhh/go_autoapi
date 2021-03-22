@@ -19,6 +19,7 @@ func (c *UserController) Get() {
 		c.add()
 	default:
 		log.Warn("action: %s, not implemented", do)
+		c.ErrorJson(-1, "不支持", nil)
 	}
 }
 func (c *UserController) add() {

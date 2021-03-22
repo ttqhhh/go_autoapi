@@ -30,15 +30,6 @@ type AdMockCase struct {
 func init() {
 	ORM = db_proxy.GetOrmObject()
 	orm.RegisterModel(new(AdMockCase))
-	////构造conn连接
-	////用户名:密码@tcp(url地址)/数据库
-	////conn := dbuser + ":" + dbpass + "@tcp(" + dbhost + ":" + dbport + ")/" + dbname + "?charset=utf8"
-	//
-	//orm.RegisterDataBase("default", "mysql", "francolin:123456@tcp(172.16.4.228:3306)/ad_mock?charset=utf8")
-	////conn :="francolin:123456@172.16.4.228:3306/ad_mock?charset=utf8"
-	////注册数据库连接
-	////orm.RegisterDataBase("default", "mysql", conn)
-	//fmt.Printf("数据库连接成功！%s\n")
 }
 func (a *AdMockCase) TableName() string {
 	return "ad_case"
