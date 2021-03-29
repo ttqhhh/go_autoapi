@@ -40,8 +40,8 @@ func (a *AdMockCaseMongo) InsertAdCase(amcm AdMockCaseMongo) error {
 	return db.Insert(amcm)
 }
 
-func (a *AdMockCaseMongo) GetAdCase() (AdMockCaseMongo, error) {
-	query := bson.M{"_id": 1}
+func (a *AdMockCaseMongo) GetAdCase(id int64) (AdMockCaseMongo, error) {
+	query := bson.M{"_id": id}
 	amcm := AdMockCaseMongo{}
 	ms, db := db_proxy.Connect("ad_mock", "ad_case")
 	defer ms.Close()
