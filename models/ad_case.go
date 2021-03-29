@@ -28,8 +28,9 @@ type AdMockCase struct {
 }
 
 func init() {
-	ORM = db_proxy.GetOrmObject()
 	orm.RegisterModel(new(AdMockCase))
+	db_proxy.InitDB()
+	ORM = db_proxy.GetOrmObject()
 }
 func (a *AdMockCase) TableName() string {
 	return "ad_case"
