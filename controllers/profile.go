@@ -12,3 +12,21 @@ func (c *UserController) profile() {
 	fmt.Println(&data)
 	c.SuccessJson(&data)
 }
+
+func (c *UserController) add_mgo() {
+	acm := models.AdMockCaseMongo{}
+	err := acm.InsertAdCase(models.AdMockCaseMongo{Id: 1, CaseName: "aaaaaa", CaseDesc: "bbbbbbb"})
+	if err != nil {
+		c.ErrorJson(-1, "请求错误", nil)
+	}
+	c.SuccessJson("添加成功")
+}
+
+func (c *UserController) get_mgo() {
+	acm := models.AdMockCaseMongo{}
+	acm, err := acm.GetAdCase()
+	if err != nil {
+		c.ErrorJson(-1, "请求错误", nil)
+	}
+	c.SuccessJson(acm)
+}

@@ -17,6 +17,10 @@ func (c *UserController) Get() {
 		c.profile()
 	case "add":
 		c.add()
+	case "add_mgo":
+		c.add_mgo()
+	case "get_mgo":
+		c.get_mgo()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
