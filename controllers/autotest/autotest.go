@@ -7,27 +7,21 @@ import (
 	"go_autoapi/models"
 )
 
-type UserController struct {
+type AutoTestController struct {
 	libs.BaseController
 }
 
-func (c *UserController) Get() {
+func (c *AutoTestController) Get() {
 	do := c.GetMethodName()
 	switch do {
-	case "profile":
-		c.profile()
-	case "add":
-		c.add()
-	case "add_mgo":
-		c.add_mgo()
-	case "get_mgo":
-		c.get_mgo()
+	case "get_case_info":
+		c.get_case_info()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
 	}
 }
-func (c *UserController) add() {
+func (c *AutoTestController) add() {
 	fmt.Println("xxxxxx", "add", c.Ctx.Request.PostForm)
 	amc := models.AdMockCase{}
 	data, _ := amc.QueryByUUid("5eb62275-9818-4101-a477-6fef0bb9c7bd")
