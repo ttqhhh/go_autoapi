@@ -10,7 +10,7 @@ type UserController struct {
 	BaseController
 }
 
-func (c *BaseController) Get() {
+func (c *UserController) Get() {
 	do := c.GetMethodName()
 	switch do {
 	case "profile":
