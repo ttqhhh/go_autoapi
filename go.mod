@@ -6,10 +6,13 @@ require github.com/beego/beego/v2 v2.0.1
 
 require (
 	github.com/astaxie/beego v1.12.3
+	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	//github.com/go-sql-driver/mysql v1.5.0-20181015135952-eeefdecb41b8
+
 	github.com/siddontang/go v0.0.0-20170517070808-cb568a3e5cc0
 	github.com/smartystreets/goconvey v1.6.4
 	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
