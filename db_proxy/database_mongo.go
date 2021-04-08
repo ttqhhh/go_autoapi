@@ -2,7 +2,8 @@ package db_proxy
 
 import (
 	"github.com/beego/beego/v2/server/web"
-	"github.com/globalsign/mgo"
+	"gopkg.in/mgo.v2"
+
 	"log"
 )
 
