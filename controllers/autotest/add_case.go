@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"go_autoapi/models"
+	"time"
 )
 
 func (c *AutoTestController) addCase() {
+	now := time.Now()
 	id := models.GetId("case")
-	acm := models.AutoCaseMongo{Id: id}
+	acm := models.AutoCaseMongo{Id: id, CreatedAt: now, UpdatedAt: now}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &acm); err != nil {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	err := acm.InsertCase(acm)
 	if err != nil {
 		fmt.Println(err)
-		c.ErrorJson(-1, "请求错误2", nil)
+		c.ErrorJson(-1, "请求错误", nil)
 	}
 	c.SuccessJson("添加成功")
 }
