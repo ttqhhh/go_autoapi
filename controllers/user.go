@@ -3,11 +3,12 @@ package controllers
 import (
 	"fmt"
 	"github.com/siddontang/go/log"
+	"go_autoapi/libs"
 	"go_autoapi/models"
 )
 
 type UserController struct {
-	BaseController
+	libs.BaseController
 }
 
 func (c *UserController) Get() {
