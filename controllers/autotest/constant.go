@@ -1,3 +1,3 @@
 package controllers
 
-const sercetKey = "zuiyou"
+const cookieSecretKey = "zuiyou"

@@ -6,6 +6,9 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/beego/beego/v2/server/web"
 	"github.com/go-ldap/ldap/v3"
+	"go_autoapi/models"
+	"gopkg.in/mgo.v2"
+	"time"
 )
 
 //url = 172.16.1.233:10389
@@ -34,11 +37,6 @@ func (c *AutoTestController) login() {
 	}
 	defer conn.Close()
 
-	//searchRequest := ldap.NewSearchRequest(searchDn, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-	//	fmt.Sprintf("(&(objectClass=inetOrgPerson)(mail=%s))", u.UserName),
-	//	[]string{"dn"},
-	//	nil, )
-
 	searchRequest := ldap.NewSearchRequest(
 		searchDn, // The base dn to search
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
@@ -50,16 +48,22 @@ func (c *AutoTestController) login() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	for _, entry := range sr.Entries {
-		fmt.Printf("%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
-	}
 	userDN := sr.Entries[0].DN
 	err = conn.Bind(userDN, u.Passwrod)
 	if err != nil {
 		logs.Error("password does not exist or too many entries returned")
 		c.ErrorJson(-1, "登录失败", nil)
 	}
-	c.Ctx.SetSecureCookie(sercetKey, "userid", "liuweiqiang")
+	now := time.Now()
+	au := models.AutoUser{CreatedAt: now, UpdatedAt: now, Id: models.GetId("user_id"), UserName: u.UserName}
+	_, err = au.GetUserByName(u.UserName)
+	if err == mgo.ErrNotFound {
+		err = au.InsertCase(au)
+		if err != nil {
+			logs.Error("failed to store in db")
+			c.ErrorJson(-1, "登录失败", nil)
+		}
+	}
+	c.Ctx.SetSecureCookie(cookieSecretKey, "userid", "liuweiqiang")
 	c.SuccessJson("登录成功")
 }

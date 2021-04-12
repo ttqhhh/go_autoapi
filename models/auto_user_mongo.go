@@ -49,6 +49,18 @@ func (a *AutoUser) GetUserInfoById(id int64) (AutoUser, error) {
 	return au, err
 }
 
+func (a *AutoUser) GetUserByName(name string) (au AutoUser, err error) {
+	query := bson.M{"user_name": name}
+	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	defer ms.Close()
+	err = db.Find(query).One(&au)
+	fmt.Println(au)
+	if err != nil {
+		logs.Error(59, err)
+	}
+	return au, err
+}
+
 func (a *AutoUser) UpdateUserById(id int64, au AutoUser) (AutoUser, error) {
 	fmt.Println(id)
 	query := bson.M{"_id": id}
