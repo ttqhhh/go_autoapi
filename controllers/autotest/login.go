@@ -55,7 +55,7 @@ func (c *AutoTestController) login() {
 		c.ErrorJson(-1, "登录失败", nil)
 	}
 	now := time.Now()
-	au := models.AutoUser{CreatedAt: now, UpdatedAt: now, Id: models.GetId("user_id"), UserName: u.UserName}
+	au := models.AutoUser{CreatedAt: now, UpdatedAt: now, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 	_, err = au.GetUserByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		err = au.InsertCase(au)

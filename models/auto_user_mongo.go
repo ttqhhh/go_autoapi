@@ -14,10 +14,13 @@ type AutoUser struct {
 	UserName string `json:"user_name" bson:"user_name"`
 	Email    string `json:"email" bson:"email"`
 	Mobile   string `json:"mobile" bson:"mobile"`
-	Business string `json:"business" bson:"business"`
+	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈
+	Business int `json:"business" bson:"business"`
+	//0：正常，1：删除
+	Status int `json:"status"  bson:"status"`
 	// omitempty 表示该字段为空时，不返回
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 func init() {
