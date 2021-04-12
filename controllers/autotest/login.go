@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/beego/beego/v2/server/web"
-	"github.com/go-ldap/ldap"
+	"github.com/go-ldap/ldap/v3"
 )
 
 //url = 172.16.1.233:10389
@@ -15,8 +15,8 @@ import (
 //adminPass = FSbxiULPVB8kyUUk
 
 type User struct {
-	UserName string
-	Passwrod string
+	UserName string `json:"user_name"`
+	Passwrod string `json:"password"`
 }
 
 // Login 登录
@@ -33,38 +33,33 @@ func (c *AutoTestController) login() {
 		return
 	}
 	defer conn.Close()
-	searchRequest := ldap.NewSearchRequest(searchDn, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=inetOrgPerson)(mail=%s))", userName),
-		[]string{"dn"},
-		nil, )
+
+	//searchRequest := ldap.NewSearchRequest(searchDn, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+	//	fmt.Sprintf("(&(objectClass=inetOrgPerson)(mail=%s))", u.UserName),
+	//	[]string{"dn"},
+	//	nil, )
+
+	searchRequest := ldap.NewSearchRequest(
+		searchDn, // The base dn to search
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		fmt.Sprintf("(&(objectClass=organizationalPerson)(uid=%s))", u.UserName), // The filter to apply
+		[]string{"dn", "cn"}, // A list attributes to retrieve
+		nil,
+	)
 	sr, err := conn.Search(searchRequest)
 	if err != nil {
-		logs.Error("request ldap error:%v\n", err)
-		return
+		fmt.Println(err)
 	}
-	if len(sr.Entries) != 1 {
-		logs.Error("User does not exist or too many entries returned")
+
+	for _, entry := range sr.Entries {
+		fmt.Printf("%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
 	}
 	userDN := sr.Entries[0].DN
-	err = conn.Bind(userDN, password)
+	err = conn.Bind(userDN, u.Passwrod)
 	if err != nil {
 		logs.Error("password does not exist or too many entries returned")
+		c.ErrorJson(-1, "登录失败", nil)
 	}
-	logs.Error("success")
+	c.Ctx.SetSecureCookie(sercetKey, "userid", "liuweiqiang")
+	c.SuccessJson("登录成功")
 }
-
-//func (c *AutoTestController) login() {
-//
-//	now := time.Now()
-//	id := models.GetId("case")
-//	acm := models.AutoCaseMongo{Id: id, CreatedAt: now, UpdatedAt: now}
-//	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &acm); err != nil {
-//		c.ErrorJson(-1, "请求错误", nil)
-//	}
-//	err := acm.InsertCase(acm)
-//	if err != nil {
-//		fmt.Println(err)
-//		c.ErrorJson(-1, "请求错误", nil)
-//	}
-//	c.SuccessJson("添加成功")
-//}
