@@ -6,7 +6,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 type AutoUser struct {
@@ -19,8 +18,8 @@ type AutoUser struct {
 	//0：正常，1：删除
 	Status int `json:"status"  bson:"status"`
 	// omitempty 表示该字段为空时，不返回
-	CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
 }
 
 func init() {
@@ -70,6 +69,18 @@ func (a *AutoUser) UpdateUserById(id int64, au AutoUser) (AutoUser, error) {
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
 	err := db.Update(query, au)
+	fmt.Println(au)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return au, err
+}
+
+func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
+	query := bson.M{"status": 0}
+	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	defer ms.Close()
+	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1}).Skip(page * offset).Limit(offset).All(&au)
 	fmt.Println(au)
 	if err != nil {
 		logs.Error(1024, err)

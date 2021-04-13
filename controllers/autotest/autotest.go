@@ -20,6 +20,8 @@ func (c *AutoTestController) Post() {
 		c.updateCaseInfo()
 	case "login":
 		c.login()
+	case "get_user_list":
+		c.userList()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
