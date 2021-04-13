@@ -66,6 +66,6 @@ func (c *AutoTestController) login() {
 			c.ErrorJson(-1, "登录失败", nil)
 		}
 	}
-	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "userid", "liuweiqiang")
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "userid", u.UserName)
 	c.SuccessJson("登录成功")
 }
