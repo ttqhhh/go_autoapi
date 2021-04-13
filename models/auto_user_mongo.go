@@ -81,7 +81,6 @@ func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
 	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(page * offset).Limit(offset).All(&au)
-	fmt.Println(au)
 	if err != nil {
 		logs.Error(1024, err)
 	}

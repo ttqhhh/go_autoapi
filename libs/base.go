@@ -19,7 +19,7 @@ type ReturnMsg struct {
 }
 
 func (b *BaseController) Prepare() {
-	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userwid")
+	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userid")
 	if err == false && b.GetMethodName() != "login" {
 		logs.Error("not login")
 		b.ErrorJson(-1, "not login", nil)
