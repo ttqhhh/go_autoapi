@@ -16,7 +16,7 @@ type AutoUser struct {
 	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈
 	Business int `json:"business" bson:"business"`
 	//0：正常，1：删除
-	Status int `json:"status"  bson:"status"`
+	Status int `json:"status,omitempty"  bson:"status"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -80,7 +80,7 @@ func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
 	query := bson.M{"status": 0}
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1}).Skip(page * offset).Limit(offset).All(&au)
+	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(page * offset).Limit(offset).All(&au)
 	fmt.Println(au)
 	if err != nil {
 		logs.Error(1024, err)
