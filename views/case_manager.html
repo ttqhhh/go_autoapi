@@ -2,16 +2,57 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ClientTesting</title>
+    <title>Layui</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
-    <script type="" src="/static/layui/layui.js" charset="utf-8"></script>
-
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
-
 <body>
+
+<ul class="layui-nav layui-bg-cyan">
+    <li class="layui-nav-item"><a href="">藏青导航</a></li>
+    <li class="layui-nav-item layui-this"><a href="">产品</a></li>
+    <li class="layui-nav-item"><a href="">大数据</a></li>
+    <li class="layui-nav-item">
+        <a href="javascript:;">解决方案</a>
+        <dl class="layui-nav-child">
+            <dd><a href="">移动模块</a></dd>
+            <dd><a href="">后台模版</a></dd>
+            <dd><a href="">电商平台</a></dd>
+        </dl>
+    </li>
+    <li class="layui-nav-item"><a href="">社区</a></li>
+</ul>
+<br>
+
+<div class="layui-btn-group demoTable">
+    <button class="layui-btn" data-type="getCheckData">获取选中行数据</button>
+    <button class="layui-btn" data-type="getCheckLength">获取选中数目</button>
+    <button class="layui-btn" data-type="isAll">验证是否全选</button>
+</div>
+
+<table class="layui-table" lay-data="{url:'/cases/get_cases/', page:true, id:'idTest'}" lay-filter="demo">
+    <thead>
+    <tr>
+        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+        <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
+        <th lay-data="{field:'app_name', width:100}">应用名称</th>
+        <th lay-data="{field:'server_name', width:150}">服务名称</th>
+        <th lay-data="{field:'case_name', width:120, sort: true}">用例名称</th>
+        <th lay-data="{field:'case_des', width:160}">用例描述</th>
+        <th lay-data="{field:'api_data', width:150}">接口数据</th>
+        <th lay-data="{field:'test_env', width:120}">测试环境</th>
+        <th lay-data="{field:'post_method', width:135, sort: true}">请求方式</th>
+        <th lay-data="{field:'act_parameter', width:135, sort: true}">动态参数</th>
+        <th lay-data="{field:'parameter', width:135, sort: true}">参数</th>
+        <th lay-data="{field:'check_point', width:135, sort: true}">检查点</th>
+        <th lay-data="{field:'level', width:80, sort: true, fixed: 'right'}">等级</th>
+        <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}">操作</th>
+    </tr>
+    </thead>
+</table>
 
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
@@ -19,37 +60,11 @@
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
-<table class="layui-table" lay-data="{width: 892, height:330, url:'/demo/table/user/', page:true, id:'idTest'}" lay-filter="demo">
-    <thead>
-    <tr>
-        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
-        <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
-        <th lay-data="{field:'username', width:80}">用户名</th>
-        <th lay-data="{field:'sex', width:80, sort: true}">性别</th>
-        <th lay-data="{field:'city', width:80}">城市</th>
-        <th lay-data="{field:'sign', width:160}">签名</th>
-        <th lay-data="{field:'experience', width:80, sort: true}">积分</th>
 
-        <th lay-data="{field:'classify', width:80}">职业</th>
-        <th lay-data="{field:'wealth', width:135, sort: true}">财富</th>
-        <th lay-data="{field:'score', width:80, sort: true, fixed: 'right'}">评分</th>
-        <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}"></th>
-    </tr>
-    </thead>
-</table>
-
-</body>
-
+<script src="/static/layui/layui.js" charset="utf-8"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
 <script>
-    layui.use(['element', 'jquery',"layer"], function(){
-        var element = layui.element;
-        var $ =layui.$;
-        var layer = layui.layer;
-        element.on('nav(demo)', function(elem){
-            layer.msg(elem.text());
-        });
-
-        layer.alert('hahhahh')
+    layui.use('table', function(){
         var table = layui.table;
         //监听表格复选框选择
         table.on('checkbox(demo)', function(obj){
@@ -94,4 +109,5 @@
     });
 </script>
 
-
+</body>
+</html>
