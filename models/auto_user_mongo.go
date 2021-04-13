@@ -56,9 +56,8 @@ func (a *AutoUser) GetUserByName(name string) (au AutoUser, err error) {
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
 	err = db.Find(query).One(&au)
-	fmt.Println(au)
 	if err != nil {
-		logs.Error(59, err)
+		logs.Error(err)
 	}
 	return au, err
 }

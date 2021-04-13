@@ -58,7 +58,7 @@ func (c *AutoTestController) login() {
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
 	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
-	_, err = au.GetUserByName(u.UserName)
+	loginUser, err := au.GetUserByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		err = au.InsertCase(au)
 		if err != nil {
@@ -66,6 +66,7 @@ func (c *AutoTestController) login() {
 			c.ErrorJson(-1, "登录失败", nil)
 		}
 	}
-	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "userid", u.UserName)
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
 	c.SuccessJson("登录成功")
 }
