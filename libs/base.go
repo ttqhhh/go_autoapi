@@ -2,7 +2,9 @@ package libs
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	constant "go_autoapi/constants"
 	"strings"
 )
 
@@ -16,6 +18,14 @@ type ReturnMsg struct {
 	Data interface{} `json:"data"`
 }
 
+func (b *BaseController) Prepare() {
+	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userwid")
+	if err == false && b.GetMethodName() != "login" {
+		logs.Error("not login")
+		b.ErrorJson(-1, "not login", nil)
+	}
+	fmt.Println(userId)
+}
 func (b *BaseController) SuccessJson(data interface{}) {
 
 	res := ReturnMsg{

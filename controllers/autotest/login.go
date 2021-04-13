@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/beego/beego/v2/server/web"
 	"github.com/go-ldap/ldap/v3"
+	constant "go_autoapi/constants"
 	"go_autoapi/models"
 	"gopkg.in/mgo.v2"
 	"time"
@@ -55,7 +56,7 @@ func (c *AutoTestController) login() {
 		c.ErrorJson(-1, "登录失败", nil)
 	}
 	now := time.Now()
-	timestamp := now.Format(timeFormat)
+	timestamp := now.Format(constant.TimeFormat)
 	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 	_, err = au.GetUserByName(u.UserName)
 	if err == mgo.ErrNotFound {
@@ -65,6 +66,6 @@ func (c *AutoTestController) login() {
 			c.ErrorJson(-1, "登录失败", nil)
 		}
 	}
-	c.Ctx.SetSecureCookie(cookieSecretKey, "userid", "liuweiqiang")
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "userid", "liuweiqiang")
 	c.SuccessJson("登录成功")
 }
