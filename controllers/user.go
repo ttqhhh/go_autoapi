@@ -32,5 +32,6 @@ func (c *UserController) add() {
 	amc := models.AdMockCase{}
 	data, _ := amc.QueryByUUid("5eb62275-9818-4101-a477-6fef0bb9c7bd")
 	fmt.Println(&data)
+	fmt.Println("-------------------")
 	c.SuccessJson(&data)
 }
