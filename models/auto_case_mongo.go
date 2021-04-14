@@ -61,6 +61,7 @@ func (a *AutoCaseMongo) InsertCase(acm AutoCaseMongo) error {
 }
 
 func (a *AutoCaseMongo) GetCaseById(id int64) (AutoCaseMongo, error) {
+	
 	fmt.Println(id)
 	query := bson.M{"_id": id}
 	acm := AutoCaseMongo{}

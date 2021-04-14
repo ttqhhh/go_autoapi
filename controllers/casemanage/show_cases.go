@@ -7,3 +7,11 @@ func (c *CaseManageController) showCases(){
 	c.TplName = "case_manager.html"
 
 }
+
+func (c *CaseManageController) getAllCase(){
+
+	//读取数据库全部case
+	//all_case = models.TestCaseMongo{}
+	c.Data["json"] = "hhhh"
+	c.ServeJSON()
+}
