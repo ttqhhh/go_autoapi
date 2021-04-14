@@ -60,7 +60,7 @@ func (c *AutoTestController) login() {
 	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 	loginUser, err := au.GetUserByName(u.UserName)
 	if err == mgo.ErrNotFound {
-		err = au.InsertCase(au)
+		err = au.InsertUser(au)
 		if err != nil {
 			logs.Error("failed to store in db")
 			c.ErrorJson(-1, "登录失败", nil)
@@ -69,4 +69,8 @@ func (c *AutoTestController) login() {
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
 	c.SuccessJson("登录成功")
+}
+
+func (c *AutoTestController) logout() {
+	c.SuccessJson(map[string]string{"location": "/login"})
 }

@@ -20,6 +20,8 @@ func (c *AutoTestController) Post() {
 		c.updateCaseInfo()
 	case "login":
 		c.login()
+	case "logout":
+		c.logout()
 	case "get_user_list":
 		c.userList()
 	default:
