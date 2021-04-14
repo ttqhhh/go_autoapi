@@ -26,3 +26,4 @@ func (c *AutoTestController) updateCaseInfo() {
 	}
 	c.SuccessJson("更新成功")
 }
+

@@ -1,7 +1,11 @@
 package models
 
 import (
+	"fmt"
+	"github.com/beego/beego/v2/core/logs"
 	_ "github.com/go-sql-driver/mysql"
+	"go_autoapi/db_proxy"
+	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
@@ -25,12 +29,67 @@ type TestCaseMongo struct {
 	Level		string		`json:"level"`
 }
 
-//func (t *TestCaseMongo) getALLCases(){
-//	query := TestCaseMongo{}
-//	//ms, db := db_proxy.FindAll("auto_api", "case", query)
-//	if err := db.Find(); err !=nil{
-//		logs.Error(1024, err)
-//	}
-//}
+//db:操作的数据库
+//collection:操作的文档(表)
+//query:查询条件
+//selector:需要过滤的数据(projection)
+//result:查询到的结果
 
+// 获取指定server下的所有case
 
+func (t *TestCaseMongo) getALLCases(serviceName string)(TestCaseMongo, error){
+	//query := TestCaseMongo{}
+	query := bson.M{"server_name": serviceName}
+	var acm = TestCaseMongo{}
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	err := c.Find(query).All(&acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
+
+// 通过id获取指定case
+
+func (a *TestCaseMongo) getOneCase(id int64) (TestCaseMongo, error) {
+
+	fmt.Println(id)
+	query := bson.M{"_id": id}
+	acm := TestCaseMongo{}
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	err := db.Find(query).One(&acm)
+	fmt.Println(acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
+
+// 添加一条case
+
+func (a *TestCaseMongo) addOneCase(acm TestCaseMongo) error{
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer  ms.Close()
+	err := db.Insert(acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return err
+}
+
+// 通过id修改case
+
+func (a *TestCaseMongo) UpdateCaseById(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
+	fmt.Println(id)
+	query := bson.M{"_id": id}
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	err := db.Update(query, acm)
+	fmt.Println(acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
