@@ -1,9 +1,7 @@
 package models
 
 import (
-	"github.com/beego/beego/v2/core/logs"
 	_ "github.com/go-sql-driver/mysql"
-	"go_autoapi/db_proxy"
 	"time"
 )
 
@@ -27,12 +25,12 @@ type TestCaseMongo struct {
 	Level		string		`json:"level"`
 }
 
-func (t *TestCaseMongo) getALLCases(){
-	query := TestCaseMongo{}
-	ms, db := db_proxy.FindAll("auto_api", "case", query)
-	if err := db.Find(); err !=nil{
-		logs.Error(1024, err)
-	}
-}
+//func (t *TestCaseMongo) getALLCases(){
+//	query := TestCaseMongo{}
+//	//ms, db := db_proxy.FindAll("auto_api", "case", query)
+//	if err := db.Find(); err !=nil{
+//		logs.Error(1024, err)
+//	}
+//}
 
 

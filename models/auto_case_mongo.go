@@ -15,7 +15,8 @@ type AutoCaseMongo struct {
 	CaseName    string    `json:"case_name" bson:"case_name"`
 	Description string    `json:"description" bson:"description"`
 	Method      string    `json:"method" bson:"method"`
-	CreatedAt   time.Time `json:"created_at"`
+	// omitempty 表示该字段为空时，不返回
+	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/siddontang/go/log"
+	"github.com/astaxie/beego/logs"
 	"go_autoapi/libs"
 )
 
@@ -18,8 +18,14 @@ func (c *AutoTestController) Post() {
 		c.addCase()
 	case "update_case":
 		c.updateCaseInfo()
+	case "login":
+		c.login()
+	case "logout":
+		c.logout()
+	case "get_user_list":
+		c.userList()
 	default:
-		log.Warn("action: %s, not implemented", do)
+		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
 	}
 }
