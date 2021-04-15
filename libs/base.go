@@ -49,6 +49,5 @@ func (b *BaseController) ErrorJson(code int, msg string, data interface{}) {
 
 func (b *BaseController) GetMethodName() (do string) {
 	do = b.Ctx.Request.URL.Path
-	fmt.Println("url is ", do)
 	return strings.Split(do, "/")[2]
 }
