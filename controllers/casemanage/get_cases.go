@@ -2,19 +2,39 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/beego/beego/v2/core/logs"
+	"go_autoapi/models"
+	"gopkg.in/mgo.v2/bson"
 )
 
-type autoCase struct {
-	Id int `form:"id"`
+func (c *CaseManageController) GetAllCases(){
+	acm := models.TestCaseMongo{}
+	result, err := acm.GetAllCases()
+	if err != nil {
+		logs.Error("获取全部用例失败")
+		logs.Error(1024, err)
+	}
+	c.SuccessJson(result)
 }
 
-func (c *CaseManageController) getCases(){
-	fmt.Println("获取用例数据，返回并展示")
-	ac := autoCase{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ac); err != nil {
-		logs.Error(1024, err)
-		c.ErrorJson(-1, "请求错误", nil)
-	}
+type FindData struct {
+	key 		string
+	value 		string
 }
+
+func (c *CaseManageController) GetCasesByQuery(){
+	fd := FindData{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &fd); err != nil{
+		logs.Error("获取用例，解析json数据")
+	}
+	query := bson.M{fd.key: fd.value}
+	//que_str =
+	acm := models.TestCaseMongo{}
+	result, err := acm.GetCasesByQuery(query)
+	if err != nil {
+		logs.Error("通过" + fd.key + "获取用例失败")
+		logs.Error(1024, err)
+	}
+	c.SuccessJson(result)
+}
+

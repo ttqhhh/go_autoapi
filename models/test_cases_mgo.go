@@ -37,9 +37,8 @@ type TestCaseMongo struct {
 
 // 获取指定server下的所有case
 
-func (t *TestCaseMongo) getALLCases(serviceName string)(TestCaseMongo, error){
+func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error){
 	//query := TestCaseMongo{}
-	query := bson.M{"server_name": serviceName}
 	var acm = TestCaseMongo{}
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -50,9 +49,22 @@ func (t *TestCaseMongo) getALLCases(serviceName string)(TestCaseMongo, error){
 	return acm, err
 }
 
+// 获取全部case
+func (t *TestCaseMongo) GetAllCases()(TestCaseMongo, error){
+	var acm = TestCaseMongo{}
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	err := c.Find(nil).All(&acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
+
+
 // 通过id获取指定case
 
-func (a *TestCaseMongo) getOneCase(id int64) (TestCaseMongo, error) {
+func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo, error) {
 
 	fmt.Println(id)
 	query := bson.M{"_id": id}
@@ -69,7 +81,7 @@ func (a *TestCaseMongo) getOneCase(id int64) (TestCaseMongo, error) {
 
 // 添加一条case
 
-func (a *TestCaseMongo) addOneCase(acm TestCaseMongo) error{
+func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error{
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer  ms.Close()
 	err := db.Insert(acm)
@@ -81,7 +93,7 @@ func (a *TestCaseMongo) addOneCase(acm TestCaseMongo) error{
 
 // 通过id修改case
 
-func (a *TestCaseMongo) UpdateCaseById(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
+func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
 	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")

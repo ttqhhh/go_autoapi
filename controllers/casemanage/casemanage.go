@@ -26,7 +26,11 @@ func (c *CaseManageController) Post() {
 	do := c.GetMethodName()
 	switch do {
 	case "get_one_case":
-		c.getCases()
+		c.GetCasesByQuery()
+	case "update_one_case":
+		c.updateCaseByID()
+	case "add_one_case":
+		c.AddOneCase()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
