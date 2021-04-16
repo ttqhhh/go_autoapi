@@ -5,17 +5,6 @@ import (
 	"go_autoapi/libs"
 )
 
-//type UserList struct {
-//	Offset int `json:"offset"`
-//	Page   int `json:"page"`
-//}
-type checkPoint struct {
-	Point interface{}
-}
-
-type checkPoints struct {
-	Ponits map[string]checkPoint
-}
 type CheckOut struct {
 	Url   string                 `json:"url"`
 	Uuid  string                 `json:"uuid"`

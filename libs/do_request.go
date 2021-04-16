@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/astaxie/beego/cache"
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/db_proxy"
 	"io/ioutil"
 	"net/http"
 )
 
-var redisCache cache.Cache
+func init() {
+	_ = db_proxy.InitClient()
+}
 
 //模拟请求方法
 func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]interface{}) (int, string, string) {
@@ -47,7 +48,6 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 
 func DoRequest(url string, uuid string, data map[string]interface{}, verify interface{}) {
 	//密码
-	_ = db_proxy.InitClient()
 	r := db_proxy.GetRedisObject()
 	statusCode, body, _ := HttpPost(url, nil, data)
 	//body jsonStr转map
