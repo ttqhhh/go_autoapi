@@ -11,6 +11,7 @@ import (
 )
 
 func init() {
+	fmt.Println("please init me")
 	_ = db_proxy.InitClient()
 }
 
