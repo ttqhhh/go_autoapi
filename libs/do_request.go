@@ -45,7 +45,7 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 	return resp.StatusCode, string(body), cookieStr
 }
 
-func DoRequest(url string, uuid string, data map[string]interface{}, verify map[string]interface{}) {
+func DoRequest(url string, uuid string, data map[string]interface{}, verify interface{}) {
 	//密码
 	_ = db_proxy.InitClient()
 	r := db_proxy.GetRedisObject()
