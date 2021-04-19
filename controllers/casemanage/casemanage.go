@@ -13,9 +13,13 @@ func (c *CaseManageController) Get() {
 	do := c.GetMethodName()
 	switch do {
 	case "show_cases":
-		c.showCases()
+		c.ShowCases()
+	case "show_add_case":
+		c.ShowAddCase()
+	case "show_edit_case":
+		c.ShowEditCase()
 	case "get_all_cases":
-		c.getAllCase()
+		c.GetAllCases()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -31,6 +35,8 @@ func (c *CaseManageController) Post() {
 		c.updateCaseByID()
 	case "add_one_case":
 		c.AddOneCase()
+	case "del_one_case":
+		c.DelCaseByID()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)

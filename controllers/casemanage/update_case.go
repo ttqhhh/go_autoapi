@@ -1,26 +1,34 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/beego/beego/v2/core/logs"
+	"github.com/astaxie/beego/logs"
 	"go_autoapi/models"
+	"strconv"
 )
 
 func (c *CaseManageController) updateCaseByID() {
-	ac := models.TestCaseMongo{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ac); err != nil {
-		logs.Error(1024, err)
-		c.ErrorJson(-1, "请求错误", nil)
-	}
-	caseId := ac.Id
-	fmt.Println(caseId)
 	acm := models.TestCaseMongo{}
-	acm, err := acm.UpdateCase(caseId, ac)
+	if err:=c.ParseForm(&acm);err!=nil { //传入user指针
+		c.Ctx.WriteString("出错了！")
+	}
+	caseId := acm.Id
+	acm, err := acm.UpdateCase(caseId, acm)
 	if err != nil {
 		fmt.Println(err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson("更新成功")
+	//c.SuccessJson("更新成功")
+	c.Ctx.Redirect(302,"/case/show_cases")
 }
 
+func (c *CaseManageController) DelCaseByID() {
+	caseID := c.GetString("id")
+	ac := models.TestCaseMongo{}
+	caseIDInt, err := strconv.ParseInt(caseID, 10, 64)
+	if err != nil{
+		logs.Error("在删除用例的时候类型转换失败")
+	}
+	ac.DelCase(caseIDInt)
+	logs.Info("删除成功")
+}

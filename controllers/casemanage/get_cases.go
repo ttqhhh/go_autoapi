@@ -7,16 +7,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (c *CaseManageController) GetAllCases(){
-	acm := models.TestCaseMongo{}
-	result, err := acm.GetAllCases()
-	if err != nil {
-		logs.Error("获取全部用例失败")
-		logs.Error(1024, err)
-	}
-	c.SuccessJson(result)
-}
-
 type FindData struct {
 	key 		string
 	value 		string
@@ -27,7 +17,7 @@ func (c *CaseManageController) GetCasesByQuery(){
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &fd); err != nil{
 		logs.Error("获取用例，解析json数据")
 	}
-	query := bson.M{fd.key: fd.value}
+	query := bson.M{fd.key: fd.value,"status":"0"}
 	//que_str =
 	acm := models.TestCaseMongo{}
 	result, err := acm.GetCasesByQuery(query)
@@ -35,6 +25,6 @@ func (c *CaseManageController) GetCasesByQuery(){
 		logs.Error("通过" + fd.key + "获取用例失败")
 		logs.Error(1024, err)
 	}
-	c.SuccessJson(result)
+	c.FormSuccessJson(result)
 }
 

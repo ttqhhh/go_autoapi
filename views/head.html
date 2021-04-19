@@ -7,14 +7,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
     <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
 <body>
 
+<script>
+    layui.use(['element', 'jquery',"layer"], function(){
+        var element = layui.element;
+        var $ =layui.$;
+        var layer = layui.layer;
+        element.on('nav(demo)', function(elem){
+            layer.msg(elem.text());
+        });
+        $(function () {
+            var url_id = window.location.pathname + window.location.search
+            $(document.getElementById(url_id)).addClass("layui-this");
+        });
+    });
+</script>
+
 <ul class="layui-nav layui-bg-cyan">
-    <li class="layui-nav-item"><a href="">藏青导航</a></li>
-    <li class="layui-nav-item layui-this"><a href="">产品</a></li>
-    <li class="layui-nav-item"><a href="">大数据</a></li>
+    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>
+    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>
+    <li class="layui-nav-item"><a href="">报告管理</a></li>
     <li class="layui-nav-item">
         <a href="javascript:;">解决方案</a>
         <dl class="layui-nav-child">

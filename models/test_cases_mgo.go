@@ -10,23 +10,24 @@ import (
 )
 
 type TestCaseMongo struct {
-	Id          int64     `json:"id" bson:"_id"`
-	ApiName     string    `json:"api_name" bson:"api_name"`
-	CaseName    string    `json:"case_name" bson:"case_name"`
-	Description string    `json:"description" bson:"description"`
-	Method      string    `json:"method" bson:"method"`
+	Id          int64     `form:"id" json:"id" bson:"_id"`
+	ApiName     string    `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName    string    `form:"case_name" json:"case_name" bson:"case_name"`
+	Description string    `form:"description" json:"description" bson:"description"`
+	Method      string    `form:"method" json:"method" bson:"method"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	//zen
-	AppName 	string	   `json:"app_name"`
-	ServiceName	string	   `json:"service_name"`
-	ApiUrl 		string 	   `json:"api_url"`
-	TestEnv 	string 	   `json:"test_env"`
-	Mock		string		`json:"mock"`
-	RequestMethod string	`json:"request_method"`
-	Parameter   string		`json:"parameter"`
-	Checkpoint	string		`json:"check_point"`
-	Level		string		`json:"level"`
+	AppName 	string	   `form:"app_name" json:"app_name" bson:"app_name"`
+	ServiceName	string	   `form:"service_name" json:"service_name" bson:"service_name"`
+	ApiUrl 		string 	   `form:"api_url" json:"api_url" bson:"api_url"`
+	TestEnv 	string 	   `form:"test_env" json:"test_env" bson:"test_env"`
+	Mock		string		`form:"mock" json:"mock" bson:"mock"`
+	RequestMethod string	`form:"request_method" json:"request_method" bson:"request_method"`
+	Parameter   string		`form:"parameter" json:"parameter" bson:"parameter"`
+	Checkpoint	string		`form:"check_point" json:"check_point" bson:"check_point"`
+	Level		string		`form:"level" json:"level" bson:"level"`
+	Status		string      `json:"status" bson:"status"`
 }
 
 //db:操作的数据库
@@ -50,15 +51,19 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error)
 }
 
 // 获取全部case
-func (t *TestCaseMongo) GetAllCases()(TestCaseMongo, error){
-	var acm = TestCaseMongo{}
+func (t *TestCaseMongo) GetAllCases() ([]TestCaseMongo, error) {
+	//acm := TestCaseMongo{}
+	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	err := c.Find(nil).All(&acm)
+	query := bson.M{"status":"0"}
+	err := c.Find(query).All(&result)
+	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
+		fmt.Println(err)
 		logs.Error(1024, err)
 	}
-	return acm, err
+	return result,err
 }
 
 
@@ -67,7 +72,7 @@ func (t *TestCaseMongo) GetAllCases()(TestCaseMongo, error){
 func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo, error) {
 
 	fmt.Println(id)
-	query := bson.M{"_id": id}
+	query := bson.M{"_id": id, "status":"0"}
 	acm := TestCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -91,17 +96,32 @@ func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error{
 	return err
 }
 
-// 通过id修改case
+// 通过id修改case（全更新）
 
 func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
 	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
+	acm.Status = "0"
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
 		logs.Error(1024, err)
 	}
 	return acm, err
+}
+
+// 修改status
+
+func (t *TestCaseMongo) DelCase(id int64){
+	query := bson.M{"_id": id}
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	//err := db.Find(query).One(&acm)
+	err := db.Update(query, bson.M{"$set":bson.M{"status":"1"}})
+	if err != nil{
+		logs.Error("删除case失败，更给状态为1失败")
+		logs.Error(err)
+	}
 }
