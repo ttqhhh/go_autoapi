@@ -34,7 +34,7 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 		req.Header.Add(k, v)
 	}
 	resp, _ := client.Do(req)
-	logs.Error("requests err:", resp)
+	//logs.Error("requests err:", resp)
 	//返回内容
 	body, err := ioutil.ReadAll(resp.Body)
 	logs.Error("requests err:", err)
@@ -78,48 +78,57 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 		fmt.Println("请求返回状态不是200，请求失败")
 		return
 	}
-	//ret := verify["code"]["code"]
-	//fmt.Println("ret is ", ret)
-	//if ret != jmap["code"] {
-	//	fmt.Println("接口返回状态码不正确", jmap["code"], verify["ret"]["code"])
-	//}
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
+		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
 		for subK, subV := range v {
 			data := jmap["data"].(map[string]interface{})
-			fmt.Println("sub is ", subK, reflect.TypeOf(subV), reflect.TypeOf(data[k]))
+			logs.Error("sub is ", subK, subV)
 			if subK == "eq" {
-				logs.Error("eq here")
-				if jmap["code"] != subV {
+				if k == "code" {
+					logs.Error("code here ,OK no problem", jmap["code"], subV)
+					if jmap["code"] != subV {
+						logs.Error("code not equal", jmap["code"], subV, subK)
+						return
+					}
+				} else if data[k] != subV {
 					logs.Error("not equal", jmap["code"], subV)
+					return
 				}
 			} else if subK == "lt" {
-				if subV.(int64) >= data[k].(int64) {
+				if subV.(float64) >= data[k].(float64) {
 					logs.Error("not lt", data[k], subV)
+					return
 				}
 			} else if subK == "gt" {
 				if subV.(int64) <= data[k].(int64) {
 					logs.Error("not gt", data[k], subV)
+					return
 				}
 			} else if subK == "lte" {
 				if subV.(int64) > data[k].(int64) {
 					logs.Error("not lte", data[k], subV)
+					return
 				}
 			} else if subK == "gte" {
 				if subV.(int64) < data[k].(int64) {
 					logs.Error("not gte", data[k], subV)
+					return
 				}
 			} else if subK == "need" {
 				if data[k] == nil {
 					logs.Error("not need", data[k], subV)
+					return
 				}
 			} else if subK == "in" {
 				b := strings.ContainsAny(data[k].(string), subV.(string))
-				if b {
+				if b == false {
 					logs.Error("not in", data[k], subV)
+					return
 				}
 			} else {
 				logs.Error("do not support")
+				return
 			}
 		}
 	}
