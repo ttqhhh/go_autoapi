@@ -51,13 +51,13 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error)
 }
 
 // 获取全部case
-func (t *TestCaseMongo) GetAllCases() ([]TestCaseMongo, error) {
+func (t *TestCaseMongo) GetAllCases(page ,limit int) ([]TestCaseMongo, error) {
 	//acm := TestCaseMongo{}
 	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"status":"0"}
-	err := c.Find(query).All(&result)
+	err := c.Find(query).Skip((page-1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
 		fmt.Println(err)

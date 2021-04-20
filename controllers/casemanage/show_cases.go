@@ -28,7 +28,9 @@ func (c* CaseManageController) ShowAddCase(){
 
 func (c *CaseManageController) GetAllCases(){
 	acm := models.TestCaseMongo{}
-	result, err := acm.GetAllCases()
+	page, _ := strconv.Atoi(c.GetString("page"))
+	limit, _ := strconv.Atoi(c.GetString("limit"))
+	result, err := acm.GetAllCases(page, limit)
 	if err != nil {
 		logs.Error("获取全部用例失败")
 		logs.Error(1024, err)
