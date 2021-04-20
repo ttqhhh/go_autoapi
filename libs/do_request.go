@@ -74,6 +74,7 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 		fmt.Println("解析失败", err)
 		return
 	}
+	data := jmap["data"].(map[string]interface{})
 	if statusCode != 200 {
 		fmt.Println("请求返回状态不是200，请求失败")
 		return
@@ -81,9 +82,11 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
 		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
+		if k != "code" && data[k] == nil {
+			logs.Error("the verify key is not exist in the response", k)
+			return
+		}
 		for subK, subV := range v {
-			data := jmap["data"].(map[string]interface{})
-			logs.Error("sub is ", subK, subV)
 			if subK == "eq" {
 				if k == "code" {
 					logs.Error("code here ,OK no problem", jmap["code"], subV)
@@ -92,7 +95,7 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 						return
 					}
 				} else if data[k] != subV {
-					logs.Error("not equal", jmap["code"], subV)
+					logs.Error("not equal", data[k], subV)
 					return
 				}
 			} else if subK == "lt" {
