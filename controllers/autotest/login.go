@@ -68,7 +68,7 @@ func (c *AutoTestController) login() {
 	}
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
-	c.SuccessJson("登录成功")
+	c.SuccessJson(au)
 }
 
 func (c *AutoTestController) logout() {
