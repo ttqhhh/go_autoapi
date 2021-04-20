@@ -119,6 +119,7 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 					return
 				}
 			} else if subK == "need" {
+				logs.Error("need string", data[k], subV)
 				if data[k] == nil {
 					logs.Error("not need", data[k], subV)
 					return

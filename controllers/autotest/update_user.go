@@ -6,13 +6,13 @@ import (
 	"go_autoapi/models"
 )
 
-type UserList struct {
+type BusinessList struct {
 	Offset int `json:"offset"`
 	Page   int `json:"page"`
 }
 
 // 获取用户列表 登录
-func (c *AutoTestController) userList() {
+func (c *AutoTestController) updateUser() {
 	ul := UserList{}
 	l := logs.GetBeeLogger()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ul); err != nil {
