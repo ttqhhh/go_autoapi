@@ -5,6 +5,23 @@ import (
 	"go_autoapi/libs"
 )
 
+// 请求demo，如何传递jsonpath
+//{
+//"url": "http://127.0.0.1:8080/auto/login",
+//"uuid": "xxxxx",
+//"param": {
+//"user_name": "liuweiqiang",
+//"password": "OneixahDooquae1"
+//},
+//"check_point": {
+//"$.code": {
+//"eq": 200
+//},
+//"$.data.email": {
+//"in": "liuweiqiang2014"
+//}
+//}
+//}
 type CheckOut struct {
 	Url   string                            `json:"url"`
 	Uuid  string                            `json:"uuid"`

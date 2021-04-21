@@ -6,18 +6,17 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"time"
 )
 
 type AutoCaseMongo struct {
-	Id          int64     `json:"id" bson:"_id"`
-	ApiName     string    `json:"api_name" bson:"api_name"`
-	CaseName    string    `json:"case_name" bson:"case_name"`
-	Description string    `json:"description" bson:"description"`
-	Method      string    `json:"method" bson:"method"`
+	Id          int64  `json:"id" bson:"_id"`
+	ApiName     string `json:"api_name" bson:"api_name"`
+	CaseName    string `json:"case_name" bson:"case_name"`
+	Description string `json:"description" bson:"description"`
+	Method      string `json:"method" bson:"method"`
 	// omitempty 表示该字段为空时，不返回
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	CreatedAt string `json:"created_at,omitempty"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 type Ids struct {
