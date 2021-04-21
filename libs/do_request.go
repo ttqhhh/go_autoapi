@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/bitly/go-simplejson"
+	"github.com/spyzhov/ajson"
 	"go_autoapi/db_proxy"
 	"io/ioutil"
 	"net/http"
@@ -71,7 +72,7 @@ func DoRequest(url string, uuid string, data map[string]interface{}, verify map[
 	// 判断某个字段的类型
 	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
 	//判断登录是否成功
-	doVerify(statusCode, body, verify)
+	doVerifyV2(statusCode, body, verify)
 	r.Incr(uuid)
 
 }
@@ -83,6 +84,8 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 		fmt.Println("解析失败", err)
 		return
 	}
+	root, _ := ajson.JSONPath([]byte(response), "$.data.id")
+	fmt.Println("root is ", root)
 	data := jmap["data"].(map[string]interface{})
 	if statusCode != 200 {
 		fmt.Println("请求返回状态不是200，请求失败")
@@ -137,6 +140,81 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 				b := strings.ContainsAny(data[k].(string), subV.(string))
 				if b == false {
 					logs.Error("not in", data[k], subV)
+					return
+				}
+			} else {
+				logs.Error("do not support")
+				return
+			}
+		}
+	}
+}
+
+// 采用jsonpath 对结果进行验证
+func doVerifyV2(statusCode int, response string, verify map[string]map[string]interface{}) {
+
+	if statusCode != 200 {
+		fmt.Println("请求返回状态不是200，请求失败")
+		return
+	}
+	// 提前检查jsonpath是否存在，不存在就报错
+	for k := range verify {
+		verifyO, err := ajson.JSONPath([]byte(response), k)
+		if err != nil {
+			logs.Error("doVerifyV2 jsonpath error，test failed", err)
+		}
+		if len(verifyO) == 0 {
+			logs.Error("the verify key is not exist in the response", k)
+			return
+		}
+	}
+	for k, v := range verify {
+		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
+		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
+		verifyO, _ := ajson.JSONPath([]byte(response), k)
+		for subK, subV := range v {
+			var vv interface{}
+			// 根据类型转换jsonpath获取的数组首位类型
+			switch subV.(type) {
+			case string:
+				vv = verifyO[0].MustString()
+			case float64:
+				vv = verifyO[0].MustNumeric()
+
+			}
+			if subK == "eq" {
+				if subV != vv {
+					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "need" {
+				if subV != vv {
+					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "in" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "lt" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not lt, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "gt" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not gt, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "lte" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not lte, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "gte" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not gte, key %s, actual value %v,expected %v", k, vv, subV)
 					return
 				}
 			} else {

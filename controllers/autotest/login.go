@@ -58,7 +58,7 @@ func (c *AutoTestController) login() {
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
 	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
-	loginUser, err := au.GetUserByName(u.UserName)
+	loginUser, err := au.GetUserInfoByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		err = au.InsertUser(au)
 		if err != nil {
