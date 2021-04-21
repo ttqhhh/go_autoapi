@@ -6,6 +6,7 @@ require github.com/beego/beego/v2 v2.0.1
 
 require (
 	github.com/astaxie/beego v1.12.3
+	github.com/bitly/go-simplejson v0.5.0
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-redis/redis v6.14.2+incompatible

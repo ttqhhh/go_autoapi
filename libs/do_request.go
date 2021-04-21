@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/bitly/go-simplejson"
 	"go_autoapi/db_proxy"
 	"io/ioutil"
 	"net/http"
@@ -59,6 +60,14 @@ func DoRequest(url string, uuid string, data map[string]interface{}, verify map[
 		fmt.Println("解析失败", err)
 		return
 	}
+	// 此处采用go-simplejson来做个示例，用于以后扩展检查使用
+	js, err := simplejson.NewJson([]byte(body))
+	if err != nil {
+		return
+	}
+	email, err := js.Get("data").Get("email").String()
+	fmt.Println(js.Get("code"), email)
+
 	// 判断某个字段的类型
 	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
 	//判断登录是否成功
