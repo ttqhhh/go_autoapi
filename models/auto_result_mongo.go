@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	_ "github.com/go-sql-driver/mysql"
+	"go_autoapi/constants"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
+	"time"
 )
 
 type AutoResult struct {
@@ -28,7 +30,16 @@ func (a *AutoResult) TableName() string {
 	return "auto_result"
 }
 
-func (a *AutoResult) InsertResult(ar AutoResult) error {
+func InsertResult(uuid string, case_id int64, reason string) error {
+	now := time.Now().Format(constants.TimeFormat)
+	ar := AutoResult{}
+	ar.Id = GetId("result")
+	ar.RunId = uuid
+	ar.CaseId = case_id
+	ar.Result = 1
+	ar.Reason = reason
+	ar.CreatedAt = now
+	ar.UpdatedAt = now
 	ms, db := db_proxy.Connect("auto_api", "auto_result")
 	defer ms.Close()
 	return db.Insert(ar)

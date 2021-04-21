@@ -72,13 +72,13 @@ func DoRequest(url string, uuid string, data map[string]interface{}, verify map[
 	// 判断某个字段的类型
 	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
 	//判断登录是否成功
-	doVerifyV2(statusCode, body, verify)
+	doVerifyV2(statusCode, uuid, body, verify)
 	r.Incr(uuid)
 
 }
 
 // 增加验证函数，比较响应和需要验证的内容
-func doVerify(statusCode int, response string, verify map[string]map[string]interface{}) {
+func doVerify(statusCode int, uuid string, response string, verify map[string]map[string]interface{}) {
 	var jmap map[string]interface{}
 	if err := json.Unmarshal([]byte(response), &jmap); err != nil {
 		fmt.Println("解析失败", err)
@@ -151,7 +151,7 @@ func doVerify(statusCode int, response string, verify map[string]map[string]inte
 }
 
 // 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, response string, verify map[string]map[string]interface{}) {
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}) {
 
 	if statusCode != 200 {
 		fmt.Println("请求返回状态不是200，请求失败")
