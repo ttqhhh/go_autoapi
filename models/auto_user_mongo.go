@@ -82,7 +82,7 @@ func (a *AutoUser) DeleteUserById(id int64) (err error) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
-	err = db.Update(query, bson.M{"status": 1, "updated_at": time.Now().Format(constants.TimeFormat)})
+	err = db.Update(query, bson.M{"$set": bson.M{"status": 1, "updated_at": time.Now().Format(constants.TimeFormat)}})
 	if err != nil {
 		logs.Error("delete user failed", err)
 	}

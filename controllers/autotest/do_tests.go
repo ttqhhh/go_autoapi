@@ -46,5 +46,5 @@ func (c *AutoTestController) performTests() {
 			libs.DoRequest(url, uuid, param, checkout)
 		}(val.Url, uuid, val.Param, val.Check)
 	}
-	c.SuccessJson(map[string]interface{}{"uuid": uuid})
+	c.SuccessJson(map[string]interface{}{"uuid": uuid}, "OK")
 }
