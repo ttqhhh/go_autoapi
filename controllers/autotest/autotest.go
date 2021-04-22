@@ -32,6 +32,8 @@ func (c *AutoTestController) Post() {
 		c.addBusiness()
 	case "update_business":
 		fallthrough
+	case "get_business_list":
+		c.businessList()
 	case "perform_tests":
 		c.performTests()
 	default:

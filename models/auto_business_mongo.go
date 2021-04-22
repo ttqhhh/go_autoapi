@@ -51,7 +51,7 @@ func (a *AutoBusiness) GetBusinessList(offset, page int) (ab []*AutoBusiness, er
 	defer ms.Close()
 	err = db.Find(query).Select(bson.M{"_id": 1, "business_name": 1}).Skip(page * offset).Limit(offset).All(&ab)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("query business list error", err)
 	}
 	return ab, err
 }
