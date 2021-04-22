@@ -1,9 +1,10 @@
 {{template "head.html" .}}
 
+<div style="margin:1%">
 <div class="layui-btn-group demoTable">
-    <button class="layui-btn" data-type="getCheckData">获取选中行数据</button>
-    <button class="layui-btn" data-type="getCheckLength">获取选中数目</button>
-    <button class="layui-btn" data-type="isAll">验证是否全选</button>
+    <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>
+    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>
+    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>
 </div>
 
 <table class="layui-table" lay-data="{url:'/case/get_all_cases/', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
@@ -27,7 +28,7 @@
 </table>
 
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">运行</a>
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="run">运行</a>
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
@@ -62,17 +63,35 @@
                     window.location.reload()
                 });
             } else if(obj.event === 'edit'){
-                // layer.alert('编辑行：<br>'+ JSON.stringify(data))
-                // 这里要修改成获取本机ip
                 window.location.href="/case/show_edit_case?id="+data.id
+            } else if(obj.event === "run"){
+                var arr = new Array()
+                arr.push(data.id)
+                // alert(arr.toString())
+                $.ajax({
+                    type: 'POST',
+                    url: "/case/do_test",
+                    async:false,
+                    timeout : 500000,
+                    data: {
+                            "case_id": arr.toString(),
+                    }
+                })
             }
         });
 
         var $ = layui.$, active = {
             getCheckData: function(){ //获取选中数据
-                var checkStatus = table.checkStatus('idTest')
-                    ,data = checkStatus.data;
-                layer.alert(JSON.stringify(data));
+                var checkStatus = table.checkStatus('idTest'),
+                    data = checkStatus.data,
+                    arr_id = [];
+                for(var i = 0;i<data.length;i++){
+                    arr_id.push(data[i].id);
+                }
+                // 提交列表形式的id
+                // $.ajax({
+                //     url:
+                // })
             }
             ,getCheckLength: function(){ //获取选中数目
                 var checkStatus = table.checkStatus('idTest')
@@ -91,6 +110,6 @@
         });
     });
 </script>
-
+</div>
 </body>
 </html>

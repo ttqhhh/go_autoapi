@@ -69,7 +69,7 @@ func (t *TestCaseMongo) GetAllCases(page ,limit int) ([]TestCaseMongo, error) {
 
 // 通过id获取指定case
 
-func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo, error) {
+func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo) {
 
 	fmt.Println(id)
 	query := bson.M{"_id": id, "status":"0"}
@@ -79,9 +79,10 @@ func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo, error) {
 	err := db.Find(query).One(&acm)
 	fmt.Println(acm)
 	if err != nil {
+		logs.Info("查询case失败")
 		logs.Error(1024, err)
 	}
-	return acm, err
+	return acm
 }
 
 // 添加一条case
