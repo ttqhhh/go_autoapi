@@ -41,7 +41,7 @@ func (a *AutoUser) InsertUser(au AutoUser) error {
 
 //根据用户id获取用户信息
 func (a *AutoUser) GetUserInfoById(id int64) (AutoUser, error) {
-	query := bson.M{"_id": id}
+	query := bson.M{"_id": id, "status": 0}
 	au := AutoUser{}
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
@@ -70,7 +70,7 @@ func (a *AutoUser) UpdateUserById(id int64, mobile string, business int) (err er
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "auto_user")
 	defer ms.Close()
-	err = db.Update(query, bson.M{"mobile": mobile, "business": business, "updated_at": time.Now().Format(constants.TimeFormat)})
+	err = db.Update(query, bson.M{"$set": bson.M{"mobile": mobile, "business": business, "updated_at": time.Now().Format(constants.TimeFormat)}})
 	if err != nil {
 		logs.Error(1024, err)
 	}
