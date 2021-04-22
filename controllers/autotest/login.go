@@ -68,7 +68,11 @@ func (c *AutoTestController) login() {
 	}
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
-	c.SuccessJson(au)
+	var ul []*models.AutoUser
+	for i := 0; i < 10; i++ {
+		ul = append(ul, &au)
+	}
+	c.SuccessJson(ul)
 }
 
 func (c *AutoTestController) logout() {

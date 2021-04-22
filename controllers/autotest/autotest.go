@@ -24,6 +24,14 @@ func (c *AutoTestController) Post() {
 		c.logout()
 	case "get_user_list":
 		c.userList()
+	case "update_user":
+		c.updateUser()
+	case "delete_user":
+		c.deleteUser()
+	case "add_business":
+		c.addBusiness()
+	case "update_business":
+		fallthrough
 	case "perform_tests":
 		c.performTests()
 	default:

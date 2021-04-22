@@ -17,7 +17,8 @@ import (
 //"$.code": {
 //"eq": 200
 //},
-//"$.data.email": {
+// 两个..email，会递归查找所有key=email元素，返回一个list
+//"$..email": {
 //"in": "liuweiqiang2014"
 //}
 //}
