@@ -2,6 +2,8 @@ package libs
 
 import (
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/satori/go.uuid"
+	_ "go_autoapi/constants"
 	"strings"
 )
 
@@ -59,3 +61,9 @@ func (b *BaseController) FormSuccessJson(data interface{}) {
 	b.ServeJSON() //对json进行序列化输出
 	b.StopRun()
 }
+
+func (b *BaseController) GenUUid() (string, error) {
+	u2 := uuid.NewV4()
+	return u2.String(), nil
+}
+

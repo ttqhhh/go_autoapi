@@ -58,7 +58,7 @@ func (c *AutoTestController) login() {
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
 	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
-	loginUser, err := au.GetUserByName(u.UserName)
+	loginUser, err := au.GetUserInfoByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		err = au.InsertUser(au)
 		if err != nil {
@@ -68,7 +68,11 @@ func (c *AutoTestController) login() {
 	}
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
-	c.SuccessJson(au)
+	var ul []*models.AutoUser
+	for i := 0; i < 10; i++ {
+		ul = append(ul, &au)
+	}
+	c.SuccessJson(ul)
 }
 
 func (c *AutoTestController) logout() {

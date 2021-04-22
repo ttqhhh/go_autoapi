@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/bitly/go-simplejson"
+	"github.com/spyzhov/ajson"
 	"go_autoapi/db_proxy"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +36,7 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 		req.Header.Add(k, v)
 	}
 	resp, _ := client.Do(req)
-	logs.Error("requests err:", resp)
+	//logs.Error("requests err:", resp)
 	//返回内容
 	body, err := ioutil.ReadAll(resp.Body)
 	logs.Error("requests err:", err)
@@ -59,67 +61,165 @@ func DoRequest(url string, uuid string, data map[string]interface{}, verify map[
 		fmt.Println("解析失败", err)
 		return
 	}
+	// 此处采用go-simplejson来做个示例，用于以后扩展检查使用
+	js, err := simplejson.NewJson([]byte(body))
+	if err != nil {
+		return
+	}
+	email, err := js.Get("data").Get("email").String()
+	fmt.Println(js.Get("code"), email)
+
 	// 判断某个字段的类型
 	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
 	//判断登录是否成功
-	doVerify(statusCode, body, verify)
+	doVerifyV2(statusCode, uuid, body, verify)
 	r.Incr(uuid)
 
 }
 
 // 增加验证函数，比较响应和需要验证的内容
-func doVerify(statusCode int, response string, verify map[string]map[string]interface{}) {
+func doVerify(statusCode int, uuid string, response string, verify map[string]map[string]interface{}) {
 	var jmap map[string]interface{}
 	if err := json.Unmarshal([]byte(response), &jmap); err != nil {
 		fmt.Println("解析失败", err)
 		return
 	}
+	root, _ := ajson.JSONPath([]byte(response), "$.data.id")
+	fmt.Println("root is ", root)
+	data := jmap["data"].(map[string]interface{})
 	if statusCode != 200 {
 		fmt.Println("请求返回状态不是200，请求失败")
 		return
 	}
-	//ret := verify["code"]["code"]
-	//fmt.Println("ret is ", ret)
-	//if ret != jmap["code"] {
-	//	fmt.Println("接口返回状态码不正确", jmap["code"], verify["ret"]["code"])
-	//}
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
+		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
+		if k != "code" && data[k] == nil {
+			logs.Error("the verify key is not exist in the response", k)
+			return
+		}
 		for subK, subV := range v {
-			data := jmap["data"].(map[string]interface{})
-			fmt.Println("sub is ", subK, reflect.TypeOf(subV), reflect.TypeOf(data[k]))
 			if subK == "eq" {
-				logs.Error("eq here")
-				if jmap["code"] != subV {
-					logs.Error("not equal", jmap["code"], subV)
+				if k == "code" {
+					logs.Error("code here ,OK no problem", jmap["code"], subV)
+					if jmap["code"] != subV {
+						logs.Error("code not equal", jmap["code"], subV, subK)
+						return
+					}
+				} else if data[k] != subV {
+					logs.Error("not equal", data[k], subV)
+					return
 				}
 			} else if subK == "lt" {
-				if subV.(int64) >= data[k].(int64) {
+				if subV.(float64) >= data[k].(float64) {
 					logs.Error("not lt", data[k], subV)
+					return
 				}
 			} else if subK == "gt" {
 				if subV.(int64) <= data[k].(int64) {
 					logs.Error("not gt", data[k], subV)
+					return
 				}
 			} else if subK == "lte" {
 				if subV.(int64) > data[k].(int64) {
 					logs.Error("not lte", data[k], subV)
+					return
 				}
 			} else if subK == "gte" {
 				if subV.(int64) < data[k].(int64) {
 					logs.Error("not gte", data[k], subV)
+					return
 				}
 			} else if subK == "need" {
+				logs.Error("need string", data[k], subV)
 				if data[k] == nil {
 					logs.Error("not need", data[k], subV)
+					return
 				}
 			} else if subK == "in" {
 				b := strings.ContainsAny(data[k].(string), subV.(string))
-				if b {
+				if b == false {
 					logs.Error("not in", data[k], subV)
+					return
 				}
 			} else {
 				logs.Error("do not support")
+				return
+			}
+		}
+	}
+}
+
+// 采用jsonpath 对结果进行验证
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}) {
+
+	if statusCode != 200 {
+		fmt.Println("请求返回状态不是200，请求失败")
+		return
+	}
+	// 提前检查jsonpath是否存在，不存在就报错
+	for k := range verify {
+		verifyO, err := ajson.JSONPath([]byte(response), k)
+		if err != nil {
+			logs.Error("doVerifyV2 jsonpath error，test failed", err)
+		}
+		if len(verifyO) == 0 {
+			logs.Error("the verify key is not exist in the response", k)
+			return
+		}
+	}
+	for k, v := range verify {
+		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
+		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
+		verifyO, _ := ajson.JSONPath([]byte(response), k)
+		for subK, subV := range v {
+			var vv interface{}
+			// 根据类型转换jsonpath获取的数组首位类型
+			switch subV.(type) {
+			case string:
+				vv = verifyO[0].MustString()
+			case float64:
+				vv = verifyO[0].MustNumeric()
+
+			}
+			if subK == "eq" {
+				if subV != vv {
+					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "need" {
+				if subV != vv {
+					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "in" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "lt" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not lt, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "gt" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not gt, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "lte" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not lte, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else if subK == "gte" {
+				if !strings.ContainsAny(vv.(string), subV.(string)) {
+					logs.Error("not gte, key %s, actual value %v,expected %v", k, vv, subV)
+					return
+				}
+			} else {
+				logs.Error("do not support")
+				return
 			}
 		}
 	}
