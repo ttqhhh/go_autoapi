@@ -29,5 +29,5 @@ func (c *AutoTestController) deleteUser() {
 		logs.Error("failed to delete user info")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(nil, "删除成功")
+	c.SuccessJsonWithMsg(nil, "删除成功")
 }

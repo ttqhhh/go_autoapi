@@ -15,7 +15,7 @@ func (c *UserController) profile() {
 	amc := models.AdMockCase{}
 	data, _ := amc.QueryByUUid("5eb62275-9818-4101-a477-6fef0bb9c7bd")
 	fmt.Println(&data)
-	c.SuccessJson(&data, "OK")
+	c.SuccessJsonWithMsg(&data, "OK")
 }
 
 func (c *UserController) add_mgo() {
@@ -24,7 +24,7 @@ func (c *UserController) add_mgo() {
 	if err != nil {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson(nil, "添加成功")
+	c.SuccessJsonWithMsg(nil, "添加成功")
 }
 
 func (c *UserController) get_mgo() {
@@ -39,5 +39,5 @@ func (c *UserController) get_mgo() {
 	if err != nil {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson(acm, "OK")
+	c.SuccessJsonWithMsg(acm, "OK")
 }

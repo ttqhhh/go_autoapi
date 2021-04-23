@@ -28,5 +28,5 @@ func (c *AutoTestController) userList() {
 		logs.Error("failed to get user list")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(auu, "OK")
+	c.SuccessJsonWithMsg(auu, "OK")
 }

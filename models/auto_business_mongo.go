@@ -71,3 +71,15 @@ func (a *AutoBusiness) GetBusinessByName(businessName string) (business AutoBusi
 	}
 	return business, err
 }
+
+//获取所有的业务线
+func (a *AutoBusiness) GetAllBusiness() (business []*AutoBusiness, err error) {
+	query := bson.M{"status": 0}
+	ms, db := db_proxy.Connect(db, business_collection)
+	defer ms.Close()
+	err = db.Find(query).Select(bson.M{"_id": 1, "business_name": 1}).One(&business)
+	if err != nil {
+		logs.Error("get all business error", err)
+	}
+	return business, err
+}
