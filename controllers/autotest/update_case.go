@@ -24,6 +24,6 @@ func (c *AutoTestController) updateCaseInfo() {
 		fmt.Println(err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson(nil, "更新成功")
+	c.SuccessJsonWithMsg(nil, "更新成功")
 }
 

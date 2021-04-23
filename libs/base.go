@@ -1,8 +1,11 @@
 package libs
 
 import (
+	"fmt"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/satori/go.uuid"
+	constant "go_autoapi/constants"
 	_ "go_autoapi/constants"
 	"strings"
 )
@@ -17,19 +20,29 @@ type ReturnMsg struct {
 	Data interface{} `json:"data"`
 }
 
-//func (b *BaseController) Prepare() {
-//	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userid")
-//	if err == false && b.GetMethodName() != "login" {
-//		logs.Error("not login")
-//		b.ErrorJson(-1, "not login", nil)
-//	}
-//	fmt.Println(userId)
-//}
 
-func (b *BaseController) SuccessJson(data interface{}, msg string) {
+func (b *BaseController) Prepare() {
+	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userid")
+	if err == false && b.GetMethodName() != "login" {
+		logs.Error("not login")
+		b.ErrorJson(-1, "not login", nil)
+	}
+	fmt.Println(userId)
+}
+func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
 	res := ReturnMsg{
 		200, msg, data,
+	}
+	b.Data["json"] = res
+	b.ServeJSON() //对json进行序列化输出
+	b.StopRun()
+}
+
+func (b *BaseController) SuccessJson(data interface{}) {
+
+	res := ReturnMsg{
+		200, "success", data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出

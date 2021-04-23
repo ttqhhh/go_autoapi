@@ -25,8 +25,20 @@ func (c *AutoTestController) businessList() {
 	ab := models.AutoBusiness{}
 	abs, err := ab.GetBusinessList(bl.Offset, bl.Page-1)
 	if err != nil {
-		logs.Error("failed to get user list")
+		logs.Error("failed to get business list")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(abs, "OK")
+	c.SuccessJsonWithMsg(abs, "OK")
+}
+
+// 获取用户列表 登录
+func (c *AutoTestController) allBusinessList() {
+	ab := models.AutoBusiness{}
+	abs, err := ab.GetAllBusiness()
+	if err != nil {
+		logs.Error("failed to get all business list")
+		c.ErrorJson(-1, "系统错误", nil)
+	}
+	logs.Error("all business is ", abs)
+	c.SuccessJsonWithMsg(abs, "OK")
 }

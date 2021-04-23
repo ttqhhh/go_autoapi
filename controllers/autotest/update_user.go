@@ -33,5 +33,5 @@ func (c *AutoTestController) updateUser() {
 		logs.Error("failed to update user info")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(nil, "更新成功")
+	c.SuccessJsonWithMsg(nil, "更新成功")
 }
