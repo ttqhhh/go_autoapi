@@ -24,6 +24,16 @@ func (c *AutoTestController) Post() {
 		c.logout()
 	case "get_user_list":
 		c.userList()
+	case "update_user":
+		c.updateUser()
+	case "delete_user":
+		c.deleteUser()
+	case "add_business":
+		c.addBusiness()
+	case "get_business_list":
+		c.businessList()
+	case "perform_tests":
+		c.performTests()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)

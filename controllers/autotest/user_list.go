@@ -14,9 +14,8 @@ type UserList struct {
 // 获取用户列表 登录
 func (c *AutoTestController) userList() {
 	ul := UserList{}
-	l := logs.GetBeeLogger()
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ul); err != nil {
-		l.Error("bad param")
+		logs.Error("user list parse param error")
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	if ul.Page <= 0 || ul.Offset <= 0 {
@@ -27,7 +26,7 @@ func (c *AutoTestController) userList() {
 	auu, err := au.GetUserList(ul.Offset, ul.Page-1)
 	if err != nil {
 		logs.Error("failed to get user list")
-		c.ErrorJson(-1, "登录失败", nil)
+		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(auu)
+	c.SuccessJson(auu, "OK")
 }

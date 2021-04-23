@@ -12,7 +12,8 @@ type AutoBusiness struct {
 	Id           int64  `json:"id" bson:"_id"`
 	BusinessName string `json:"business_name" bson:"business_name" valid:"Required"`
 	//0：正常，1：删除
-	Status int `json:"status,omitempty"  bson:"status" valid:"Range(0, 1)"`
+	Status int    `json:"status,omitempty"  bson:"status" valid:"Range(0, 1)"`
+	Author string `json:"author,omitempty"  bson:"author"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -48,9 +49,21 @@ func (a *AutoBusiness) GetBusinessList(offset, page int) (ab []*AutoBusiness, er
 	query := bson.M{"status": 0}
 	ms, db := db_proxy.Connect("auto_api", "auto_business")
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"id": 1, "business_name": 1}).Skip(page * offset).Limit(offset).All(&ab)
+	err = db.Find(query).Select(bson.M{"_id": 1, "business_name": 1}).Skip(page * offset).Limit(offset).All(&ab)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("query business list error", err)
 	}
 	return ab, err
+}
+
+//根据名字获取所有业务线
+func (a *AutoBusiness) GetBusinessByName(businessName string) (business AutoBusiness, err error) {
+	query := bson.M{"business_name": businessName, "status": 0}
+	ms, db := db_proxy.Connect("auto_api", "auto_business")
+	defer ms.Close()
+	err = db.Find(query).Select(bson.M{"_id": 1}).One(&business)
+	if err != nil {
+		logs.Error("get business error", err)
+	}
+	return business, err
 }

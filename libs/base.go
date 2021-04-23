@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/satori/go.uuid"
 	constant "go_autoapi/constants"
 	"strings"
 )
@@ -26,10 +27,10 @@ func (b *BaseController) Prepare() {
 	}
 	fmt.Println(userId)
 }
-func (b *BaseController) SuccessJson(data interface{}) {
+func (b *BaseController) SuccessJson(data interface{}, msg string) {
 
 	res := ReturnMsg{
-		200, "success", data,
+		200, msg, data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出
@@ -49,6 +50,10 @@ func (b *BaseController) ErrorJson(code int, msg string, data interface{}) {
 
 func (b *BaseController) GetMethodName() (do string) {
 	do = b.Ctx.Request.URL.Path
-	fmt.Println("url is ", do)
 	return strings.Split(do, "/")[2]
+}
+
+func (b *BaseController) GenUUid() (string, error) {
+	u2 := uuid.NewV4()
+	return u2.String(), nil
 }
