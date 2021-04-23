@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+const (
+	result_collection = "auto_result"
+)
+
 type AutoResult struct {
 	Id       int64  `json:"id" bson:"_id"`
 	RunId    string `json:"run_id" bson:"run_id"`
@@ -44,7 +48,7 @@ func InsertResult(uuid string, case_id int64, reason string, author string, resp
 	ar.Response = resp
 	ar.CreatedAt = now
 	ar.UpdatedAt = now
-	ms, db := db_proxy.Connect("auto_api", "auto_result")
+	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	return db.Insert(ar)
 }
@@ -52,7 +56,7 @@ func InsertResult(uuid string, case_id int64, reason string, author string, resp
 func (a *AutoResult) GetResultByRunId(id int64) (ar []*AutoResult, err error) {
 	fmt.Println(id)
 	query := bson.M{"run_id": id}
-	ms, db := db_proxy.Connect("auto_api", "auto_result")
+	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	err = db.Find(query).All(&ar)
 	fmt.Println(ar)

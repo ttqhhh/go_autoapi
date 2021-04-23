@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	user_collection = "auto_user"
+)
+
 type AutoUser struct {
 	Id       int64  `json:"id" bson:"_id"`
 	UserName string `json:"user_name" bson:"user_name" valid:"Required"`
@@ -29,12 +33,12 @@ func init() {
 	//ORM = db_proxy.GetOrmObject()
 }
 func (a *AutoUser) TableName() string {
-	return "auto_user"
+	return user_collection
 }
 
 //创建新用户
 func (a *AutoUser) InsertUser(au AutoUser) error {
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	return db.Insert(au)
 }
@@ -43,7 +47,7 @@ func (a *AutoUser) InsertUser(au AutoUser) error {
 func (a *AutoUser) GetUserInfoById(id int64) (AutoUser, error) {
 	query := bson.M{"_id": id, "status": 0}
 	au := AutoUser{}
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	err := db.Find(query).One(&au)
 	if err != nil {
@@ -55,7 +59,7 @@ func (a *AutoUser) GetUserInfoById(id int64) (AutoUser, error) {
 //根据用户名字获取用户信息
 func (a *AutoUser) GetUserInfoByName(name string) (au AutoUser, err error) {
 	query := bson.M{"user_name": name}
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	err = db.Find(query).One(&au)
 	if err != nil {
@@ -66,9 +70,8 @@ func (a *AutoUser) GetUserInfoByName(name string) (au AutoUser, err error) {
 
 //根据id更新用户相关手机信息
 func (a *AutoUser) UpdateUserById(id int64, mobile string, business int) (err error) {
-	fmt.Println(id)
 	query := bson.M{"_id": id}
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	err = db.Update(query, bson.M{"$set": bson.M{"mobile": mobile, "business": business, "updated_at": time.Now().Format(constants.TimeFormat)}})
 	if err != nil {
@@ -80,7 +83,7 @@ func (a *AutoUser) UpdateUserById(id int64, mobile string, business int) (err er
 func (a *AutoUser) DeleteUserById(id int64) (err error) {
 	fmt.Println(id)
 	query := bson.M{"_id": id}
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	err = db.Update(query, bson.M{"$set": bson.M{"status": 1, "updated_at": time.Now().Format(constants.TimeFormat)}})
 	if err != nil {
@@ -92,7 +95,7 @@ func (a *AutoUser) DeleteUserById(id int64) (err error) {
 // 获取用户列表
 func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
 	query := bson.M{"status": 0}
-	ms, db := db_proxy.Connect("auto_api", "auto_user")
+	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
 	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(page * offset).Limit(offset).All(&au)
 	if err != nil {
