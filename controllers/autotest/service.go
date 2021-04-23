@@ -14,14 +14,18 @@ type ServiceController struct {
 func (c *ServiceController) Get() {
 	do := c.GetMethodName()
 	switch do {
-	case "jump":
-		c.jump()
+	case "index":
+		c.index()
+	case "addIndex":
+		c.addIndex()
 	case "page":
 		c.page()
 	case "list":
 		c.list()
 	case "getById":
 		c.getById()
+	case "business":
+		c.business()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -31,12 +35,12 @@ func (c *ServiceController) Get() {
 func (c *ServiceController) Post() {
 	do := c.GetMethodName()
 	switch do {
-	case "add":
-		c.add()
+	case "save":
+		c.save()
 	case "remove":
 		c.remove()
-	case "update":
-		c.update()
+	//case "update":
+	//	c.update()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -44,19 +48,30 @@ func (c *ServiceController) Post() {
 }
 
 // 页面跳转
-func (c *ServiceController) jump() {
+func (c *ServiceController) index() {
+	c.TplName = "service.tpl"
+}
+func (c *ServiceController) addIndex() {
+	id, err := c.GetInt64("id", -1)
+	if err != nil {
+		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
+	logs.Info("请求参数: id=%v", id)
 
+	c.Data["id"] = id
+	c.TplName = "service_add.tpl"
 }
 
 // 分页查询
 func (c *ServiceController) page() {
 	serviceName := c.GetString("service_name")
-	business, err := c.GetInt8("business")
+	business, err := c.GetInt8("business", -1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
 	}
-	pageNo, err := c.GetInt("page_no")
+	pageNo, err := c.GetInt("page_no", 1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
@@ -81,10 +96,15 @@ func (c *ServiceController) page() {
 
 // 获取服务列表（可根据业务线）
 func (c *ServiceController) list() {
-	business, err := c.GetInt8("business")
+	business, err := c.GetInt8("business", -1)
 	if err != nil {
 		logs.Warn("/service/list接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
+	}
+	if business == -1 {
+		logs.Warn("/service/list接口 未指定业务线", err)
+		c.ErrorJson(-1, "参数异常，请指定业务线", nil)
+
 	}
 	logs.Info("请求参数: business=%v", business)
 	serviceMongo := models.ServiceMongo{}
@@ -112,7 +132,7 @@ func (c *ServiceController) getById() {
 }
 
 // 添加
-func (c *ServiceController) add() {
+func (c *ServiceController) save() {
 	service := &models.ServiceMongo{}
 	err := c.ParseForm(service)
 	if err != nil {
@@ -121,10 +141,18 @@ func (c *ServiceController) add() {
 	}
 	logs.Info("请求参数：%v", service)
 
-	//todo 添加人字段待处理
-	err = service.Insert(*service)
-	if err != nil {
-		c.ErrorJson(-1, "服务添加数据异常", nil)
+	if string(service.Id) == "" || service.Id == -1 {
+		//todo 添加人字段待处理
+		err = service.Insert(*service)
+		if err != nil {
+			c.ErrorJson(-1, "服务添加数据异常", nil)
+		}
+	} else {
+		// todo 更新人字段待处理
+		err = service.Update(*service)
+		if err != nil {
+			c.ErrorJson(-1, "服务更新数据异常", nil)
+		}
 	}
 	c.SuccessJson(nil)
 }
@@ -151,19 +179,61 @@ func (c *ServiceController) remove() {
 }
 
 // 更新
-func (c *ServiceController) update() {
-	service := &models.ServiceMongo{}
-	err := c.ParseForm(service)
-	if err != nil {
-		logs.Warn("/service/update接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数: %v", service)
+//func (c *ServiceController) update() {
+//	service := &models.ServiceMongo{}
+//	err := c.ParseForm(service)
+//	if err != nil {
+//		logs.Warn("/service/update接口 参数异常, err: %v", err)
+//		c.ErrorJson(-1, "参数异常", nil)
+//	}
+//	logs.Info("请求参数: %v", service)
+//
+//	// todo 更新人字段待处理
+//	err = service.Update(*service)
+//	if err != nil {
+//		c.ErrorJson(-1, "服务更新数据异常", nil)
+//	}
+//	c.SuccessJson(nil)
+//}
+// 用来mock业务线数据
+func (c *ServiceController) business() {
+	var data [6]map[string]interface{}
 
-	// todo 更新人字段待处理
-	err = service.Update(*service)
-	if err != nil {
-		c.ErrorJson(-1, "服务更新数据异常", nil)
-	}
-	c.SuccessJson(nil)
+	//data[0] = "最右"
+	//data[1] = "皮皮"
+	//data[2] = "中东"
+	//data[3] = "海外"
+	//data[4] = "商业化"
+	//data[5] = "妈妈社区"
+	one := make(map[string]interface{})
+	one["code"] = 0
+	one["name"] = "最右"
+	data[0] = one
+
+	one = make(map[string]interface{})
+	one["code"] = 1
+	one["name"] = "皮皮"
+	data[1] = one
+
+	one = make(map[string]interface{})
+	one["code"] = 2
+	one["name"] = "中东"
+	data[2] = one
+
+	one = make(map[string]interface{})
+	one["code"] = 3
+	one["name"] = "海外"
+	data[3] = one
+
+	one = make(map[string]interface{})
+	one["code"] = 4
+	one["name"] = "商业化"
+	data[4] = one
+
+	one = make(map[string]interface{})
+	one["code"] = 5
+	one["name"] = "妈妈社区"
+	data[5] = one
+
+	c.SuccessJson(data)
 }

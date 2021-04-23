@@ -101,14 +101,27 @@ func (mongo *ServiceMongo) QueryByPage(business int8, serviceName string, pageNo
 	ms, db := db_proxy.Connect(db, collection)
 	defer ms.Close()
 
-	query := bson.M{"business": business, "status": 0}
+	// 查询分页数据
+	query := bson.M{"status": 0}
+	if business != -1 {
+		query["business"] = business
+	}
+	if serviceName != "" {
+		query["service_name"] = bson.M{"$regex": serviceName}
+	}
 	serviceList := []ServiceMongo{}
 	skip := (pageNo - 1) * pageSize
 	err := db.Find(query).Skip(skip).Limit(pageSize).All(&serviceList)
 	if err != nil {
 		logs.Error("QueryByPage 错误: %v", err)
 	}
-	return serviceList, len(serviceList), err
+	// 查询总共条数
+	serviceTotalList := []ServiceMongo{}
+	err = db.Find(query).All(&serviceTotalList)
+	if err != nil {
+		logs.Error("QueryByPage 错误: %v", err)
+	}
+	return serviceList, len(serviceTotalList), err
 }
 
 // 查(根据业务线)
@@ -116,7 +129,10 @@ func (mongo *ServiceMongo) QueryByBusiness(business int8) ([]ServiceMongo, error
 	ms, db := db_proxy.Connect(db, collection)
 	defer ms.Close()
 
-	query := bson.M{"business": business, "status": 0}
+	query := bson.M{"status": 0}
+	if business != -1 {
+		query["business"] = business
+	}
 	serviceList := []ServiceMongo{}
 	err := db.Find(query).All(&serviceList)
 	if err != nil {
