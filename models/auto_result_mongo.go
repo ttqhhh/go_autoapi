@@ -11,14 +11,16 @@ import (
 )
 
 type AutoResult struct {
-	Id     int64  `json:"id" bson:"_id"`
-	RunId  string `json:"run_id" bson:"run_id"`
-	CaseId int64  `json:"case_id" bson:"case_id"`
-	Result int64  `json:"result" bson:"description"`
-	Reason string `json:"method" bson:"method"`
+	Id       int64  `json:"id" bson:"_id"`
+	RunId    string `json:"run_id" bson:"run_id"`
+	CaseId   int64  `json:"case_id" bson:"case_id"`
+	Result   int64  `json:"result" bson:"result"`
+	Reason   string `json:"reason" bson:"reason"`
+	Author   string `json:"author" bson:"author"`
+	Response string `json:"response" bson:"response"`
 	// omitempty 表示该字段为空时，不返回
-	CreatedAt string `json:"created_at,omitempty"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt string `json:"updated_at" bson:"updated_at"`
 }
 
 func init() {
@@ -30,7 +32,7 @@ func (a *AutoResult) TableName() string {
 	return "auto_result"
 }
 
-func InsertResult(uuid string, case_id int64, reason string) error {
+func InsertResult(uuid string, case_id int64, reason string, author string, resp string) error {
 	now := time.Now().Format(constants.TimeFormat)
 	ar := AutoResult{}
 	ar.Id = GetId("result")
@@ -38,6 +40,8 @@ func InsertResult(uuid string, case_id int64, reason string) error {
 	ar.CaseId = case_id
 	ar.Result = 1
 	ar.Reason = reason
+	ar.Author = author
+	ar.Response = resp
 	ar.CreatedAt = now
 	ar.UpdatedAt = now
 	ms, db := db_proxy.Connect("auto_api", "auto_result")

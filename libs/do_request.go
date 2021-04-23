@@ -83,10 +83,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
-		err := models.InsertResult(uuid, caseId, "请求返回状态不是200")
-		if err != nil {
-			logs.Error("verify status code dump the result error", err)
-		}
+		saveTestResult(uuid, caseId, "状态码不是200", "liuweiqiang", response)
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -94,9 +91,11 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		verifyO, err := jsonpath.JSONPath([]byte(response), k)
 		if err != nil {
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
+			saveTestResult(uuid, caseId, k+" jsonpath err", "liuweiqiang", response)
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
+			saveTestResult(uuid, caseId, k+" the verify key not exist err", "liuweiqiang", response)
 			return
 		}
 	}
@@ -117,42 +116,58 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			if subK == "eq" {
 				if subV != vv {
 					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "need" {
 				if subV != vv {
 					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "in" {
-				if !strings.ContainsAny(vv.(string), subV.(string)) {
+				if !strings.Contains(vv.(string), subV.(string)) {
 					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "lt" {
-				if !strings.ContainsAny(vv.(string), subV.(string)) {
-					logs.Error("not lt, key %s, actual value %v,expected %v", k, vv, subV)
+				if !(vv.(float64) < subV.(float64)) {
+					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "gt" {
-				if !strings.ContainsAny(vv.(string), subV.(string)) {
-					logs.Error("not gt, key %s, actual value %v,expected %v", k, vv, subV)
+				if !(vv.(float64) > subV.(float64)) {
+					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "lte" {
-				if !strings.ContainsAny(vv.(string), subV.(string)) {
-					logs.Error("not lte, key %s, actual value %v,expected %v", k, vv, subV)
+				if !(vv.(float64) <= subV.(float64)) {
+					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else if subK == "gte" {
-				if !strings.ContainsAny(vv.(string), subV.(string)) {
-					logs.Error("not gte, key %s, actual value %v,expected %v", k, vv, subV)
+				if !(vv.(float64) >= subV.(float64)) {
+					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV), "liuweiqiang", response)
 					return
 				}
 			} else {
 				logs.Error("do not support")
+				saveTestResult(uuid, caseId, fmt.Sprintf("do not support this operator"), "liuweiqiang", "")
 				return
 			}
 		}
 	}
+}
+
+func saveTestResult(uuid string, caseId int64, reason string, author string, resp string) {
+	err := models.InsertResult(uuid, caseId, reason, author, resp)
+	if err != nil {
+		logs.Error("save test result error,please check the db connection", err)
+	}
+	return
 }
