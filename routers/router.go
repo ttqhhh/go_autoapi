@@ -12,4 +12,5 @@ func init() {
 	beego.Router("/user/*", &controllers.UserController{})
 	beego.Router("/auto/*", &auto.AutoTestController{})
 	beego.Router("/case/*", &casemanage.CaseManageController{})
+	beego.Router("/service/*", &auto.ServiceController{})
 }
