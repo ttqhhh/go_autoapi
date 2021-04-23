@@ -2,10 +2,11 @@ package libs
 
 import (
 	"fmt"
-	"github.com/astaxie/beego/logs"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/satori/go.uuid"
 	constant "go_autoapi/constants"
+	_ "go_autoapi/constants"
 	"strings"
 )
 
@@ -18,6 +19,7 @@ type ReturnMsg struct {
 	Msg  string      `json:"msg"`
 	Data interface{} `json:"data"`
 }
+
 
 func (b *BaseController) Prepare() {
 	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userid")
@@ -63,7 +65,18 @@ func (b *BaseController) GetMethodName() (do string) {
 	return strings.Split(do, "/")[2]
 }
 
+func (b *BaseController) FormSuccessJson(data interface{}) {
+
+	res := ReturnMsg{
+		0, "success", data,
+	}
+	b.Data["json"] = res
+	b.ServeJSON() //对json进行序列化输出
+	b.StopRun()
+}
+
 func (b *BaseController) GenUUid() (string, error) {
 	u2 := uuid.NewV4()
 	return u2.String(), nil
 }
+

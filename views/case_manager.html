@@ -1,24 +1,24 @@
 {{template "head.html" .}}
 
+<div style="margin:1%">
 <div class="layui-btn-group demoTable">
-    <button class="layui-btn" data-type="getCheckData">获取选中行数据</button>
-    <button class="layui-btn" data-type="getCheckLength">获取选中数目</button>
-    <button class="layui-btn" data-type="isAll">验证是否全选</button>
+    <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>
+    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>
+    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>
 </div>
 
-<table class="layui-table" lay-data="{url:'/cases/get_cases/', page:true, id:'idTest'}" lay-filter="demo">
+<table class="layui-table" lay-data="{url:'/case/get_all_cases/', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
     <thead>
     <tr>
         <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
         <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
-        <th lay-data="{field:'app_name', width:100}">应用名称</th>
-        <th lay-data="{field:'server_name', width:150}">服务名称</th>
+        <th lay-data="{field:'app_name', width:100}">业务线</th>
+        <th lay-data="{field:'service_name', width:150}">服务名称</th>
         <th lay-data="{field:'case_name', width:120, sort: true}">用例名称</th>
-        <th lay-data="{field:'case_des', width:160}">用例描述</th>
-        <th lay-data="{field:'api_data', width:150}">接口数据</th>
+        <th lay-data="{field:'description'}">用例描述</th>
+        <th lay-data="{field:'api_url', width:150}">接口数据</th>
         <th lay-data="{field:'test_env', width:120}">测试环境</th>
         <th lay-data="{field:'request_method', width:135, sort: true}">请求方式</th>
-        <th lay-data="{field:'act_parameter', width:135, sort: true}">动态参数</th>
         <th lay-data="{field:'parameter', width:135, sort: true}">参数</th>
         <th lay-data="{field:'check_point', width:135, sort: true}">检查点</th>
         <th lay-data="{field:'level', width:80, sort: true, fixed: 'right'}">等级</th>
@@ -28,14 +28,13 @@
 </table>
 
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="run">运行</a>
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
-
 <script src="/static/layui/layui.js" charset="utf-8"></script>
-<!-- 注意：如果你直接复制所有代码到本地，上述 JS 路径需要改成你本地的 -->
+
 <script>
     layui.use('table', function(){
         var table = layui.table;
@@ -50,19 +49,49 @@
                 layer.msg('ID：'+ data.id + ' 的查看操作');
             } else if(obj.event === 'del'){
                 layer.confirm('真的删除行么', function(index){
-                    obj.del();
+                    // obj.del();
+                    $.ajax({
+                        type: 'POST',
+                        url: "/case/del_one_case",
+                        async:false,
+                        timeout : 500000,
+                        data: {
+                            "id": data.id,
+                        }
+                    });
                     layer.close(index);
+                    window.location.reload()
                 });
             } else if(obj.event === 'edit'){
-                layer.alert('编辑行：<br>'+ JSON.stringify(data))
+                window.location.href="/case/show_edit_case?id="+data.id
+            } else if(obj.event === "run"){
+                var arr = new Array()
+                arr.push(data.id)
+                // alert(arr.toString())
+                $.ajax({
+                    type: 'POST',
+                    url: "/case/do_test",
+                    async:false,
+                    timeout : 500000,
+                    data: {
+                            "case_id": arr.toString(),
+                    }
+                })
             }
         });
 
         var $ = layui.$, active = {
             getCheckData: function(){ //获取选中数据
-                var checkStatus = table.checkStatus('idTest')
-                    ,data = checkStatus.data;
-                layer.alert(JSON.stringify(data));
+                var checkStatus = table.checkStatus('idTest'),
+                    data = checkStatus.data,
+                    arr_id = [];
+                for(var i = 0;i<data.length;i++){
+                    arr_id.push(data[i].id);
+                }
+                // 提交列表形式的id
+                // $.ajax({
+                //     url:
+                // })
             }
             ,getCheckLength: function(){ //获取选中数目
                 var checkStatus = table.checkStatus('idTest')
@@ -81,6 +110,6 @@
         });
     });
 </script>
-
+</div>
 </body>
 </html>
