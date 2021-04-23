@@ -29,9 +29,15 @@ type CheckOut struct {
 	Check map[string]map[string]interface{} `json:"check_point"`
 }
 
+type CaseList struct {
+	CaseList []int `json:"ids"`
+}
+
 // 获取用户列表 登录
 func (c *AutoTestController) performTests() {
 	uuid, _ := c.GenUUid()
+	var caseId int64
+	caseId = 10
 	u := CheckOut{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &u); err != nil {
 		c.ErrorJson(-1, "请求错误", nil)
@@ -43,8 +49,8 @@ func (c *AutoTestController) performTests() {
 	//fmt.Println("case list is", caseList)
 	for _, val := range caseList {
 		go func(url string, uuid string, param map[string]interface{}, checkout map[string]map[string]interface{}) {
-			libs.DoRequest(url, uuid, param, checkout)
+			libs.DoRequest(url, uuid, param, checkout, caseId)
 		}(val.Url, uuid, val.Param, val.Check)
 	}
-	c.SuccessJson(map[string]interface{}{"uuid": uuid})
+	c.SuccessJson(map[string]interface{}{"uuid": uuid}, "OK")
 }

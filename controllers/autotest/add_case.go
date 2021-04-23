@@ -20,5 +20,5 @@ func (c *AutoTestController) addCase() {
 		fmt.Println(err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson("添加成功")
+	c.SuccessJson(nil, "添加成功")
 }

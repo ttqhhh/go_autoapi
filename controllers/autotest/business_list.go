@@ -12,21 +12,21 @@ type BusinessList struct {
 }
 
 // 获取用户列表 登录
-func (c *AutoTestController) BusinessList() {
+func (c *AutoTestController) businessList() {
 	bl := BusinessList{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &bl); err != nil {
-		logs.Error("user list parse param error")
+		logs.Error("parse business list param error")
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	if bl.Page <= 0 || bl.Offset <= 0 {
-		logs.Error(1024, "param error", bl.Offset, bl.Page)
+		logs.Error("parse business list param error page %v,offset %v", bl.Page, bl.Offset)
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	ab := models.AutoBusiness{}
-	abs, err := ab.GetBusinessList(bl.Offset, bl.Page)
+	abs, err := ab.GetBusinessList(bl.Offset, bl.Page-1)
 	if err != nil {
 		logs.Error("failed to get user list")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
-	c.SuccessJson(abs)
+	c.SuccessJson(abs, "OK")
 }

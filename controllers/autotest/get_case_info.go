@@ -27,5 +27,5 @@ func (c *AutoTestController) getCaseInfo() {
 		fmt.Println(err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJson(acm)
+	c.SuccessJson(acm, "OK")
 }

@@ -26,10 +26,10 @@ type ReturnMsg struct {
 //	fmt.Println(userId)
 //}
 
-func (b *BaseController) SuccessJson(data interface{}) {
+func (b *BaseController) SuccessJson(data interface{}, msg string) {
 
 	res := ReturnMsg{
-		200, "success", data,
+		200, msg, data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出
