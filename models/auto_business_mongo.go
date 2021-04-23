@@ -61,7 +61,7 @@ func (a *AutoBusiness) GetBusinessList(offset, page int) (ab []*AutoBusiness, er
 }
 
 //根据名字获取所有业务线
-func (a *AutoBusiness) GetBusinessByName(businessName string) (business AutoBusiness, err error) {
+func (a *AutoBusiness) GetBusinessByName(businessName string) (business []*AutoBusiness, err error) {
 	query := bson.M{"business_name": businessName, "status": 0}
 	ms, db := db_proxy.Connect(db, business_collection)
 	defer ms.Close()
@@ -77,7 +77,7 @@ func (a *AutoBusiness) GetAllBusiness() (business []*AutoBusiness, err error) {
 	query := bson.M{"status": 0}
 	ms, db := db_proxy.Connect(db, business_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"_id": 1, "business_name": 1}).One(&business)
+	err = db.Find(query).Select(bson.M{"_id": 1, "business_name": 1}).All(&business)
 	if err != nil {
 		logs.Error("get all business error", err)
 	}

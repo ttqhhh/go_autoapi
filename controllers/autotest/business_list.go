@@ -39,5 +39,6 @@ func (c *AutoTestController) allBusinessList() {
 		logs.Error("failed to get all business list")
 		c.ErrorJson(-1, "系统错误", nil)
 	}
+	logs.Error("all business is ", abs)
 	c.SuccessJsonWithMsg(abs, "OK")
 }
