@@ -72,9 +72,9 @@ func (c *AutoTestController) login() {
 	for i := 0; i < 10; i++ {
 		ul = append(ul, &au)
 	}
-	c.SuccessJson(ul, "OK")
+	c.SuccessJsonWithMsg(ul, "OK")
 }
 
 func (c *AutoTestController) logout() {
-	c.SuccessJson(map[string]string{"location": "/login"}, "OK")
+	c.SuccessJsonWithMsg(map[string]string{"location": "/login"}, "OK")
 }

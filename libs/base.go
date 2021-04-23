@@ -27,10 +27,20 @@ func (b *BaseController) Prepare() {
 	}
 	fmt.Println(userId)
 }
-func (b *BaseController) SuccessJson(data interface{}, msg string) {
+func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
 	res := ReturnMsg{
 		200, msg, data,
+	}
+	b.Data["json"] = res
+	b.ServeJSON() //对json进行序列化输出
+	b.StopRun()
+}
+
+func (b *BaseController) SuccessJson(data interface{}) {
+
+	res := ReturnMsg{
+		200, "success", data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出

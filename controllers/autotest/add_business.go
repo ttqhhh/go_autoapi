@@ -35,5 +35,5 @@ func (c *AutoTestController) addBusiness() {
 			c.ErrorJson(-1, "系统错误", nil)
 		}
 	}
-	c.SuccessJson(nil, "OK")
+	c.SuccessJsonWithMsg(nil, "OK")
 }
