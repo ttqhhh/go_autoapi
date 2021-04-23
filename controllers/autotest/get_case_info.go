@@ -14,7 +14,7 @@ type autoCase struct {
 
 func (c *AutoTestController) getCaseInfo() {
 	ac := autoCase{}
-	fmt.Println()
+	fmt.Println(ac)
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ac); err != nil {
 		logs.Error(1024, err)
 		c.ErrorJson(-1, "请求错误", nil)
