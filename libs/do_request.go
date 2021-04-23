@@ -51,6 +51,41 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 	return resp.StatusCode, string(body), cookieStr
 }
 
+func DoRequestV2(url string, m string, checkPoint string) {
+	headers := map[string]string{
+		"ZYP": "mid=248447243",
+		"X-Xc-Agent": "av=5.7.1.001,dt=0",
+		"User-Agent": "okhttp/3.12.2 Zuiyou/5.7.1.001 (Android/29)",
+		"Request-Type": "text/json",
+		"Content-Type": "application/json; charset=utf-8",
+		"Content-Length": "",
+		"Host": "api.izuiyou.com",
+		"Accept-Encoding": "gzip",
+		"Connection": "keep-alive"}
+	//redis? 不知道干嘛的
+	client := &http.Client{}
+	postData := bytes.NewReader([]byte(m))
+	req, err := http.NewRequest("POST", url, postData)
+	if err != nil{
+		logs.Error("请求失败")
+	}
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+	response,_ := client.Do(req)
+	respStatus := response.StatusCode
+	respBody := response.Body
+	body,err := ioutil.ReadAll(respBody)
+	var verify map[string]map[string]interface{}
+	if err := json.Unmarshal([]byte(checkPoint), &verify); err != nil {
+		fmt.Println("checkpoint解析失败", err)
+		return
+	}
+	doVerifyV2(respStatus,"123456",string(body),verify)
+}
+
+
+
 func DoRequest(url string, uuid string, data map[string]interface{}, verify map[string]map[string]interface{}) {
 	//密码
 	r := db_proxy.GetRedisObject()

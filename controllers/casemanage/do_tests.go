@@ -23,6 +23,6 @@ func (c *CaseManageController) performTests() {
 	for _, i := range caseIdList{
 		id,_ := strconv.ParseInt(i, 10, 64)
 		tc := acm.GetOneCase(id)
-		libs.StartRequest(tc.ApiUrl, tc.Parameter, tc.Checkpoint)
+		libs.DoRequestV2(tc.ApiUrl, tc.Parameter, tc.Checkpoint)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 	"time"
 )
 
@@ -49,6 +50,22 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error)
 	}
 	return acm, err
 }
+
+//通过id list 获取用例
+
+func (t *TestCaseMongo)  GetCasesByIds(ids []string) []TestCaseMongo {
+	var caseList []TestCaseMongo
+	for _,i := range ids{
+		id64, err := strconv.ParseInt(i, 10, 64)
+		if err !=nil{
+			logs.Error("类型转换失败")
+		}
+		acm := t.GetOneCase(id64)
+		caseList = append(caseList, acm)
+	}
+	return caseList
+}
+
 
 // 获取全部case
 func (t *TestCaseMongo) GetAllCases(page ,limit int) ([]TestCaseMongo, error) {
@@ -126,3 +143,4 @@ func (t *TestCaseMongo) DelCase(id int64){
 		logs.Error(err)
 	}
 }
+
