@@ -84,21 +84,43 @@
     // businessMap.set(3, "中东");
     // businessMap.set(4, "妈妈社区");
 
-    $.ajax({
-        url: "/service/business",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-            $.each(data.data, function (index, value) {
-                // 进行option元素追加
-                var option = "<option value='" + value.code + "'>" + value.name + "</option>";
-                $("#business").append(option);
-                // 进行businessMap初始化
-                businessMap.set(value.code, value.name);
-            })
-        }
-    })
+    // mock请求地址
+    function selectInitByMock() {
+        $.ajax({
+            url: "/service/business",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                $.each(data.data, function (index, value) {
+                    // 进行option元素追加
+                    var option = "<option value='" + value.code + "'>" + value.name + "</option>";
+                    $("#business").append(option);
+                    // 进行businessMap初始化
+                    businessMap.set(value.code, value.name);
+                })
+            }
+        })
+    }
 
+    // 请求真实business下拉框数据
+    function selectInit() {
+        $.ajax({
+            url: "/auto/get_all_business",
+            type: "POST",
+            dataType: "json",
+            success: function (data) {
+                $.each(data.data, function (index, value) {
+                    // 进行option元素追加
+                    var option = "<option value='" + value.id + "'>" + value.business_name + "</option>";
+                    $("#business").append(option);
+                    // 进行businessMap初始化
+                    businessMap.set(value.id, value.business_name);
+                })
+            }
+        })
+    }
+
+    selectInit();
     tableInit();
 
     function tableInit(business, service_name, pageNo, pageSize, action) {
@@ -144,15 +166,19 @@
                 //对 上一页/下一页 按钮进行置灰
                 if (pageNo == 1) {
                     $("#prev").addClass("layui-btn-disabled");
+                    $("#prev").attr("disabled", true)
                 } else {
                     $("#prev").removeClass("layui-btn-disabled");
+                    $("#prev").attr("disabled", false)
                 }
                 // 比较下一页的起始值和total的大小
                 var showedTotal = pageNo * pageSize;
                 if (showedTotal >= total) {
                     $("#next").addClass("layui-btn-disabled");
+                    $("#next").attr("disabled", true)
                 } else {
                     $("#next").removeClass("layui-btn-disabled");
+                    $("#next").attr("disabled", false)
                 }
             },
             error: function () {
@@ -195,12 +221,6 @@
             <label>业务线：</label>
             <select id="business" class="layui-select layui-btn-lg" name="business" lay-verify="required">
                 <option value="">请选择业务线</option>
-{{/*                <option value="0">最右</option>*/}}
-{{/*                <option value="1">皮皮</option>*/}}
-{{/*                <option value="2">中东</option>*/}}
-{{/*                <option value="3">海外</option>*/}}
-{{/*                <option value="4">商业化</option>*/}}
-{{/*                <option value="5">妈妈社区</option>*/}}
             </select>
         </div>
         <div style="float: left; margin-left: 50px">
