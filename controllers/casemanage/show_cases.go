@@ -8,17 +8,29 @@ import (
 )
 
 func (c *CaseManageController) ShowCases(){
-	//c.Data["Website"] = "beego.me"
-	//c.Data["Email"] = "astaxie@gmail.com"
 	c.Data["business"] = c.GetString("business")
 	c.TplName = "case_manager.html"
 }
 
 func (c* CaseManageController) ShowAddCase(){
-	business,err := c.GetInt8("business", -1)
-	if err!=nil{logs.Error("parseint fail")}
+	business:= c.GetString("business")
+	var busCode = int8(0)
+	if business == "zuiyou"{
+		busCode = int8(0)
+	}else if business == "pipi"{
+		busCode = int8(1)
+	}else if business == "haiwai"{
+		busCode = int8(2)
+	}else if business == "zhongdong"{
+		busCode = int8(3)
+	}else if business == "mama"{
+		busCode = int8(4)
+	}
 	serviceMongo := models.ServiceMongo{}
-	services, err := serviceMongo.QueryByBusiness(business)
+	services, err := serviceMongo.QueryByBusiness(busCode)
+	if err != nil{
+		logs.Error("find service fail")
+	}
 	// 获取全部service
 	c.Data["services"] = services
 	c.TplName = "case_add.html"
