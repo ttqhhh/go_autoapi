@@ -22,13 +22,14 @@ type ReturnMsg struct {
 
 
 func (b *BaseController) Prepare() {
-	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "userid")
+	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	if err == false && b.GetMethodName() != "login" {
 		logs.Error("not login")
 		b.ErrorJson(-1, "not login", nil)
 	}
 	fmt.Println(userId)
 }
+
 func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
 	res := ReturnMsg{

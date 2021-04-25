@@ -66,14 +66,13 @@ func (t *TestCaseMongo)  GetCasesByIds(ids []string) []TestCaseMongo {
 	return caseList
 }
 
-
 // 获取全部case
-func (t *TestCaseMongo) GetAllCases(page ,limit int) ([]TestCaseMongo, error) {
+func (t *TestCaseMongo) GetAllCases(page ,limit int, business string) ([]TestCaseMongo, error) {
 	//acm := TestCaseMongo{}
 	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"status":"0"}
+	query := bson.M{"status":"0", "app_name":business}
 	err := c.Find(query).Skip((page-1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
