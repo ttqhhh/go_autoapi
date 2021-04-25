@@ -2,12 +2,14 @@ package libs
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/db_proxy"
 	"go_autoapi/models"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -62,7 +64,8 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 		"Content-Length":  "",
 		"Host":            "api.izuiyou.com",
 		"Accept-Encoding": "gzip",
-		"Connection":      "keep-alive"}
+		"Connection":      "keep-alive",
+		"Accept-Charset":  "utf-8"}
 	//redis? 不知道干嘛的
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
@@ -75,15 +78,21 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 	}
 	response, _ := client.Do(req)
 	respStatus := response.StatusCode
-	respBody := response.Body
-	body, err := ioutil.ReadAll(respBody)
-	fmt.Printf("here")
+	var reader io.ReadCloser
+	if response.Header.Get("Content-Encoding") == "gzip" {
+		reader, err = gzip.NewReader(response.Body)
+		if err != nil {
+			return
+		}
+	} else {
+		reader = response.Body
+	}
+	body, err := ioutil.ReadAll(reader)
 	var verify map[string]map[string]interface{}
 	if err := json.Unmarshal([]byte(checkPoint), &verify); err != nil {
-		fmt.Println("checkpoint解析失败", err)
+		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	fmt.Printf("here here ")
 	doVerifyV2(respStatus, uuid, string(body), verify, caseId)
 }
 

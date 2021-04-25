@@ -47,10 +47,6 @@ func (c *AutoTestController) performTests() {
 		logs.Error("获取测试用例列表失败", err)
 		c.ErrorJson(-1, "获取测试用例失败", nil)
 	}
-
-	//for i := 0; i < 1; i++ {
-	//	caseList = append(caseList, CheckOut{"http://127.0.0.1:8080/auto/login", u.Param, u.Check})
-	//}
 	fmt.Println("case list is", caseList)
 	if len(caseList) == 0 {
 		logs.Error("没有用例", err)
