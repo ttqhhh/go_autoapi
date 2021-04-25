@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
-	"github.com/bitly/go-simplejson"
 	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/db_proxy"
 	"go_autoapi/models"
@@ -21,15 +20,15 @@ func init() {
 }
 
 //模拟请求方法
-func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]interface{}) (int, string, string) {
+func HttpPost(postUrl string, headers map[string]string, jsonMap string, method string) (int, string, string) {
 	client := &http.Client{}
 	//转换成postBody
-	bytesData, err := json.Marshal(jsonMap)
-	if err != nil {
-		fmt.Println(err.Error())
-		return 0, "", ""
-	}
-	postBody := bytes.NewReader(bytesData)
+	//bytesData, err := json.Marshal(jsonMap)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return 0, "", ""
+	//}
+	postBody := bytes.NewReader([]byte(jsonMap))
 	client = &http.Client{}
 	//post请求
 	req, _ := http.NewRequest("POST", postUrl, postBody)
@@ -49,68 +48,70 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap map[string]inte
 			cookieStr += c.Name + "=" + c.Value + ";"
 		}
 	}
+	fmt.Printf("body is %v", string(body))
 	return resp.StatusCode, string(body), cookieStr
 }
 
-func DoRequestV2(url string, m string, checkPoint string) {
+func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId int64) {
 	headers := map[string]string{
-		"ZYP": "mid=248447243",
-		"X-Xc-Agent": "av=5.7.1.001,dt=0",
-		"User-Agent": "okhttp/3.12.2 Zuiyou/5.7.1.001 (Android/29)",
-		"Request-Type": "text/json",
-		"Content-Type": "application/json; charset=utf-8",
-		"Content-Length": "",
-		"Host": "api.izuiyou.com",
+		"ZYP":             "mid=248447243",
+		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
+		"User-Agent":      "okhttp/3.12.2 Zuiyou/5.7.1.001 (Android/29)",
+		"Request-Type":    "text/json",
+		"Content-Type":    "application/json; charset=utf-8",
+		"Content-Length":  "",
+		"Host":            "api.izuiyou.com",
 		"Accept-Encoding": "gzip",
-		"Connection": "keep-alive"}
+		"Connection":      "keep-alive"}
 	//redis? 不知道干嘛的
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
 	req, err := http.NewRequest("POST", url, postData)
-	if err != nil{
+	if err != nil {
 		logs.Error("请求失败")
 	}
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}
-	response,_ := client.Do(req)
+	response, _ := client.Do(req)
 	respStatus := response.StatusCode
 	respBody := response.Body
-	body,err := ioutil.ReadAll(respBody)
+	body, err := ioutil.ReadAll(respBody)
+	fmt.Printf("here")
 	var verify map[string]map[string]interface{}
 	if err := json.Unmarshal([]byte(checkPoint), &verify); err != nil {
 		fmt.Println("checkpoint解析失败", err)
 		return
 	}
-	doVerifyV2(respStatus,"123456",string(body),verify,1)
+	fmt.Printf("here here ")
+	doVerifyV2(respStatus, uuid, string(body), verify, caseId)
 }
 
-
-func DoRequest(url string, uuid string, data map[string]interface{}, verify map[string]map[string]interface{}, caseId int64) {
-	//密码
-	r := db_proxy.GetRedisObject()
-	statusCode, body, _ := HttpPost(url, nil, data)
-	//body jsonStr转map
-	var jmap map[string]interface{}
-	if err := json.Unmarshal([]byte(body), &jmap); err != nil {
-		fmt.Println("解析失败", err)
-		return
-	}
-	// 此处采用go-simplejson来做个示例，用于以后扩展检查使用
-	js, err := simplejson.NewJson([]byte(body))
-	if err != nil {
-		return
-	}
-	email, err := js.Get("data").Get("email").String()
-	fmt.Println(js.Get("code"), email)
-
-	// 判断某个字段的类型
-	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
-	//判断登录是否成功
-	doVerifyV2(statusCode, uuid, body, verify, caseId)
-	r.Incr(uuid)
-
-}
+//func DoRequest(url string, method string, uuid string, data string, verify string, caseId int64) {
+//	//密码
+//	r := db_proxy.GetRedisObject()
+//	statusCode, body, _ := HttpPost(url, nil, data, method)
+//	//body jsonStr转map
+//	var jmap map[string]interface{}
+//	if err := json.Unmarshal([]byte(body), &jmap); err != nil {
+//		fmt.Println("解析失败", err)
+//		return
+//	}
+//	// 此处采用go-simplejson来做个示例，用于以后扩展检查使用
+//	js, err := simplejson.NewJson([]byte(body))
+//	if err != nil {
+//		return
+//	}
+//	email, err := js.Get("data").Get("email").String()
+//	fmt.Println(js.Get("code"), email)
+//
+//	// 判断某个字段的类型
+//	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
+//	//判断登录是否成功
+//	doVerifyV2(statusCode, uuid, body, verify, caseId)
+//	r.Incr(uuid)
+//
+//}
 
 // 采用jsonpath 对结果进行验证
 func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64) {

@@ -7,28 +7,27 @@ import (
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
-	"time"
 )
 
 type TestCaseMongo struct {
-	Id          int64     `form:"id" json:"id" bson:"_id"`
-	ApiName     string    `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName    string    `form:"case_name" json:"case_name" bson:"case_name"`
-	Description string    `form:"description" json:"description" bson:"description"`
-	Method      string    `form:"method" json:"method" bson:"method"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Id          int64  `form:"id" json:"id" bson:"_id"`
+	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
+	Description string `form:"description" json:"description" bson:"description"`
+	Method      string `form:"method" json:"method" bson:"method"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 	//zen
-	AppName 	string	   `form:"app_name" json:"app_name" bson:"app_name"`
-	ServiceName	string	   `form:"service_name" json:"service_name" bson:"service_name"`
-	ApiUrl 		string 	   `form:"api_url" json:"api_url" bson:"api_url"`
-	TestEnv 	string 	   `form:"test_env" json:"test_env" bson:"test_env"`
-	Mock		string		`form:"mock" json:"mock" bson:"mock"`
-	RequestMethod string	`form:"request_method" json:"request_method" bson:"request_method"`
-	Parameter   string		`form:"parameter" json:"parameter" bson:"parameter"`
-	Checkpoint	string		`form:"check_point" json:"check_point" bson:"check_point"`
-	Level		string		`form:"level" json:"level" bson:"level"`
-	Status		string      `json:"status" bson:"status"`
+	AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
+	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`
+	TestEnv       string `form:"test_env" json:"test_env" bson:"test_env"`
+	Mock          string `form:"mock" json:"mock" bson:"mock"`
+	RequestMethod string `form:"request_method" json:"request_method" bson:"request_method"`
+	Parameter     string `form:"parameter" json:"parameter" bson:"parameter"`
+	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
+	Level         string `form:"level" json:"level" bson:"level"`
+	Status        int64  `json:"status" bson:"status"`
 }
 
 //db:操作的数据库
@@ -39,7 +38,7 @@ type TestCaseMongo struct {
 
 // 获取指定server下的所有case
 
-func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error){
+func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error) {
 	//query := TestCaseMongo{}
 	var acm = TestCaseMongo{}
 	ms, c := db_proxy.Connect("auto_api", "case")
@@ -53,11 +52,11 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{})(TestCaseMongo, error)
 
 //通过id list 获取用例
 
-func (t *TestCaseMongo)  GetCasesByIds(ids []string) []TestCaseMongo {
+func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
 	var caseList []TestCaseMongo
-	for _,i := range ids{
+	for _, i := range ids {
 		id64, err := strconv.ParseInt(i, 10, 64)
-		if err !=nil{
+		if err != nil {
 			logs.Error("类型转换失败")
 		}
 		acm := t.GetOneCase(id64)
@@ -67,28 +66,27 @@ func (t *TestCaseMongo)  GetCasesByIds(ids []string) []TestCaseMongo {
 }
 
 // 获取全部case
-func (t *TestCaseMongo) GetAllCases(page ,limit int, business string) ([]TestCaseMongo, error) {
+func (t *TestCaseMongo) GetAllCases(page, limit int, business string) ([]TestCaseMongo, error) {
 	//acm := TestCaseMongo{}
 	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"status":"0", "app_name":business}
-	err := c.Find(query).Skip((page-1) * limit).Limit(limit).All(&result)
+	query := bson.M{"status": "0", "app_name": business}
+	err := c.Find(query).Skip((page - 1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
 		fmt.Println(err)
 		logs.Error(1024, err)
 	}
-	return result,err
+	return result, err
 }
-
 
 // 通过id获取指定case
 
-func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo) {
+func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 
 	fmt.Println(id)
-	query := bson.M{"_id": id, "status":"0"}
+	query := bson.M{"_id": id, "status": "0"}
 	acm := TestCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -103,9 +101,9 @@ func (t *TestCaseMongo) GetOneCase(id int64) (TestCaseMongo) {
 
 // 添加一条case
 
-func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error{
+func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
-	defer  ms.Close()
+	defer ms.Close()
 	err := db.Insert(acm)
 	if err != nil {
 		logs.Error(1024, err)
@@ -120,7 +118,7 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	acm.Status = "0"
+	acm.Status = 0
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
@@ -131,15 +129,14 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 
 // 修改status
 
-func (t *TestCaseMongo) DelCase(id int64){
+func (t *TestCaseMongo) DelCase(id int64) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	//err := db.Find(query).One(&acm)
-	err := db.Update(query, bson.M{"$set":bson.M{"status":"1"}})
-	if err != nil{
+	err := db.Update(query, bson.M{"$set": bson.M{"status": "1"}})
+	if err != nil {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)
 	}
 }
-
