@@ -12,8 +12,7 @@ func (c *CaseManageController) ShowCases(){
 	c.TplName = "case_manager.html"
 }
 
-func (c* CaseManageController) ShowAddCase(){
-	business:= c.GetString("business")
+func GetServiceList(business string)(service []models.ServiceMongo){
 	var busCode = int8(0)
 	if business == "zuiyou"{
 		busCode = int8(0)
@@ -31,6 +30,12 @@ func (c* CaseManageController) ShowAddCase(){
 	if err != nil{
 		logs.Error("find service fail")
 	}
+	return services
+}
+
+func (c* CaseManageController) ShowAddCase(){
+	business := c.GetString("business")
+	services := GetServiceList(business)
 	// 获取全部service
 	c.Data["services"] = services
 	c.TplName = "case_add.html"
@@ -52,6 +57,8 @@ func (c *CaseManageController) GetAllCases(){
 
 func (c *CaseManageController) ShowEditCase(){
 	id := c.GetString("id")
+	business := c.GetString("business")
+	services := GetServiceList(business)
 	idInt, err := strconv.ParseInt(id,10,64)
 	if err != nil{
 		logs.Error("转换类型错误")
@@ -59,5 +66,6 @@ func (c *CaseManageController) ShowEditCase(){
 	acm := models.TestCaseMongo{}
 	res:= acm.GetOneCase(idInt)
 	c.Data["a"] = &res
+	c.Data["services"] = services
 	c.TplName = "case_edit.html"
 }

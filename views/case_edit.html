@@ -32,9 +32,9 @@
             <div class="layui-input-block">
                 <select name="service_name" lay-filter="aihao">
                     <option selected>{{.a.ServiceName}}</option>
-                    <option value="gateway-my">gateway-my</option>
-                    <option value="gateway-publish" selected="">gateway-publish</option>
-                    <option value="gateway-publish">gateway-pp</option>
+                    {{range .services}}
+                    <option value={{.ServiceName}} selected="">{{.ServiceName}}</option>
+                    {{end}}
                 </select>
             </div>
         </div>
