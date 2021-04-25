@@ -7,7 +7,7 @@
     <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>
 </div>
 
-<table class="layui-table" lay-data="{url:'/case/get_all_cases/', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
+<table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
     <thead>
     <tr>
         <th lay-data="{type:'checkbox', fixed: 'left'}"></th>

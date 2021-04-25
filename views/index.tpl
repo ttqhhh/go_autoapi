@@ -82,7 +82,11 @@
   </header>
   <footer>
     <div class="author">
-        <a href="/case/show_cases">GO TEST !!!</a>
+        <a href="/case/show_cases?business=zuiyou">zuiyou</a><br>
+        <a href="/case/show_cases?business=pipi">pipi</a><br>
+        <a href="/case/show_cases?business=haiwai">haiwai</a><br>
+        <a href="/case/show_cases?business=zhongdong">zhongdong</a><br>
+        <a href="/case/show_cases?business=mama">mama</a><br>
     </div>
   </footer>
   <div class="backdrop"></div>
