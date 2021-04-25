@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/astaxie/beego/logs"
 	"go_autoapi/libs"
 )
 
@@ -30,27 +32,34 @@ type CheckOut struct {
 }
 
 type CaseList struct {
-	CaseList []int `json:"ids"`
+	CaseList []int64 `json:"ids"`
 }
 
 // 获取用户列表 登录
 func (c *AutoTestController) performTests() {
 	uuid, _ := c.GenUUid()
-	var caseId int64
-	caseId = 10
-	u := CheckOut{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &u); err != nil {
-		c.ErrorJson(-1, "请求错误", nil)
+	cl := CaseList{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
+		c.ErrorJson(-1, "请求参数错误", nil)
 	}
-	var caseList []CheckOut
-	for i := 0; i < 1; i++ {
-		caseList = append(caseList, CheckOut{"http://127.0.0.1:8080/auto/login", u.Param, u.Check})
+	caseList, err := libs.GetCasesByIds(cl.CaseList)
+	if err != nil {
+		logs.Error("获取测试用例列表失败", err)
+		c.ErrorJson(-1, "获取测试用例失败", nil)
 	}
-	//fmt.Println("case list is", caseList)
+
+	//for i := 0; i < 1; i++ {
+	//	caseList = append(caseList, CheckOut{"http://127.0.0.1:8080/auto/login", u.Param, u.Check})
+	//}
+	fmt.Println("case list is", caseList)
+	if len(caseList) == 0 {
+		logs.Error("没有用例", err)
+		c.ErrorJson(-1, "没有用例", nil)
+	}
 	for _, val := range caseList {
-		go func(url string, uuid string, param map[string]interface{}, checkout map[string]map[string]interface{}) {
-			libs.DoRequest(url, uuid, param, checkout, caseId)
-		}(val.Url, uuid, val.Param, val.Check)
+		go func(url string, uuid string, param string, checkout string, caseId int64) {
+			libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id)
+		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id)
 	}
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid}, "OK")
 }
