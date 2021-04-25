@@ -37,8 +37,8 @@ func (c *CaseManageController) Post() {
 		c.AddOneCase()
 	case "del_one_case":
 		c.DelCaseByID()
-	case "do_test":
-		c.performTests()
+	//case "do_test":
+	//	c.performTests()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
