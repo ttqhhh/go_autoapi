@@ -7,17 +7,16 @@ import (
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
-	"time"
 )
 
 type TestCaseMongo struct {
-	Id          int64     `form:"id" json:"id" bson:"_id"`
-	ApiName     string    `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName    string    `form:"case_name" json:"case_name" bson:"case_name"`
-	Description string    `form:"description" json:"description" bson:"description"`
-	Method      string    `form:"method" json:"method" bson:"method"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Id          int64  `form:"id" json:"id" bson:"_id"`
+	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
+	Description string `form:"description" json:"description" bson:"description"`
+	Method      string `form:"method" json:"method" bson:"method"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 	//zen
 	AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
@@ -28,7 +27,7 @@ type TestCaseMongo struct {
 	Parameter     string `form:"parameter" json:"parameter" bson:"parameter"`
 	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
 	Level         string `form:"level" json:"level" bson:"level"`
-	Status        string `json:"status" bson:"status"`
+	Status        int64  `json:"status" bson:"status"`
 }
 
 //db:操作的数据库
@@ -119,7 +118,7 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	acm.Status = "0"
+	acm.Status = 0
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
