@@ -63,7 +63,7 @@
                     window.location.reload()
                 });
             } else if(obj.event === 'edit'){
-                window.location.href="/case/show_edit_case?id="+data.id
+                window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
             } else if(obj.event === "run"){
                 var arr = new Array()
                 arr.push(data.id)

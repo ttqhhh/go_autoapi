@@ -82,11 +82,11 @@
   </header>
   <footer>
     <div class="author">
-        <a href="/case/show_cases?business=zuiyou">zuiyou</a><br>
-        <a href="/case/show_cases?business=pipi">pipi</a><br>
-        <a href="/case/show_cases?business=haiwai">haiwai</a><br>
-        <a href="/case/show_cases?business=zhongdong">zhongdong</a><br>
-        <a href="/case/show_cases?business=mama">mama</a><br>
+        <a href="/case/show_cases?business=zuiyou">0</a><br>
+        <a href="/case/show_cases?business=pipi">1</a><br>
+        <a href="/case/show_cases?business=haiwai">2</a><br>
+        <a href="/case/show_cases?business=zhongdong">3</a><br>
+        <a href="/case/show_cases?business=mama">4</a><br>
     </div>
   </footer>
   <div class="backdrop"></div>

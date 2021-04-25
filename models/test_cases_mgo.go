@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+const status = 0
+
 type TestCaseMongo struct {
 	Id          int64  `form:"id" json:"id" bson:"_id"`
 	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
@@ -71,7 +73,7 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) ([]TestCas
 	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"status": "0", "app_name": business}
+	query := bson.M{"status": status, "app_name": business}
 	err := c.Find(query).Skip((page - 1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
@@ -86,7 +88,7 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) ([]TestCas
 func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 
 	fmt.Println(id)
-	query := bson.M{"_id": id, "status": "0"}
+	query := bson.M{"_id": id, "status": status}
 	acm := TestCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -134,7 +136,7 @@ func (t *TestCaseMongo) DelCase(id int64) {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	//err := db.Find(query).One(&acm)
-	err := db.Update(query, bson.M{"$set": bson.M{"status": "1"}})
+	err := db.Update(query, bson.M{"$set": bson.M{"status": status}})
 	if err != nil {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)
