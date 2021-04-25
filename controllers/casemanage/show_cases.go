@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+
 func (c *CaseManageController) ShowCases(){
 	c.Data["business"] = c.GetString("business")
 	c.TplName = "case_manager.html"
