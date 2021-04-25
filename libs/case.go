@@ -6,6 +6,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	db              = "auto_api"
+	case_collection = "case"
+)
+
 func init() {
 	//orm.RegisterModel(new(AdMockCaseMongo))
 	db_proxy.InitMongoDB()
@@ -13,9 +18,9 @@ func init() {
 }
 
 func GetCasesByIds(ids []int64) (acms []*models.TestCaseMongo, err error) {
-	ms, db := db_proxy.Connect("auto_api", "case")
+	ms, db := db_proxy.Connect(db, case_collection)
 	defer ms.Close()
-	query := bson.M{"_id": bson.M{"$in": ids}, "status": "0"}
+	query := bson.M{"_id": bson.M{"$in": ids}, "status": 0}
 	err = db.Find(query).All(&acms)
 	return
 }
