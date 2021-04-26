@@ -54,7 +54,8 @@ func (c *AutoTestController) performTests() {
 	}
 	for _, val := range caseList {
 		go func(url string, uuid string, param string, checkout string, caseId int64) {
-			libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id)
+			//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
+			libs.DoRequestV2(url, uuid, param, checkout, caseId)
 		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id)
 	}
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid}, "OK")
