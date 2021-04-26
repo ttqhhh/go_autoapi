@@ -20,6 +20,7 @@ type TestCaseMongo struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 	//zen
+	Author		  string `form:"author" json:"author" bson:"author"`
 	AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
 	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`

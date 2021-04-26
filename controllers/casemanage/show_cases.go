@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
+	constant "go_autoapi/constants"
 	"go_autoapi/models"
 	"strconv"
 )
@@ -35,9 +36,11 @@ func GetServiceList(business string)(service []models.ServiceMongo){
 }
 
 func (c* CaseManageController) ShowAddCase(){
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	business := c.GetString("business")
 	services := GetServiceList(business)
 	// 获取全部service
+	c.Data["Author"] = userId
 	c.Data["services"] = services
 	c.TplName = "case_add.html"
 }
