@@ -16,8 +16,8 @@ func (c *ServiceController) Get() {
 	switch do {
 	case "index":
 		c.index()
-	case "addIndex":
-		c.addIndex()
+	//case "addIndex":
+	//	c.addIndex()
 	case "page":
 		c.page()
 	case "list":
@@ -49,19 +49,20 @@ func (c *ServiceController) Post() {
 
 // 页面跳转
 func (c *ServiceController) index() {
-	c.TplName = "service.tpl"
+	c.TplName = "service.html"
 }
-func (c *ServiceController) addIndex() {
-	id, err := c.GetInt64("id", -1)
-	if err != nil {
-		logs.Warn("/service/getById接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数: id=%v", id)
 
-	c.Data["id"] = id
-	c.TplName = "service_add.tpl"
-}
+//func (c *ServiceController) addIndex() {
+//	id, err := c.GetInt64("id", -1)
+//	if err != nil {
+//		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+//		c.ErrorJson(-1, "参数异常", nil)
+//	}
+//	logs.Info("请求参数: id=%v", id)
+//
+//	c.Data["id"] = id
+//	c.TplName = "service_add.tpl"
+//}
 
 // 分页查询
 func (c *ServiceController) page() {
@@ -71,12 +72,12 @@ func (c *ServiceController) page() {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
 	}
-	pageNo, err := c.GetInt("page_no", 1)
+	pageNo, err := c.GetInt("page", 1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
 	}
-	pageSize, err := c.GetInt("page_size", 10)
+	pageSize, err := c.GetInt("limit", 10)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
@@ -87,11 +88,20 @@ func (c *ServiceController) page() {
 	if err != nil {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
-	result := make(map[string]interface{})
-	result["total"] = total
-	result["data"] = services
+	//result := make(map[string]interface{})
+	//result["total"] = total
+	//result["data"] = services
 
-	c.SuccessJson(result)
+	//c.SuccessJson(result)
+	res := make(map[string]interface{})
+	res["code"] = 0
+	res["msg"] = "成功"
+	res["count"] = total
+	res["data"] = services
+
+	c.Data["json"] = res
+	c.ServeJSON() //对json进行序列化输出
+	c.StopRun()
 }
 
 // 获取服务列表（可根据业务线）
@@ -141,7 +151,7 @@ func (c *ServiceController) save() {
 	}
 	logs.Info("请求参数：%v", service)
 
-	if string(service.Id) == "" || service.Id == -1 {
+	if string(service.Id) == "" || service.Id == -1 || service.Id == 0 {
 		//todo 添加人字段待处理
 		err = service.Insert(*service)
 		if err != nil {

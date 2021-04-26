@@ -105,7 +105,8 @@
     }
     function cancelLayer() {
         var index = parent.layer.getFrameIndex(window.name);
-        parent.layer.close(index);
+        parent.layer.close(layer.open());
+        $("#add-main").css("display", "none")
     }
 </script>
 <!-- form表单 -->

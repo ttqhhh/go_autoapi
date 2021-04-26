@@ -12,7 +12,9 @@ type AutoTestController struct {
 func (c *AutoTestController) Get() {
 	do := c.GetMethodName()
 	switch do {
-	case "userIndex":
+	case "to_login":
+		c.toLogin()
+	case "user_index":
 		c.userIndex() // 页面跳转
 	case "user_list":
 		c.getUserList() // 获取用户数据列表
