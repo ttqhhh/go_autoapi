@@ -97,9 +97,24 @@ func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
 	query := bson.M{"status": 0}
 	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(page * offset).Limit(offset).All(&au)
+
+	skip := (page - 1) * offset
+	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(skip).Limit(offset).All(&au)
 	if err != nil {
 		logs.Error(1024, err)
 	}
 	return au, err
+}
+
+// 获取用户列表
+func (a *AutoUser) GetActivateUserCount() (total int, err error) {
+	query := bson.M{"status": 0}
+	ms, db := db_proxy.Connect(db, user_collection)
+	defer ms.Close()
+
+	total, err = db.Find(query).Count()
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return total, err
 }

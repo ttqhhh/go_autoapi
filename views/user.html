@@ -1,0 +1,135 @@
+{{template "head.html" .}}
+<script src="/static/layui/layui.js" charset="utf-8"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+    layui.use('table', function () {
+        var table = layui.table;
+
+        /** 表格加载 begin */
+        //第一个实例
+        table.render({
+            elem: '#user'
+            // ,height: auto
+            , url: '/auto/user_list' //数据接口
+            , page: true //开启分页
+            , limit: 10
+            , cols: [[ //表头
+                {type: 'checkbox', fixed: 'left'},
+                {field: 'id', title: 'ID', fixed: 'left', fixed: true}
+                , {field: 'user_name', title: '用户名', fixed: true}
+                , {field: 'business', title: '业务线', fixed: true}
+                , {field: 'email', title: '邮箱', fixed: true}
+                , {field: 'mobile', title: '手机号', fixed: true}
+                , {title: '操作', fixed: 'right', align: 'center', toolbar: '#userOp'}
+            ]]
+            , done: function (res, curr, count) {
+                var businessMap = {}
+                // 去加载业务线全量数据，用来映射表格中的业务线值
+                $.ajax({
+                    url: "/service/business",
+                    type: "GET",
+                    async: false,
+                    dataType: "json",
+                    success: function (data) {
+                        $.each(data.data, function (index, value) {
+                            businessMap[value.code] = value.name;
+                        })
+                    }
+                })
+                // 如果是异步请求数据方式，res即为你接口返回的信息。
+                // 如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                $("[data-field='business']").children().each(function () {
+                    var businessCode = $(this).text()
+                    var businessName = businessMap[businessCode];
+                    $(this).text(businessName)
+                });
+            }
+        });
+        /** 表格加载 end */
+
+        //监听表格复选框选择
+        table.on('checkbox(user)', function (obj) {
+            console.log(obj)
+        });
+        //监听工具条
+        table.on('tool(user)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                layer.msg('ID：' + data.id + ' 的查看操作');
+            } else if (obj.event === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    $.ajax({
+                        type: 'POST',
+                        url: "/case/del_one_case",
+                        async: false,
+                        timeout: 500000,
+                        data: {
+                            "id": data.id,
+                        }
+                    });
+                    layer.close(index);
+                    window.location.reload()
+                });
+            } else if (obj.event === 'edit') {
+                window.location.href = "/case/show_edit_case?id=" + data.id
+            } else if (obj.event === "run") {
+                var arr = new Array()
+                arr.push(data.id)
+                $.ajax({
+                    type: 'POST',
+                    url: "/case/do_test",
+                    async: false,
+                    timeout: 500000,
+                    data: {
+                        "case_id": arr.toString(),
+                    }
+                })
+            }
+        });
+
+        var $ = layui.$, active = {
+            getCheckData: function () { //获取选中数据
+                var checkStatus = table.checkStatus('user'),
+                    data = checkStatus.data,
+                    arr_id = [];
+                for (var i = 0; i < data.length; i++) {
+                    arr_id.push(data[i].id);
+                }
+                // 提交列表形式的id
+                // $.ajax({
+                //     url:
+                // })
+            }
+            , getCheckLength: function () { //获取选中数目
+                var checkStatus = table.checkStatus('user')
+                    , data = checkStatus.data;
+                layer.msg('选中了：' + data.length + ' 个');
+            }
+            , isAll: function () { //验证是否全选
+                var checkStatus = table.checkStatus('user');
+                layer.msg(checkStatus.isAll ? '全选' : '未全选')
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+</script>
+<div style="margin:1%">
+{{/*    <div class="layui-btn-group demoTable">*/}}
+{{/*        <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>*/}}
+{{/*        <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>*/}}
+{{/*        <button class="layui-btn layui-bg-blue" data-type="isAll">验证是否全选</button>*/}}
+{{/*    </div>*/}}
+
+    <table id="user"></table>
+
+    <script type="text/html" id="userOp">
+{{/*        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>*/}}
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+</div>
+</body>
+</html>
