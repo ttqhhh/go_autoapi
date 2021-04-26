@@ -23,6 +23,10 @@ type User struct {
 	Passwrod string `json:"password"`
 }
 
+func (c *AutoTestController) toLogin() {
+	c.TplName = "login.tpl"
+}
+
 // Login 登录
 func (c *AutoTestController) login() {
 	u := User{}

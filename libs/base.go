@@ -2,11 +2,10 @@ package libs
 
 import (
 	"fmt"
-	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/satori/go.uuid"
-	constant "go_autoapi/constants"
 	_ "go_autoapi/constants"
+	constant "go_autoapi/constants"
 	"strings"
 )
 
@@ -30,9 +29,10 @@ type ReturnMsgPage struct {
 
 func (b *BaseController) Prepare() {
 	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
-	if err == false && b.GetMethodName() != "login" {
-		logs.Error("not login")
-		b.ErrorJson(-1, "not login", nil)
+	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
+		//logs.Error("not login")
+		//b.ErrorJson(-1, "not login", nil)
+		b.Redirect("/auto/to_login", 302)
 	}
 	fmt.Println(userId)
 }
@@ -87,4 +87,3 @@ func (b *BaseController) GenUUid() (string, error) {
 	u2 := uuid.NewV4()
 	return u2.String(), nil
 }
-

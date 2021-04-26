@@ -9,6 +9,21 @@ type AutoTestController struct {
 	libs.BaseController
 }
 
+func (c *AutoTestController) Get() {
+	do := c.GetMethodName()
+	switch do {
+	case "to_login":
+		c.toLogin()
+	case "user_index":
+		c.userIndex() // 页面跳转
+	case "user_list":
+		c.getUserList() // 获取用户数据列表
+	default:
+		logs.Warn("action: %s, not implemented", do)
+		c.ErrorJson(-1, "不支持", nil)
+	}
+}
+
 func (c *AutoTestController) Post() {
 	do := c.GetMethodName()
 	switch do {
