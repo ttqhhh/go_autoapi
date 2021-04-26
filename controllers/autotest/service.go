@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/beego/beego/v2/core/logs"
+	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 )
@@ -143,6 +144,8 @@ func (c *ServiceController) getById() {
 
 // 添加
 func (c *ServiceController) save() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+
 	service := &models.ServiceMongo{}
 	err := c.ParseForm(service)
 	if err != nil {
@@ -152,13 +155,13 @@ func (c *ServiceController) save() {
 	logs.Info("请求参数：%v", service)
 
 	if string(service.Id) == "" || service.Id == -1 || service.Id == 0 {
-		//todo 添加人字段待处理
+		service.CreateBy = userId
 		err = service.Insert(*service)
 		if err != nil {
 			c.ErrorJson(-1, "服务添加数据异常", nil)
 		}
 	} else {
-		// todo 更新人字段待处理
+		service.UpdateBy = userId
 		err = service.Update(*service)
 		if err != nil {
 			c.ErrorJson(-1, "服务更新数据异常", nil)
