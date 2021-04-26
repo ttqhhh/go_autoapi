@@ -136,7 +136,7 @@ func (c *ServiceController) save() {
 	service := &models.ServiceMongo{}
 	err := c.ParseForm(service)
 	if err != nil {
-		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+		logs.Warn("/service/save接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
 	}
 	logs.Info("请求参数：%v", service)
