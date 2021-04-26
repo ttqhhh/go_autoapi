@@ -20,6 +20,13 @@ type ReturnMsg struct {
 	Data interface{} `json:"data"`
 }
 
+type ReturnMsgPage struct {
+	Code int         `json:"code"`
+	Count int64 		  `json:"count"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data"`
+}
+
 
 func (b *BaseController) Prepare() {
 	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
@@ -66,10 +73,10 @@ func (b *BaseController) GetMethodName() (do string) {
 	return strings.Split(do, "/")[2]
 }
 
-func (b *BaseController) FormSuccessJson(data interface{}) {
+func (b *BaseController) FormSuccessJson(count int64, data interface{}) {
 
-	res := ReturnMsg{
-		0, "success", data,
+	res := ReturnMsgPage{
+		0, count,"success", data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出

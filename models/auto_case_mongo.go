@@ -54,6 +54,17 @@ func GetId(name string) (id int64) {
 	return
 }
 
+func (a *Ids)GetCollectionLength(name string) int64 {
+	ids := Ids{}
+	query := bson.M{"name": name}
+	ms, db := db_proxy.Connect("auto_api", "ids")
+	defer ms.Close()
+	if err := db.Find(query).One(&ids) ;err !=nil{
+		logs.Error("查询失败")
+	}
+	return ids.Id
+}
+
 func (a *AutoCaseMongo) InsertCase(acm AutoCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()

@@ -32,7 +32,7 @@ type CheckOut struct {
 }
 
 type CaseList struct {
-	CaseList []int64 `json:"ids"`
+	CaseList []int64 `json:"ids" form:"ids" `
 }
 
 // 获取用户列表 登录

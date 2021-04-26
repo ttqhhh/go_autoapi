@@ -44,6 +44,8 @@ func (c* CaseManageController) ShowAddCase(){
 
 func (c *CaseManageController) GetAllCases(){
 	acm := models.TestCaseMongo{}
+	ids := models.Ids{}
+	count := ids.GetCollectionLength("case")
 	business := c.GetString("business")
 	fmt.Println(business)
 	page, _ := strconv.Atoi(c.GetString("page"))
@@ -53,7 +55,7 @@ func (c *CaseManageController) GetAllCases(){
 		logs.Error("获取全部用例失败")
 		logs.Error(1024, err)
 	}
-	c.FormSuccessJson(result)
+	c.FormSuccessJson(count,result)
 }
 
 func (c *CaseManageController) ShowEditCase(){

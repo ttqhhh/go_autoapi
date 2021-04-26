@@ -65,3 +65,15 @@ func (a *AutoResult) GetResultByRunId(id int64) (ar []*AutoResult, err error) {
 	}
 	return ar, err
 }
+
+
+func (a *AutoResult) GetAllResult(page ,limit int)(ar []*AutoResult, err error) {
+	ms, db := db_proxy.Connect(db, result_collection)
+	defer ms.Close()
+	err = db.Find(nil).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)
+	fmt.Println(ar)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return ar, err
+}

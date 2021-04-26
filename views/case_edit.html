@@ -6,7 +6,7 @@
 
 <form class="layui-form" action="/case/update_one_case/" method="post" enctype="">
 
-    <input type="text" style="display: none" name="id" value={{.a.Id}} >
+    <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
     <!--    <input type="text" name="id" value="0" style="display: none">-->
@@ -63,7 +63,6 @@
                    value={{.a.ApiUrl}}>
         </div>
     </div>
-
 
     <div class="layui-form-item">
         <label class="layui-form-label">请求方式</label>
@@ -124,22 +123,36 @@
         <div class="layui-input-block">
             <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
             <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            <button type="button" class="layui-btn layui-btn-normal" id="run">调试运行</button>
         </div>
     </div>
 </form>
-
-
-
 
 <script>
     layui.use(['form', 'layedit', 'laydate'], function(){
         var form = layui.form
             ,layer = layui.layer
+            ,$ = layui.jquery
             ,layedit = layui.layedit
             ,laydate = layui.laydate;
 
         form.render()
 
+        $(document).on('click', '#run', function() {
+            var arr = new Array()
+            arr.push(parseInt("{{.a.Id}}"))
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json",
+                dataType:"json",
+                url: "/auto/perform_tests",
+                async:false,
+                timeout : 500000,
+                data: JSON.stringify({
+                    "ids": arr,
+                })
+            })
+        });
     });
 </script>
 

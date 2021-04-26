@@ -25,6 +25,6 @@ func (c *CaseManageController) GetCasesByQuery(){
 		logs.Error("通过" + fd.key + "获取用例失败")
 		logs.Error(1024, err)
 	}
-	c.FormSuccessJson(result)
+	c.SuccessJson(result)
 }
 
