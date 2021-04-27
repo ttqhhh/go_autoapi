@@ -19,9 +19,10 @@ func (c *CaseManageController) AddOneCase() {
 	acm.CreatedAt = now
 	acm.UpdatedAt = now
 	acm.Status = 0
+	business := acm.AppName
 	if err := acm.AddCase(acm); err != nil {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("添加成功")
-	c.Ctx.Redirect(302, "/case/show_cases")
+	c.Ctx.Redirect(302, "/case/show_cases?business=" + business)
 }

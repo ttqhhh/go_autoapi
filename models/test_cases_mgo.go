@@ -9,7 +9,10 @@ import (
 	"strconv"
 )
 
-const status = 0
+const (
+	status = 0
+	del_ = 1
+)
 
 type TestCaseMongo struct {
 	Id          int64  `form:"id" json:"id" bson:"_id"`
@@ -137,7 +140,7 @@ func (t *TestCaseMongo) DelCase(id int64) {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	//err := db.Find(query).One(&acm)
-	err := db.Update(query, bson.M{"$set": bson.M{"status": status}})
+	err := db.Update(query, bson.M{"$set": bson.M{"status": del_}})
 	if err != nil {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)

@@ -1,11 +1,6 @@
 {{template "head.html" .}}
 
 <div style="margin:1%">
-<div class="layui-btn-group demoTable">
-    <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>
-<!--    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>-->
-<!--    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>-->
-</div>
 
 <table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
     <thead>
@@ -27,6 +22,11 @@
     </tr>
     </thead>
 </table>
+<div class="layui-btn-group demoTable" style="padding-left: 45%">
+    <button class="layui-btn layui-bg-blue" data-type="getCheckData">运行选中测试用例</button>
+    <!--    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>-->
+    <!--    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>-->
+</div>
 
 <script type="text/html" id="barDemo">
 <!--    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="run">运行</a>-->
@@ -102,6 +102,7 @@
                         "ids": arr_id,
                     })
                 })
+                window.location.href="/case/show_report"
             }
             ,getCheckLength: function(){ //获取选中数目
                 var checkStatus = table.checkStatus('idTest')
