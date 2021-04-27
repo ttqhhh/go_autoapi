@@ -18,8 +18,8 @@ type AutoUser struct {
 	UserName string `json:"user_name" bson:"user_name" valid:"Required"`
 	Email    string `json:"email" bson:"email"`
 	Mobile   string `json:"mobile" bson:"mobile"`
-	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈
-	Business int `json:"business" bson:"business" valid:"Range(0, 4)"`
+	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化
+	Business int `json:"business" bson:"business" valid:"Range(0, 5)"`
 	//0：正常，1：删除
 	Status int `json:"status,omitempty"  bson:"status" valid:"Range(0, 1)"`
 	// omitempty 表示该字段为空时，不返回
