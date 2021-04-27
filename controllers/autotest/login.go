@@ -9,6 +9,7 @@ import (
 	constant "go_autoapi/constants"
 	"go_autoapi/models"
 	"gopkg.in/mgo.v2"
+	"strconv"
 	"time"
 )
 
@@ -76,7 +77,15 @@ func (c *AutoTestController) login() {
 	for i := 0; i < 10; i++ {
 		ul = append(ul, &au)
 	}
-	c.SuccessJsonWithMsg(ul, "OK")
+	//c.SuccessJsonWithMsg(ul, "OK")
+	// 默认跳转到第一个有权限的业务线case页面
+	businesses := getBusinesses(u.UserName)
+	business := businesses[0]
+	code := business["code"]
+	codeInt := code.(int)
+	redirectUrl := "/case/show_cases?business=" + strconv.Itoa(codeInt)
+	//redirectUrl := "/case/show_cases?business=zuiyou"
+	c.SuccessJson(redirectUrl)
 }
 
 func (c *AutoTestController) logout() {

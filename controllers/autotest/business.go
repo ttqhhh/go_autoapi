@@ -53,10 +53,16 @@ var businessCodeNameMap = map[int]string{
 
 func (c *BusinessController) getUserBusinesses() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+
 	result := make(map[string]interface{})
-	//userId := c.GetString("username")
+	result["username"] = userId
+	result["businesses"] = getBusinesses(userId)
+	c.SuccessJson(getBusinesses(userId))
+}
+
+func getBusinesses(username string) []map[string]interface{} {
 	businessResp := [](map[string]interface{}){}
-	businesses, ok := userBusinessMap[userId]
+	businesses, ok := userBusinessMap[username]
 	if !ok {
 		// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
 		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua}
@@ -81,9 +87,7 @@ func (c *BusinessController) getUserBusinesses() {
 			}
 		}
 	}
-	result["username"] = userId
-	result["businesses"] = businessResp
-	c.SuccessJson(result)
+	return businessResp
 }
 
 // 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化

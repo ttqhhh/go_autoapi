@@ -30,7 +30,8 @@
                 code = resp.code;
                 if (code == 200) {
                     // 登录成功
-                    window.location.href = "/service/index";
+                    var redirectUrl = resp.data
+                    window.location.href = redirectUrl;
                 } else {
                     // 登录失败
                     layer.alert(resp.msg);
