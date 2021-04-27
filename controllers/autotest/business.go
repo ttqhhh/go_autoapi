@@ -57,7 +57,7 @@ func (c *BusinessController) getUserBusinesses() {
 	result := make(map[string]interface{})
 	result["username"] = userId
 	result["businesses"] = getBusinesses(userId)
-	c.SuccessJson(getBusinesses(userId))
+	c.SuccessJson(result)
 }
 
 func getBusinesses(username string) []map[string]interface{} {
