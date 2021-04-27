@@ -42,6 +42,7 @@ func (c *AutoTestController) performTests() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
+	count := len(cl.CaseList)
 	caseList, err := libs.GetCasesByIds(cl.CaseList)
 	if err != nil {
 		logs.Error("获取测试用例列表失败", err)
@@ -57,5 +58,5 @@ func (c *AutoTestController) performTests() {
 			libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id)
 		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id)
 	}
-	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid}, "OK")
+	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 }

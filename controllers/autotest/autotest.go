@@ -36,6 +36,10 @@ func (c *AutoTestController) Post() {
 		c.allBusinessList()
 	case "perform_tests":
 		c.performTests()
+	case "get_progress":
+		c.getProcess()
+	case "get_result":
+		c.getResult()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
