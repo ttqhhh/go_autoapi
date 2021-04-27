@@ -32,7 +32,19 @@
         $(function () {
             var url_id = window.location.pathname + window.location.search
             $(document.getElementById(url_id)).addClass("layui-this");
+            $.ajax({
+                type: 'GET',
+                dataType:"json",
+                url: "/business/get_user_businesses",
+                async:false,
+                timeout : 500000,
+                success:function (data){
+
+                }
+            })
         });
+
+
     });
 </script>
 
@@ -53,5 +65,13 @@
     <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>
     <li class="layui-nav-item"><a href="/service/index">服务管理</a></li>
     <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>
+    <li class="layui-nav-item" lay-unselect="" style="float: right">
+        <a href="javascript:;"><img src="//t.cn/RCzsdCq" class="layui-nav-img author">我</a>
+<!--        <dl class="layui-nav-child">-->
+<!--            <dd><a href="javascript:;">修改信息</a></dd>-->
+<!--            <dd><a href="javascript:;">安全管理</a></dd>-->
+<!--            <dd><a href="javascript:;">退了</a></dd>-->
+<!--        </dl>-->
+    </li>
 </ul>
 
