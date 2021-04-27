@@ -85,6 +85,7 @@ func (mongo *ServiceMongo) Update(service ServiceMongo) error {
 			"service_name": service.ServiceName,
 			"business":     service.Business,
 			"updated_at":   service.UpdatedAt,
+			"update_by":    service.UpdateBy,
 		},
 	}
 	changeInfo, err := db.UpsertId(service.Id, data)

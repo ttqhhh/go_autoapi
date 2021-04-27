@@ -8,8 +8,10 @@ type MainController struct {
 	beego.Controller
 }
 
+// todo 勿动~~
+// todo 勿动~~
+// todo 勿动~~
+// todo 勿动~~
 func (a *MainController) Get() {
-	a.Data["Website"] = "beego.me"
-	a.Data["Email"] = "astaxie@gmail.com"
-	a.TplName = "index.tpl"
+	a.TplName = "login.html"
 }

@@ -16,16 +16,18 @@ func (c *CaseManageController) ShowCases(){
 
 func GetServiceList(business string)(service []models.ServiceMongo){
 	var busCode = int8(0)
-	if business == "zuiyou"{
+	if business == "0"{
 		busCode = int8(0)
-	}else if business == "pipi"{
+	}else if business == "1"{
 		busCode = int8(1)
-	}else if business == "haiwai"{
+	}else if business == "2"{
 		busCode = int8(2)
-	}else if business == "zhongdong"{
+	}else if business == "3"{
 		busCode = int8(3)
-	}else if business == "mama"{
+	}else if business == "4"{
 		busCode = int8(4)
+	} else if business == "5"{
+		busCode = int8(5)
 	}
 	serviceMongo := models.ServiceMongo{}
 	services, err := serviceMongo.QueryByBusiness(busCode)

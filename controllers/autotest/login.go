@@ -24,7 +24,7 @@ type User struct {
 }
 
 func (c *AutoTestController) toLogin() {
-	c.TplName = "login.tpl"
+	c.TplName = "login.html"
 }
 
 // Login 登录

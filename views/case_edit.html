@@ -17,13 +17,8 @@
         <div class="layui-inline">
             <label class="layui-form-label">业务线</label>
             <div class="layui-input-block">
-                <select name="app_name" lay-filter="business" id="business">
-                    <option selected>{{.a.AppName}}</option>
-                    <option value="zuiyou">zuiyou</option>
-                    <option value="pipi">pipi</option>
-                    <option value="haiwai">haiwai</option>
-                    <option value="zhongdong">zhongdong</option>
-                    <option value="mama">mama</option>
+                <select name="business_code" lay-filter="business" id="business">
+                    <option selected value={{.a.BusinessCode}}>{{.a.BusinessName}}</option>
                 </select>
             </div>
         </div>
@@ -145,6 +140,23 @@
             ,layedit = layui.layedit
             ,laydate = layui.laydate;
 
+        $(function () {
+            $.ajax({
+                type: 'GET',
+                dataType:"json",
+                url: "/business/get_user_businesses",
+                async:false,
+                timeout : 500000,
+                success:function (data){
+                    var date = data.data.businesses
+                    $.each(date, function (n, val){
+                        var option1 = '<option value="'+val["code"]+'" >'+val["name"]+'</option>'
+                        $("#business").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
+        });
 
         form.on('select(business)', function(data) {
 
@@ -159,7 +171,7 @@
                     $("#services").children().remove()
                     $.each(data.data, function(key, val) {
                         // alert(val["service_name"])
-                        var option1 = $("<option>").val(val["service_name"]).text(val["service_name"]);
+                        var option1 = '<option value="'+val["service_name"]+'" >'+val["service_name"]+'</option>'
                         $("#services").append(option1);
                         form.render('select');
                     });

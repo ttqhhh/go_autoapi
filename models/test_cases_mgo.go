@@ -24,7 +24,9 @@ type TestCaseMongo struct {
 	UpdatedAt   string `json:"updated_at"`
 	//zen
 	Author		  string `form:"author" json:"author" bson:"author"`
-	AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	BusinessName   string `form:"business_name" json:"business_name" bson:"business_name"`
+	BusinessCode   string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
 	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`
 	TestEnv       string `form:"test_env" json:"test_env" bson:"test_env"`
@@ -77,7 +79,7 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) ([]TestCas
 	result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"status": status, "app_name": business}
+	query := bson.M{"status": status, "business_code": business}
 	err := c.Find(query).Skip((page - 1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
