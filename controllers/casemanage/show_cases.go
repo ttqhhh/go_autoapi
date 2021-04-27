@@ -35,7 +35,13 @@ func GetServiceList(business string)(service []models.ServiceMongo){
 	return services
 }
 
-func (c* CaseManageController) ShowAddCase(){
+func (c *CaseManageController)GetServiceByBusiness(){
+	business := c.GetString("business")
+	services := GetServiceList(business)
+	c.SuccessJson(services)
+}
+
+func (c *CaseManageController) ShowAddCase(){
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	business := c.GetString("business")
 	services := GetServiceList(business)

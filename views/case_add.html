@@ -15,7 +15,7 @@
         <div class="layui-inline">
             <label class="layui-form-label">业务线</label>
             <div class="layui-input-block">
-                <select name="app_name" lay-filter="aihao">
+                <select name="app_name" lay-filter="business" id="business">
                     <option value=""></option>
                     <option value="zuiyou" selected="">zuiyou</option>
                     <option value="pipi">pipi</option>
@@ -28,7 +28,7 @@
         <div class="layui-inline">
             <label class="layui-form-label">服务选择</label>
             <div class="layui-input-block">
-                <select name="service_name" lay-filter="aihao">
+                <select name="service_name" lay-filter="services" id="services">
                     <option value=""></option>
                     {{range .services}}
                     <option value={{.ServiceName}} selected="">{{.ServiceName}}</option>
@@ -130,10 +130,31 @@
 <script>
     layui.use(['form', 'layedit', 'laydate'], function(){
         var form = layui.form
+            ,$ = layui.jquery
             ,layer = layui.layer
             ,layedit = layui.layedit
             ,laydate = layui.laydate;
 
+        form.on('select(business)', function(data) {
+            $.ajax({
+                type: 'POST',
+                url: '/case/get_service_by_business',
+                contentType: "application/x-www-form-urlencoded",
+                data: {"business": data.value},
+                dataType: 'json',
+                success: function (data) {
+                    // $("#City").html("");
+                    $("#services").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["service_name"]).text(val["service_name"]);
+                        $("#services").append(option1);
+                        form.render('select');
+                    });
+                    // $("#City").get(0).selectedIndex=0;
+                }
+            });
+        });
         form.render()
 
     });
