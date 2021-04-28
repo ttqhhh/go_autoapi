@@ -54,12 +54,12 @@ func GetId(name string) (id int64) {
 	return
 }
 
-func (a *Ids)GetCollectionLength(name string) int64 {
+func (a *Ids) GetCollectionLength(name string) int64 {
 	ids := Ids{}
 	query := bson.M{"name": name}
 	ms, db := db_proxy.Connect("auto_api", "ids")
 	defer ms.Close()
-	if err := db.Find(query).One(&ids) ;err !=nil{
+	if err := db.Find(query).One(&ids); err != nil {
 		logs.Error("查询失败")
 	}
 	return ids.Id

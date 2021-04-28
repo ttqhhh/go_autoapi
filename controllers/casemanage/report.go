@@ -18,8 +18,8 @@ func (c *CaseManageController) GetAllReport() {
 	limit, _ := strconv.Atoi(c.GetString("limit"))
 	count := ids.GetCollectionLength("result")
 	fmt.Println(page, limit)
-	result,err := rp.GetAllResult(page,limit)
-	if err!=nil{
+	result, err := rp.GetAllResult(page, limit)
+	if err != nil {
 		logs.Error("获取全部结果失败")
 	}
 	c.FormSuccessJson(count, result)

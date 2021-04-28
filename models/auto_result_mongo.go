@@ -15,8 +15,8 @@ const (
 )
 
 type AutoResult struct {
-	Id       int64  `json:"id" bson:"_id"`
-	RunId    string `json:"run_id" bson:"run_id"`
+	Id       int64  `json:"id,omitempty" bson:"_id"`
+	RunId    string `json:"run_id,omitempty" bson:"run_id"`
 	CaseId   int64  `json:"case_id" bson:"case_id"`
 	Result   int64  `json:"result" bson:"result"`
 	Reason   string `json:"reason" bson:"reason"`
@@ -24,7 +24,7 @@ type AutoResult struct {
 	Response string `json:"response" bson:"response"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt string `json:"updated_at" bson:"updated_at"`
+	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
 }
 
 func init() {
@@ -53,12 +53,12 @@ func InsertResult(uuid string, case_id int64, reason string, author string, resp
 	return db.Insert(ar)
 }
 
-func (a *AutoResult) GetResultByRunId(id int64) (ar []*AutoResult, err error) {
+func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	fmt.Println(id)
 	query := bson.M{"run_id": id}
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(query).All(&ar)
+	err = db.Find(query).Select(bson.M{"case_id": 1, "reason": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error(1024, err)
@@ -66,8 +66,7 @@ func (a *AutoResult) GetResultByRunId(id int64) (ar []*AutoResult, err error) {
 	return ar, err
 }
 
-
-func (a *AutoResult) GetAllResult(page ,limit int)(ar []*AutoResult, err error) {
+func (a *AutoResult) GetAllResult(page, limit int) (ar []*AutoResult, err error) {
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	err = db.Find(nil).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)

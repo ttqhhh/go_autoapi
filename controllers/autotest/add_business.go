@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/constants"
 	"go_autoapi/models"
@@ -24,7 +23,6 @@ func (c *AutoTestController) addBusiness() {
 		logs.Error("bad param")
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
-	fmt.Println("xxxxxxx", b.BusinessName)
 	ab := models.AutoBusiness{Id: id, BusinessName: b.BusinessName, CreatedAt: now, UpdatedAt: now, Author: name}
 	_, err := ab.GetBusinessByName(b.BusinessName)
 	if err == mgo.ErrNotFound {

@@ -3,9 +3,11 @@ package libs
 import (
 	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/go-redis/redis"
 	"github.com/satori/go.uuid"
 	_ "go_autoapi/constants"
 	constant "go_autoapi/constants"
+	"go_autoapi/db_proxy"
 	"strings"
 )
 
@@ -20,12 +22,11 @@ type ReturnMsg struct {
 }
 
 type ReturnMsgPage struct {
-	Code int         `json:"code"`
-	Count int64 		  `json:"count"`
-	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
+	Code  int         `json:"code"`
+	Count int64       `json:"count"`
+	Msg   string      `json:"msg"`
+	Data  interface{} `json:"data"`
 }
-
 
 func (b *BaseController) Prepare() {
 	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
@@ -76,7 +77,7 @@ func (b *BaseController) GetMethodName() (do string) {
 func (b *BaseController) FormSuccessJson(count int64, data interface{}) {
 
 	res := ReturnMsgPage{
-		0, count,"success", data,
+		0, count, "success", data,
 	}
 	b.Data["json"] = res
 	b.ServeJSON() //对json进行序列化输出
@@ -86,4 +87,9 @@ func (b *BaseController) FormSuccessJson(count int64, data interface{}) {
 func (b *BaseController) GenUUid() (string, error) {
 	u2 := uuid.NewV4()
 	return u2.String(), nil
+}
+
+func (b *BaseController) GetRedis() *redis.Client {
+	_ = db_proxy.InitClient()
+	return db_proxy.GetRedisObject()
 }

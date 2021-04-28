@@ -54,6 +54,49 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap string, method 
 	return resp.StatusCode, string(body), cookieStr
 }
 
+func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []byte, err error) {
+	headers := map[string]string{
+		"ZYP":             "mid=248447243",
+		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
+		"User-Agent":      "okhttp/3.12.2 Zuiyou/5.7.1.001 (Android/29)",
+		"Request-Type":    "text/json",
+		"Content-Type":    "application/json; charset=utf-8",
+		"Content-Length":  "",
+		"Host":            "api.izuiyou.com",
+		"Accept-Encoding": "gzip",
+		"Connection":      "keep-alive",
+		"Accept-Charset":  "utf-8"}
+	//redis? 不知道干嘛的
+	client := &http.Client{}
+	postData := bytes.NewReader([]byte(param))
+	req, err := http.NewRequest("POST", url, postData)
+	if err != nil {
+		logs.Error("请求失败")
+		return
+	}
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+	response, _ := client.Do(req)
+	respStatus = response.StatusCode
+	var reader io.ReadCloser
+	if response.Header.Get("Content-Encoding") == "gzip" {
+		reader, err = gzip.NewReader(response.Body)
+		if err != nil {
+			logs.Error("gzip解析响应body失败, err:", err)
+			return
+		}
+	} else {
+		reader = response.Body
+	}
+	body, err = ioutil.ReadAll(reader)
+	if err != nil {
+		logs.Error("reader获取响应body失败, err: ", err)
+		return
+	}
+	return
+}
+
 func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId int64) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",

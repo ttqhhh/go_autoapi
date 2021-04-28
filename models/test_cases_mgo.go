@@ -11,7 +11,7 @@ import (
 
 const (
 	status = 0
-	del_ = 1
+	del_   = 1
 )
 
 type TestCaseMongo struct {
@@ -23,10 +23,10 @@ type TestCaseMongo struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 	//zen
-	Author		  string `form:"author" json:"author" bson:"author"`
+	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
-	BusinessName   string `form:"business_name" json:"business_name" bson:"business_name"`
-	BusinessCode   string `form:"business_code" json:"business_code" bson:"business_code"`
+	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
+	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
 	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`
 	TestEnv       string `form:"test_env" json:"test_env" bson:"test_env"`
