@@ -24,14 +24,14 @@
 <script type="text/javascript">
     businessMap = {}
 
-    // mock请求地址
-    function selectInitByMock(domId) {
+    // 请求真实business下拉框数据
+    function selectInit(domId) {
         $.ajax({
-            url: "/service/business",
+            url: "/business/get_user_businesses",
             type: "GET",
             dataType: "json",
             success: function (data) {
-                $.each(data.data, function (index, value) {
+                $.each(data.data.businesses, function (index, value) {
                     var option = "<option value='" + value.code + "'>" + value.name + "</option>";
                     // 对列表筛选框select进行option元素追加
                     $("#" + domId).append(option);
@@ -41,63 +41,24 @@
         })
     }
 
-    // 请求真实business下拉框数据
-    function selectInit(domId) {
-        $.ajax({
-            url: "/auto/get_all_business",
-            type: "POST",
-            dataType: "json",
-            success: function (data) {
-                $.each(data.data, function (index, value) {
-                    var option = "<option value='" + value.id + "'>" + value.business_name + "</option>";
-                    // 对列表筛选框select进行option元素追加
-                    $("#" + domId).append(option);
-                    businessMap[value.code] = value.name
-                })
-            }
-        })
-    }
-
-    // selectInit("list_business);
-    selectInitByMock("list_business")
+    selectInit("list_business");
 
     layui.use('table', function () {
         var table = layui.table;
         var form = layui.form;
-
-        window.initSelectByMock = function () {
-            // 先清空
-            $("#form_business").empty();;
-            // 初始化select下拉框
-            $.ajax({
-                url: "/service/business",
-                type: "GET",
-                dataType: "json",
-                sync: true,
-                success: function (data) {
-                    $.each(data.data, function (index, value) {
-                        // 进行option元素追加
-                        var option = "<option value='" + value.code + "'>" + value.name + "</option>";
-                        $("#form_business").append(option);
-                        form.render();
-                    })
-                }
-            })
-        };
 
         window.initSelect = function () {
             // 先清空
             $("#form_business").empty();;
             // 初始化select下拉框
             $.ajax({
-                url: "/auto/get_all_business",
-                type: "POST",
+                url: "/business/get_user_businesses",
+                type: "GET",
                 dataType: "json",
                 success: function (data) {
-                    // alert(JSON.stringify(data))
-                    $.each(data.data, function (index, value) {
+                    $.each(data.data.businesses, function (index, value) {
                         // 进行option元素追加
-                        var option = "<option value='" + value.id + "'>" + value.business_name + "</option>";
+                        var option = "<option value='" + value.code + "'>" + value.name + "</option>";
                         $("#form_business").append(option);
                         form.render();
                     })
@@ -127,12 +88,12 @@
                     var businessMap = {}
                     // 去加载业务线全量数据，用来映射表格中的业务线值
                     $.ajax({
-                        url: "/service/business",
+                        url: "/business/get_user_businesses",
                         type: "GET",
                         async: false,
                         dataType: "json",
                         success: function (data) {
-                            $.each(data.data, function (index, value) {
+                            $.each(data.data.businesses, function (index, value) {
                                 businessMap[value.code] = value.name;
                             })
                         }
@@ -212,7 +173,7 @@
                 area: ['800px', '600px'],
                 btn: ['保存', '取消'],
                 success: function () {
-                    initSelectByMock()
+                    initSelect()
                 },
                 yes: function (index) {
                     // 保存按钮的回调
@@ -265,7 +226,7 @@
                 btn: ['保存', '取消'],
                 success: function () {
                     // 初始化下拉框
-                    initSelectByMock()
+                    initSelect()
                     // 原始值初始化
                     $.ajax({
                         url: "/service/getById?id=" + id,
