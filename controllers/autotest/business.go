@@ -23,23 +23,23 @@ func (c *BusinessController) Get() {
 
 var userBusinessMap = map[string][]int{
 	// 4个超级管理员
-	"fengmanlong": []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"xueyibing":   []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"liuweiqiang": []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"wangzhen":    []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"fengmanlong": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"xueyibing":   {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"liuweiqiang": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"wangzhen":    {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
 	// 普通用户
-	"wangjun":       []int{haiwai, zhongdong, mama},
-	"sunzhiying":    []int{haiwai},
-	"zhangjuan":     []int{shangyehua, zuiyou},
-	"liuyinan":      []int{pipi},
-	"sunmingyao":    []int{pipi},
-	"zhangdanbing":  []int{pipi},
-	"xufei":         []int{haiwai, zhongdong},
-	"suhuimin":      []int{zhongdong},
-	"wanglanjin":    []int{zhongdong, mama},
-	"yangjingfang":  []int{shangyehua, zuiyou},
-	"chengxiaojing": []int{zuiyou},
-	"zhaoxiaodong":  []int{shangyehua},
+	"wangjun":       {haiwai, zhongdong, mama},
+	"sunzhiying":    {haiwai},
+	"zhangjuan":     {shangyehua, zuiyou},
+	"liuyinan":      {pipi},
+	"sunmingyao":    {pipi},
+	"zhangdanbing":  {pipi},
+	"xufei":         {haiwai, zhongdong},
+	"suhuimin":      {zhongdong},
+	"wanglanjin":    {zhongdong, mama},
+	"yangjingfang":  {shangyehua, zuiyou},
+	"chengxiaojing": {zuiyou},
+	"zhaoxiaodong":  {shangyehua},
 }
 
 var businessCodeNameMap = map[int]string{
