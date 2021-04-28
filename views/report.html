@@ -1,0 +1,109 @@
+{{template "head.html" .}}
+
+<div style="margin:1%">
+    <div class="layui-btn-group demoTable">
+        <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>
+        <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>
+        <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>
+    </div>
+
+    <table class="layui-table" lay-data="{url:'/case/get_all_report', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
+        <thead>
+        <tr>
+            <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+            <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
+            <th lay-data="{field:'author'}">执行人</th>
+            <th lay-data="{field:'created_at'}">创建时间</th>
+            <th lay-data="{field:'run_id'}">运行ID</th>
+            <th lay-data="{field:'case_id'}">用例ID</th>
+            <th lay-data="{field:'reason'}">错误信息</th>
+<!--            <th lay-data="{field:'response'}">返回信息</th>-->
+            <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}">操作</th>
+        </tr>
+        </thead>
+    </table>
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+
+    <script>
+        layui.use('table', function(){
+            var table = layui.table;
+            //监听表格复选框选择
+            table.on('checkbox(demo)', function(obj){
+                console.log(obj)
+            });
+            //监听工具条
+            table.on('tool(demo)', function(obj){
+                var data = obj.data;
+                if(obj.event === 'detail'){
+                    layer.msg('ID：'+ data.id + ' 的查看操作');
+                } else if(obj.event === 'del'){
+                    layer.confirm('真的删除行么', function(index){
+                        // obj.del();
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case/del_one_case",
+                            async:false,
+                            timeout : 500000,
+                            data: {
+                                "id": data.id,
+                            }
+                        });
+                        layer.close(index);
+                        window.location.reload()
+                    });
+                } else if(obj.event === 'edit'){
+                    window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+                } else if(obj.event === "run"){
+                    var arr = new Array()
+                    arr.push(data.id)
+                    // alert(arr.toString())
+                    $.ajax({
+                        type: 'POST',
+                        url: "/case/do_test",
+                        async:false,
+                        timeout : 500000,
+                        data: {
+                            "case_id": arr.toString(),
+                        }
+                    })
+                }
+            });
+
+            var $ = layui.$, active = {
+                getCheckData: function(){ //获取选中数据
+                    var checkStatus = table.checkStatus('idTest'),
+                        data = checkStatus.data,
+                        arr_id = [];
+                    for(var i = 0;i<data.length;i++){
+                        arr_id.push(data[i].id);
+                    }
+                    // 提交列表形式的id
+                    // $.ajax({
+                    //     url:
+                    // })
+                }
+                ,getCheckLength: function(){ //获取选中数目
+                    var checkStatus = table.checkStatus('idTest')
+                        ,data = checkStatus.data;
+                    layer.msg('选中了：'+ data.length + ' 个');
+                }
+                ,isAll: function(){ //验证是否全选
+                    var checkStatus = table.checkStatus('idTest');
+                    layer.msg(checkStatus.isAll ? '全选': '未全选')
+                }
+            };
+
+            $('.demoTable .layui-btn').on('click', function(){
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

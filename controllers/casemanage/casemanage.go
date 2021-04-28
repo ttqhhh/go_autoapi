@@ -20,6 +20,10 @@ func (c *CaseManageController) Get() {
 		c.ShowEditCase()
 	case "get_all_cases":
 		c.GetAllCases()
+	case "show_report":
+		c.ShowReport()
+	case "get_all_report":
+		c.GetAllReport()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -37,6 +41,8 @@ func (c *CaseManageController) Post() {
 		c.AddOneCase()
 	case "del_one_case":
 		c.DelCaseByID()
+	case "get_service_by_business":
+		c.GetServiceByBusiness()
 	//case "do_test":
 	//	c.performTests()
 	default:

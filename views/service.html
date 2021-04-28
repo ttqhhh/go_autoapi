@@ -1,0 +1,347 @@
+{{template "head.html" .}}
+
+<div style="padding-top: 50px; padding-left: 200px; padding-right: 300px">
+    <div style="margin-bottom: 80px">
+        <div style="float: left; margin-left: 50px">
+            <label>业务线：</label>
+            <select id="list_business" class="layui-select layui-btn-lg" lay-verify="required">
+                <option value="">请选择业务线</option>
+            </select>
+        </div>
+        <div style="float: left; margin-left: 50px">
+            <label>服务名：</label>
+            <input id="list_service_name" class="layui-select" type="text" placeholder="请输入服务名">
+        </div>
+        <div style="float: right; margin-right: 50px">
+            <button type="button" class="layui-btn layui-btn-normal" onclick="list()">查询</button>
+            <button id="add" type="button" class="layui-btn layui-btn-normal">新增</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/layui/layui.js" charset="utf-8"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+    businessMap = {}
+
+    // 请求真实business下拉框数据
+    function selectInit(domId) {
+        $.ajax({
+            url: "/business/get_user_businesses",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                $.each(data.data.businesses, function (index, value) {
+                    var option = "<option value='" + value.code + "'>" + value.name + "</option>";
+                    // 对列表筛选框select进行option元素追加
+                    $("#" + domId).append(option);
+                    businessMap[value.code] = value.name
+                })
+            }
+        })
+    }
+
+    selectInit("list_business");
+
+    layui.use('table', function () {
+        var table = layui.table;
+        var form = layui.form;
+
+        window.initSelect = function () {
+            // 先清空
+            $("#form_business").empty();;
+            // 初始化select下拉框
+            $.ajax({
+                url: "/business/get_user_businesses",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $.each(data.data.businesses, function (index, value) {
+                        // 进行option元素追加
+                        var option = "<option value='" + value.code + "'>" + value.name + "</option>";
+                        $("#form_business").append(option);
+                        form.render();
+                    })
+                }
+            })
+        };
+
+        /** 表格加载 begin */
+        //第一个实例
+        function loadTable(business, service_name) {
+            table.render({
+                elem: '#service'
+                , url: '/service/page' //数据接口
+                , page: true //开启分页
+                , limit: 10
+                , method: 'get'
+                , where: {business: business, service_name: service_name}
+                , cols: [[ //表头
+                    // {type: 'checkbox', fixed: 'left'},
+                    {field: 'id', title: 'ID', fixed: 'left', fixed: true}
+                    , {field: 'service_name', title: '服务名', fixed: true}
+                    , {field: 'business', title: '业务线', fixed: true}
+                    , {field: 'create_by', title: '添加人', fixed: true}
+                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp'}
+                ]]
+                , done: function (res, curr, count) {
+                    var businessMap = {}
+                    // 去加载业务线全量数据，用来映射表格中的业务线值
+                    $.ajax({
+                        url: "/business/get_user_businesses",
+                        type: "GET",
+                        async: false,
+                        dataType: "json",
+                        success: function (data) {
+                            $.each(data.data.businesses, function (index, value) {
+                                businessMap[value.code] = value.name;
+                            })
+                        }
+                    })
+                    // 如果是异步请求数据方式，res即为你接口返回的信息。
+                    // 如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                    $("[data-field='business']").children().each(function () {
+                        var businessCode = $(this).text()
+                        var businessName = businessMap[businessCode];
+                        $(this).text(businessName)
+                    });
+                }
+            });
+        }
+
+        loadTable()
+
+        window.list = function () {
+            var business = $("#list_business").val()
+            var service_name = $("#service_name").val()
+            loadTable(business, service_name)
+        }
+
+        /** 表格加载 end */
+
+        //监听表格复选框选择
+        table.on('checkbox(serviceTest)', function (obj) {
+            console.log(obj)
+        });
+        //监听工具条
+        table.on('tool(serviceTest)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                del(data.id)
+            } else if (obj.event === 'edit') {
+                edit(data.id)
+            }
+        });
+
+        var $ = layui.$, active = {
+            getCheckData: function () { //获取选中数据
+                var checkStatus = table.checkStatus('user'),
+                    data = checkStatus.data,
+                    arr_id = [];
+                for (var i = 0; i < data.length; i++) {
+                    arr_id.push(data[i].id);
+                }
+                // 提交列表形式的id
+                // $.ajax({
+                //     url:
+                // })
+            }
+            , getCheckLength: function () { //获取选中数目
+                var checkStatus = table.checkStatus('user')
+                    , data = checkStatus.data;
+                layer.msg('选中了：' + data.length + ' 个');
+            }
+            , isAll: function () { //验证是否全选
+                var checkStatus = table.checkStatus('user');
+                layer.msg(checkStatus.isAll ? '全选' : '未全选')
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        // 页面的增删改功能
+        // 弹出浮层
+        $("#add").on("click", function () {
+            layer.open({
+                title: "新增",
+                type: 1,
+                content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                // content: url,
+                area: ['800px', '600px'],
+                btn: ['保存', '取消'],
+                success: function () {
+                    initSelect()
+                },
+                yes: function (index) {
+                    // 保存按钮的回调
+                    var id = $("#id").val()
+                    var service_name = $("#form_service_name").val()
+                    var business = $("#form_business").val()
+                    var data
+                    if (id == "") {
+                        data = {service_name: service_name, business: business}
+                    } else {
+                        data = {id: id, service_name: service_name, business: business}
+                    }
+                    $.ajax({
+                        url: "/service/save",
+                        type: "POST",
+                        async: false,
+                        data: data,
+                        dataType: "json",
+                        success: function (data) {
+                            var code = data.code
+                            if (code != 200) {
+                                layer.msg(data.msg)
+                            } else {
+                                $("#add-main").css("display", "none")
+                                layer.close(index)
+                                window.parent.location.reload();
+                            }
+                        }
+                    });
+                },
+                btn2: function (index) {
+                    // 取消按钮的回调
+                    $("#add-main").css("display", "none")
+                    layer.close(index)
+                },
+                cancel: function (index) {
+                    $("#add-main").css("display", "none")
+                    layer.close(index)
+                    return false;
+                }
+            });
+        });
+        window.edit = function (id) {
+            layer.open({
+                title: "编辑",
+                type: 1,
+                content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                // content: url,
+                area: ['800px', '600px'],
+                btn: ['保存', '取消'],
+                success: function () {
+                    // 初始化下拉框
+                    initSelect()
+                    // 原始值初始化
+                    $.ajax({
+                        url: "/service/getById?id=" + id,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            var code = data.code
+                            var res = data.data
+                            if (code != 200) {
+                                layer.msg(data.msg)
+                            } else {
+                                $("#id").val(res.id)
+                                $("#form_service_name").val(res.service_name)
+                                var business = res.business
+                                $("#form_business").find("option[value=" + business + "]").prop("selected", true);
+                                form.render("select");
+                            }
+                        }
+                    });
+                },
+                yes: function (index) {
+                    // 保存按钮的回调
+                    var id = $("#id").val()
+                    var service_name = $("#form_service_name").val()
+                    var business = $("#form_business").val()
+                    var data
+                    if (id == "") {
+                        data = {service_name: service_name, business: business}
+                    } else {
+                        data = {id: id, service_name: service_name, business: business}
+                    }
+                    $.ajax({
+                        url: "/service/save",
+                        type: "POST",
+                        async: false,
+                        data: data,
+                        dataType: "json",
+                        success: function (data) {
+                            var code = data.code
+                            if (code != 200) {
+                                layer.msg(data.msg)
+                            } else {
+                                $("#add-main").css("display", "none")
+                                layer.close(index)
+                                window.parent.location.reload();
+                            }
+                        }
+                    });
+                },
+                btn2: function (index) {
+                    // 取消按钮的回调
+                    $("#add-main").css("display", "none")
+                    layer.close(index)
+                },
+                cancel: function (index) {
+                    $("#add-main").css("display", "none")
+                    layer.close(index)
+                    return false;
+                }
+            });
+        };
+        window.del = function (id) {
+            layer.confirm('确认删除么?', {icon: 3, title: '提示'}, function (index) {
+                //do something
+                var data = {"id": id};
+                $.ajax({
+                    url: "/service/remove",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        layer.msg("删除成功");
+                        // tableInit();
+                        layer.close(index);
+                        window.location.reload()
+                    }
+                })
+                // layer.close(index);
+            });
+        }
+    });
+</script>
+<div style="margin:1%">
+    <table id="service" lay-filter="serviceTest"></table>
+
+    <script type="text/html" id="serviceOp">
+        <button type='button' class='layui-btn layui-btn-normal' lay-event="edit">编辑</button>
+        <button type='button' class='layui-btn layui-btn-danger' lay-event="del">删除</button>
+    </script>
+</div>
+<!-- 构建form表单 -->
+<div id="add-main" style="display: none">
+    <form id="service" class="layui-form" method="post" action="/service/save">
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="text" id="id" name="id" hidden value="{{ .id }}">
+            </div>
+        </div>
+        <div class="layui-form-item" style="width: 350px">
+            <label class="layui-form-label">服务名称</label>
+            <div class="layui-input-block">
+                <input type="text" id="form_service_name" name="service_name" required lay-verify="required"
+                       placeholder="请输入服务名称" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="width: 350px">
+            <label class="layui-form-label">业务线</label>
+            <div class="layui-input-block">
+                <select id="form_business" name="form_business" value="" required lay-verify="required">
+                    <option value="">请选择业务线</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

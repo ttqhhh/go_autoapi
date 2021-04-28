@@ -32,7 +32,7 @@ type CheckOut struct {
 }
 
 type CaseList struct {
-	CaseList []int64 `json:"ids"`
+	CaseList []int64 `json:"ids" form:"ids" `
 }
 
 // 获取用户列表 登录
@@ -55,7 +55,8 @@ func (c *AutoTestController) performTests() {
 	}
 	for _, val := range caseList {
 		go func(url string, uuid string, param string, checkout string, caseId int64) {
-			libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id)
+			//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
+			libs.DoRequestV2(url, uuid, param, checkout, caseId)
 		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id)
 	}
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")

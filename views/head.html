@@ -2,15 +2,24 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Layui</title>
+    <title>测试平台</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon"
+          href="https://h5.izuiyou.com/favicon.ico"
+          type="image/x-icon"/>
     <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
     <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <style>
+        /*html{*/
+        /*    background: url(//static.ixiaochuan.cn/planck/home_background.81871fe3ab.jpg) no-repeat;*/
+        /*    background-size: 100% 100%;*/
+        /*}*/
+    </style>
     <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
-<body>
+<body style=>
 
 <script>
     layui.use(['element', 'jquery',"layer"], function(){
@@ -23,32 +32,49 @@
         $(function () {
             var url_id = window.location.pathname + window.location.search
             $(document.getElementById(url_id)).addClass("layui-this");
+            $.ajax({
+                type: 'GET',
+                dataType:"json",
+                url: "/business/get_user_businesses",
+                async:false,
+                timeout : 500000,
+                success:function (data){
+                    var date = data.data.businesses
+                    var author = data.data.username
+                    $.each(date, function (n, val){
+                        var option1 = '<dd><a href="/case/show_cases?business='+val["code"]+'" >'+val["name"]+'</a></dd>'
+                        $("#business_list").append(option1);
+                        $(".author").text(author)
+                    })
+                }
+            })
         });
+
     });
 </script>
 
-<ul class="layui-nav layui-bg-orange">
+<ul class="layui-nav" style="background-color: #3081FF;">
 <!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
+    <img src="/static/img/zuiyouicon.png" alt="" style="margin-top: -2px;">
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
         <a href="javascript:;">测试用例管理</a>
-        <dl class="layui-nav-child">
-            <dd><a href="/case/show_cases?business=zuiyou">最右</a></dd>
-            <dd><a href="/case/show_cases?business=pipi">皮皮</a></dd>
-            <dd><a href="/case/show_cases?business=haiwai">海外</a></dd>
-            <dd><a href="/case/show_cases?business=zhongdong">中东</a></dd>
-            <dd><a href="/case/show_cases?business=mama">麻团</a></dd>
+        <dl class="layui-nav-child" id="business_list">
+<!--            <dd><a href="/case/show_cases?business=zuiyou" >最右</a></dd>-->
+<!--            <dd><a href="/case/show_cases?business=pipi">皮皮</a></dd>-->
+<!--            <dd><a href="/case/show_cases?business=haiwai">海外</a></dd>-->
+<!--            <dd><a href="/case/show_cases?business=zhongdong">中东</a></dd>-->
+<!--            <dd><a href="/case/show_cases?business=mama">麻团</a></dd>-->
         </dl>
     </li>
     <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>
-    <li class="layui-nav-item"><a href="">报告管理</a></li>
-    <li class="layui-nav-item">
-        <a href="javascript:;">解决方案</a>
-        <dl class="layui-nav-child">
-            <dd><a href="">移动模块</a></dd>
-            <dd><a href="">后台模版</a></dd>
-            <dd><a href="">电商平台</a></dd>
-        </dl>
+    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>
+    <li class="layui-nav-item"><a href="/service/index">服务管理</a></li>
+
+<!--    <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>-->
+    <li class="layui-nav-item" lay-unselect="" style="float: right">
+        <img src="//t.cn/RCzsdCq" class="layui-nav-img">
+        <span class="author">我</span>
     </li>
-    <li class="layui-nav-item"><a href="">社区</a></li>
+
 </ul>
 

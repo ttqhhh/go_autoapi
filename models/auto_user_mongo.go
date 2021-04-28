@@ -18,8 +18,8 @@ type AutoUser struct {
 	UserName string `json:"user_name" bson:"user_name" valid:"Required"`
 	Email    string `json:"email" bson:"email"`
 	Mobile   string `json:"mobile" bson:"mobile"`
-	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈
-	Business int `json:"business" bson:"business" valid:"Range(0, 4)"`
+	// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化
+	Business int `json:"business" bson:"business" valid:"Range(0, 5)"`
 	//0：正常，1：删除
 	Status int `json:"status,omitempty"  bson:"status" valid:"Range(0, 1)"`
 	// omitempty 表示该字段为空时，不返回
@@ -97,9 +97,24 @@ func (a *AutoUser) GetUserList(offset, page int) (au []*AutoUser, err error) {
 	query := bson.M{"status": 0}
 	ms, db := db_proxy.Connect(db, user_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(page * offset).Limit(offset).All(&au)
+
+	skip := (page - 1) * offset
+	err = db.Find(query).Select(bson.M{"id": 1, "user_name": 1, "email": 1, "mobile": 1, "business": 1}).Skip(skip).Limit(offset).All(&au)
 	if err != nil {
 		logs.Error(1024, err)
 	}
 	return au, err
+}
+
+// 获取用户列表
+func (a *AutoUser) GetActivateUserCount() (total int, err error) {
+	query := bson.M{"status": 0}
+	ms, db := db_proxy.Connect(db, user_collection)
+	defer ms.Close()
+
+	total, err = db.Find(query).Count()
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return total, err
 }
