@@ -30,32 +30,23 @@ type CheckOut struct {
 	Param map[string]interface{}            `json:"param"`
 	Check map[string]map[string]interface{} `json:"check_point"`
 }
-
-type CaseList struct {
-	CaseList []int64 `json:"ids" form:"ids" `
+type SmokeParam struct {
+	ApiUrl    string `form:"api_url" json:"api_url"`
+	Parameter string `form:"parameter" json:"parameter"`
 }
 
 // 接口case冒烟
 func (c *AutoTestController) performSmoke() {
-	cl := CaseList{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
+	param := SmokeParam{}
+	if err := c.ParseForm(&param); err != nil {
+		logs.Error("请求参数解析报错, err:", err)
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
+	// todo 后续对参数进行校验
+	apiUrl := param.ApiUrl
+	parameter := param.Parameter
 
-	caseList, err := libs.GetCasesByIds(cl.CaseList)
-	if err != nil {
-		logs.Error("获取测试用例列表失败", err)
-		c.ErrorJson(-1, "获取测试用例失败", nil)
-	}
-	fmt.Println("case list is", caseList)
-	if len(caseList) == 0 {
-		logs.Error("没有用例", err)
-		c.ErrorJson(-1, "没有用例", nil)
-	}
-
-	// todo 此处为同步执行并返回结果
-	val := caseList[0]
-	httpStatus, body, err := libs.DoRequestWithNoneVerify(val.ApiUrl, val.Parameter)
+	httpStatus, body, err := libs.DoRequestWithNoneVerify(apiUrl, parameter)
 	if err != nil {
 		c.ErrorJson(-1, "冒烟请求内部报错", nil)
 	}
@@ -63,8 +54,11 @@ func (c *AutoTestController) performSmoke() {
 	result["httpCode"] = httpStatus
 	result["body"] = string(body)
 
-	//c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 	c.SuccessJson(result)
+}
+
+type CaseList struct {
+	CaseList []int64 `json:"ids" form:"ids" `
 }
 
 // 执行case
