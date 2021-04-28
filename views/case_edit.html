@@ -62,6 +62,7 @@
         <label class="layui-form-label">接口地址</label>
         <div class="layui-input-block">
             <input type="text" name="api_url" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input"
+                   id="api_url"
                    value={{.a.ApiUrl}}>
         </div>
     </div>
@@ -113,27 +114,26 @@
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">请求参数</label>
             <div class="layui-input-block" >
-            <textarea placeholder="请输入内容" style="height: 300px" class="layui-textarea"
+            <textarea placeholder="请输入内容" style="height: 200px" class="layui-textarea"
                       name="parameter" id="request_param">{{.a.Parameter}}</textarea>
             </div>
         </div>
+        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
+        </div>
 
         <div class="layui-inline" style="width: 45%;">
-            <label class="layui-form-label">返回参数</label>
-            <div class="layui-input-block" >
-            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 300px" id="response_param"></textarea>
+            <label class="layui-form-label">检查点</label>
+            <div class="layui-input-block">
+            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px"
+                      name="check_point">{{.a.Checkpoint}}</textarea>
             </div>
         </div>
-
     </div>
 
-    <div class="layui-form-item layui-form-text">
-        <label class="layui-form-label">检查点</label>
-        <div class="layui-input-block">
-            <textarea placeholder="请输入内容" class="layui-textarea"
-                      name="check_point">{{.a.Checkpoint}}</textarea>
-        </div>
-    </div>
+<!--    <div class="layui-form-item layui-form-text">-->
+
+<!--    </div>-->
 
     <div class="layui-form-item">
         <div class="layui-input-block">
@@ -213,24 +213,41 @@
         });
 
         $(document).on('click', '#test', function () {
-            var arr = new Array()
-            arr.push(parseInt("{{.a.Id}}"))
+            var request_param = $("#request_param").text()
+            var request_url = $("#api_url").val()
+            alert(request_url)
             $.ajax({
                 type: 'POST',
-                contentType: "application/json",
+                contentType: "application/x-www-form-urlencoded",
                 dataType: "json",
                 url: "/auto/perform_smoke",
                 async: false,
                 timeout: 500000,
-                data: JSON.stringify({
-                    "ids": arr,
-                })
-                
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    alert(data.body)
+                }
             });
+            // document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(data.body);
+
         });
     });
 
 
 </script>
+
+<style>
+    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: blue; }
+    .null { color: magenta; }
+    .key { color: red; }
+    #response_param::-webkit-scrollbar {
+        display: none;}
+</style>
 
 </body>
