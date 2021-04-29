@@ -114,7 +114,8 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 	postData := bytes.NewReader([]byte(m))
 	req, err := http.NewRequest("POST", url, postData)
 	if err != nil {
-		logs.Error("请求失败")
+		logs.Error("构建请求失败, err:", err)
+		return
 	}
 	for k, v := range headers {
 		req.Header.Add(k, v)
