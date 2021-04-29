@@ -42,7 +42,7 @@ function generateJsonPath(checkpoints) {
         } else if (valueType == "number"){
             if (isNaN(value)) {
                 var msg = " "+node + " 节点检验值不是数字类型"
-                result["code"] = -1;
+                result["code"] = -1
                 result["msg"] = msg;
                 result["data"] = null;
                 return result;

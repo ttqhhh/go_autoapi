@@ -9,6 +9,7 @@
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
+
     <!--    <input type="text" name="id" value="0" style="display: none">-->
     <!--    <input type="text" name="created_at" value="none" style="display: none">-->
     <!--    <input type="text" name="updated_at" value="none" style="display: none">-->
@@ -132,50 +133,50 @@
     </div>
 
     <div class="layui-form-item json-height">
-        <div class="json-nb">
-            <label class="layui-form-label">检查点01</label>
+<!--        <div class="json-nb">-->
+<!--            <label class="layui-form-label">检查点01</label>-->
 
-            <div class="data_block layui-inline">
-                <div class="layui-inline">
-                    <select name="service_name">
-                        <option selected>第一层</option>
-                    </select>
-                </div>
-            </div>
+<!--            <div class="data_block layui-inline">-->
+<!--                <div class="layui-inline">-->
+<!--                    <select name="service_name" id="json_head">-->
+<!--                        <option selected>第一层</option>-->
+<!--                    </select>-->
+<!--                </div>-->
+<!--            </div>-->
 
-            <div class="layui-inline">
-                <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>
-            </div>
+<!--            <div class="layui-inline">-->
+<!--                <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>-->
+<!--            </div>-->
 
-            <div class="layui-inline">
-                <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>
-            </div>
+<!--            <div class="layui-inline">-->
+<!--                <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>-->
+<!--            </div>-->
 
-            <div class="layui-inline">
-                <select name="service_name">
-                    <option selected>eq</option>
-                    <option >in</option>
-                    <option >need</option>
-                </select>
-            </div>
+<!--            <div class="layui-inline">-->
+<!--                <select name="service_name">-->
+<!--                    <option selected>eq</option>-->
+<!--                    <option >in</option>-->
+<!--                    <option >need</option>-->
+<!--                </select>-->
+<!--            </div>-->
 
-            <div class="layui-inline">
-                <input type="text" name="author" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">
-            </div>
+<!--            <div class="layui-inline">-->
+<!--                <input type="text" name="author" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">-->
+<!--            </div>-->
 
-            <div class="layui-inline">
-                <select name="service_name">
-                    <option selected>number</option>
-                    <option >string</option>
-                </select>
-            </div>
-            <div class="layui-inline">
-                <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>
-            </div>
-            <div class="layui-inline">
-                <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>
-            </div>
-        </div>
+<!--            <div class="layui-inline">-->
+<!--                <select name="service_name">-->
+<!--                    <option selected>number</option>-->
+<!--                    <option >string</option>-->
+<!--                </select>-->
+<!--            </div>-->
+<!--            <div class="layui-inline">-->
+<!--                <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>-->
+<!--            </div>-->
+<!--            <div class="layui-inline">-->
+<!--                <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 <!--    <div class="layui-form-item layui-form-text">-->
 
@@ -191,8 +192,13 @@
     </div>
 </form>
 
+<div id="response_param_none">
+{a:1, 'b':'foo', c:[false,'false',null, 'null', {d:{e:1.3e5,f:'1.3e5'}}]}
+</div>
+
 <script type="application/javascript" src="/static/js/case_json_edit.js"></script>
 <script type="application/javascript" src="/static/js/jsonshow.js"></script>
+<script type="application/javascript" src="/static/js/libs.js"></script>
 <script>
     layui.use(['form', 'layedit', 'laydate'], function() {
         var form = layui.form
