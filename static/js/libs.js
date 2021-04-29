@@ -42,16 +42,27 @@ function analysisJson(json, path) {
 }
 
 
-/**
- * 此处入参为一个校验点数组对象
+/** 此处入参为一个校验点数组对象
  * 支持的验证符号有：eq、need、in、lt、gt、lte、gte
- *
-    [
-        {"node":"data.code","checkType":"eq", "value":"1", "valueType":"number"},
+ * @param checkpoints
+ * [
+        {"node":"data.code","checkType":"eq", "value":1, "valueType":"number"},
         {"node":"data.name","checkType":"eq", "value":"wahaha", "valueType":"string"},
         {"node":"data.sex","checkType":"in", "value":"2,3,4,5", "valueType":"number"}
     ]
  *
+ * @returns {{}}:
+ * {
+    "$.data.code": {
+        "eq": 1
+    },
+    "$.data.name": {
+        "eq": "wahahah"
+    },
+    "$.data.code": {
+        "in": "2,3,4,5"
+    }
+}
  */
 function generateJsonPath(checkpoints) {
     var result = {};
@@ -84,6 +95,75 @@ function generateJsonPath(checkpoints) {
     result["msg"] = null;
     result["data"] = data;
     return result;
+}
+
+/***
+ * 解析jsonpath，入参为一个json对象
+ * @param checkpoints
+ * {
+    "$.data.code": {
+        "eq": 1
+    },
+    "$.data.name": {
+        "eq": "wahahah"
+    },
+    "$.data.code": {
+        "in": "2,3,4,5"
+    }
+ *
+ * @returns {{}}
+ * [
+        {"node":"data.code","checkType":"eq", "value":1, "valueType":"number"},
+        {"node":"data.name","checkType":"eq", "value":"wahaha", "valueType":"string"},
+        {"node":"data.sex","checkType":"in", "value":"2,3,4,5", "valueType":"number"}
+    ]
+ */
+function analysisJsonPath(jsonpath) {
+    jsonpath = jsonpath["data"];
+    var result = new Array();
+    var keys = Object.keys(jsonpath)
+    for (let i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        // 对key做截取，去掉'$.'后为json的node节点value
+        var item = jsonpath[key];
+        var innerKeys = Object.keys(item);
+        var checkType = innerKeys[0];
+        var checkValue = item[checkType];
+
+        // 生成checkpoint
+        var checkpoint = {};
+        // 对key中的$.做截取
+        checkpoint["node"] = key.slice(2);
+        checkpoint["checkType"] = checkType;
+        checkpoint["value"] = checkValue;
+        var valueType = "string"
+        if (typeof(checkValue) == "number") {
+            valueType = "number";
+        }
+        checkpoint["valueType"] = valueType;
+
+        // 将解析出来的校验点push到数组中
+        result.push(checkpoint);
+    }
+    return result;
+}
+
+/*******************************************************************单测函数*********************************************************************/
+
+function generateJsonPathTest() {
+    var param = [
+        {"node":"data.code","checkType":"eq", "value":1, "valueType":"number"},
+        {"node":"data.name","checkType":"eq", "value":"wahaha", "valueType":"string"},
+        {"node":"data.sex","checkType":"in", "value":"2,3,4,5", "valueType":"string"}
+    ]
+    var result = generateJsonPath(param);
+    console.log("generateJsonPath处理结果："+JSON.stringify(result))
+    return result;
+}
+
+function analysisJsonPathTest() {
+    var param = generateJsonPathTest()
+    console.log("analysisJsonPath处理结果："+JSON.stringify(analysisJsonPath(param)));
 }
 
 // json解析函数的验证函数
