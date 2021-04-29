@@ -21,7 +21,7 @@ type AutoResult struct {
 	Result   int64  `json:"result" bson:"result"`
 	Reason   string `json:"reason" bson:"reason"`
 	Author   string `json:"author" bson:"author"`
-	Response string `json:"response" bson:"response"`
+	Response string `json:"response,omitempty" bson:"response"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -72,7 +72,7 @@ func (a *AutoResult) GetAllResult(page, limit int) (ar []*AutoResult, totalCount
 
 	var query interface{} = nil
 	// 查询分页列表数据
-	err = db.Find(query).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)
+	err = db.Find(query).Select(bson.M{"_id": 1, "run_id": 1, "case_id": 1, "result": 1, "reason": 1, "author": 1, "created_at": 1, "update_at": 1}).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error("查询分页列表数据报错, err: ", err)
