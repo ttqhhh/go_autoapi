@@ -6,10 +6,37 @@
 function analysisJson(json, path) {
     if (path != "undefined" && path != null) {
         for (let i = 0; i < path.length; i++) {
+            if (json == undefined) {
+                return new Array();
+            }
+            if (Array.isArray(json)) {
+                if (json.length > 0) {
+                    // 当json为一个数组时，取数组第一层
+                    json = json[0];
+                } else {
+                    // 当json数组中没有数据时，再去取深层节点肯定报错，所以，直接返回
+                    return new Array();
+                }
+            }
             json = json[path[i]];
         }
     }
     // 获取相关层级的所有子节点
+    // 首先验证undefined
+    if (json == undefined) {
+        return new Array();
+    }
+    // alert("是否数组？？" + Array.isArray(json) + "\n\n" + json);
+    var isArray = Array.isArray(json);
+    if (isArray) {
+        if (json.length > 0) {
+            // 确保数组中有第一个元素
+            json = json[0];
+        } else {
+            // 返回空数组
+            return new Array()
+        }
+    }
     var keys = Object.keys(json);
     return keys;
 }
@@ -57,4 +84,32 @@ function generateJsonPath(checkpoints) {
     result["msg"] = null;
     result["data"] = data;
     return result;
+}
+
+// json解析函数的验证函数
+function analysisJsonTest() {
+    var param = {a:1, b:'foo', c:[false,'false',null, 'null', {d:{e:1.3e5,f:'1.3e5'}}]}
+    var param = {
+        "a": 1,
+        "b": "foo",
+        "c": [{
+            //         "d": {
+            //             "e": 1.3e5,
+            //             "f": "1.3e5"
+            //         },
+            //         "x":{
+            //             "e": 1.3e5,
+            //             "f": "1.3e5"
+            //         }
+            //     }, {
+            //         "g": {
+            //             "h": 1.3e5,
+            //             "i": "1.3e5"
+            //         }
+        }]
+    }
+    // alert(analysisJson(param, ["aaa"]))
+    // alert(analysisJson(param, ["aaa", "ccc"]))
+    // analysisJson(param, ["c"])
+    analysisJson(param, ["c", "d"])
 }

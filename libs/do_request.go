@@ -97,7 +97,7 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 	return
 }
 
-func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId int64) {
+func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId int64, runBy string) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -114,7 +114,8 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 	postData := bytes.NewReader([]byte(m))
 	req, err := http.NewRequest("POST", url, postData)
 	if err != nil {
-		logs.Error("请求失败")
+		logs.Error("构建请求失败, err:", err)
+		return
 	}
 	for k, v := range headers {
 		req.Header.Add(k, v)
@@ -136,7 +137,7 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	doVerifyV2(respStatus, uuid, string(body), verify, caseId)
+	doVerifyV2(respStatus, uuid, string(body), verify, caseId, runBy)
 }
 
 //func DoRequest(url string, method string, uuid string, data string, verify string, caseId int64) {
@@ -166,11 +167,11 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 //}
 
 // 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64) {
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, runBy string) {
 
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
-		saveTestResult(uuid, caseId, "状态码不是200", "liuweiqiang", response)
+		saveTestResult(uuid, caseId, "状态码不是200", runBy, response)
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -178,11 +179,11 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		verifyO, err := jsonpath.JSONPath([]byte(response), k)
 		if err != nil {
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
-			saveTestResult(uuid, caseId, k+" jsonpath err", "liuweiqiang", response)
+			saveTestResult(uuid, caseId, k+" jsonpath err", runBy, response)
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
-			saveTestResult(uuid, caseId, k+" the verify key not exist err", "liuweiqiang", response)
+			saveTestResult(uuid, caseId, k+" the verify key not exist err", runBy, response)
 			return
 		}
 	}
@@ -203,48 +204,48 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			if subK == "eq" {
 				if subV != vv {
 					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "need" {
 				if subV != vv {
 					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "in" {
 				if !strings.Contains(vv.(string), subV.(string)) {
 					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "lt" {
 				if !(vv.(float64) < subV.(float64)) {
 					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "gt" {
 				if !(vv.(float64) > subV.(float64)) {
 					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "lte" {
 				if !(vv.(float64) <= subV.(float64)) {
 					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else if subK == "gte" {
 				if !(vv.(float64) >= subV.(float64)) {
 					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV), "liuweiqiang", response)
+					saveTestResult(uuid, caseId, fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV), runBy, response)
 					return
 				}
 			} else {
 				logs.Error("do not support")
-				saveTestResult(uuid, caseId, fmt.Sprintf("do not support this operator"), "liuweiqiang", "")
+				saveTestResult(uuid, caseId, fmt.Sprintf("do not support this operator"), runBy, "")
 				return
 			}
 		}
