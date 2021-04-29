@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 )
 
@@ -63,6 +64,7 @@ type CaseList struct {
 
 // 执行case
 func (c *AutoTestController) performTests() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	uuid, _ := c.GenUUid()
 	cl := CaseList{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
@@ -80,10 +82,10 @@ func (c *AutoTestController) performTests() {
 		c.ErrorJson(-1, "没有用例", nil)
 	}
 	for _, val := range caseList {
-		go func(url string, uuid string, param string, checkout string, caseId int64) {
+		go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 			//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
-			libs.DoRequestV2(url, uuid, param, checkout, caseId)
-		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id)
+			libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
+		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 	}
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 }
