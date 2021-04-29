@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/beego/beego/v2/core/logs"
 	constant "go_autoapi/constants"
 	"go_autoapi/models"
@@ -54,16 +53,14 @@ func (c *CaseManageController) ShowAddCase() {
 
 func (c *CaseManageController) GetAllCases() {
 	acm := models.TestCaseMongo{}
-	ids := models.Ids{}
-	count := ids.GetCollectionLength("case")
+	//ids := models.Ids{}
+	//count := ids.GetCollectionLength("case")
 	business := c.GetString("business")
-	fmt.Println(business)
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
-	result, err := acm.GetAllCases(page, limit, business)
+	result, count, err := acm.GetAllCases(page, limit, business)
 	if err != nil {
-		logs.Error("获取全部用例失败")
-		logs.Error(1024, err)
+		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
 	c.FormSuccessJson(count, result)
 }

@@ -84,6 +84,16 @@ func (b *BaseController) FormSuccessJson(count int64, data interface{}) {
 	b.StopRun()
 }
 
+func (b *BaseController) FormErrorJson(code int, msg string) {
+
+	res := ReturnMsgPage{
+		code, 0, msg, nil,
+	}
+	b.Data["json"] = res
+	b.ServeJSON() //对json进行序列化输出
+	b.StopRun()
+}
+
 func (b *BaseController) GenUUid() (string, error) {
 	u2 := uuid.NewV4()
 	return u2.String(), nil

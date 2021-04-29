@@ -66,13 +66,25 @@ func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	return ar, err
 }
 
-func (a *AutoResult) GetAllResult(page, limit int) (ar []*AutoResult, err error) {
+func (a *AutoResult) GetAllResult(page, limit int) (ar []*AutoResult, totalCount int64, err error) {
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(nil).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)
+
+	var query interface{} = nil
+	// 查询分页列表数据
+	err = db.Find(query).Skip((page - 1) * limit).Sort("-_id").Limit(limit).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("查询分页列表数据报错, err: ", err)
+		return nil, 0, err
 	}
-	return ar, err
+	// 查询数据总条数用于分页
+	total, err := db.Find(query).Count()
+	fmt.Println(ar)
+	if err != nil {
+		logs.Error("查询分页列表数据报错, err: ", err)
+		return nil, 0, err
+	}
+	totalCount = int64(total)
+	return
 }
