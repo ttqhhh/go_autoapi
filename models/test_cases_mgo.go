@@ -34,6 +34,7 @@ type TestCaseMongo struct {
 	RequestMethod string `form:"request_method" json:"request_method" bson:"request_method"`
 	Parameter     string `form:"parameter" json:"parameter" bson:"parameter"`
 	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
+	SmokeResponse string `form:"smoke_response" json:"smoke_response,omitempty" bson:"smoke_response"`
 	Level         string `form:"level" json:"level" bson:"level"`
 	Status        int64  `json:"status" bson:"status"`
 }
