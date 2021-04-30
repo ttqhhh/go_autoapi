@@ -65,7 +65,7 @@
     <div class="layui-form-item">
         <label class="layui-form-label">接口地址</label>
         <div class="layui-input-block">
-            <input type="text" name="api_url" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+            <input type="text" id="api_url" name="api_url" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
         </div>
     </div>
 
@@ -98,35 +98,89 @@
     </div>
 
     <div class="layui-form-item layui-form-text">
-        <label class="layui-form-label">参数</label>
-        <div class="layui-input-block">
-            <textarea placeholder="请输入内容" class="layui-textarea" name="parameter"></textarea>
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">请求参数</label>
+            <div class="layui-input-block" >
+            <textarea placeholder="请输入内容" style="height: 200px" class="layui-textarea"
+                      name="parameter" id="request_param"></textarea>
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
+        </div>
+
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">检查点</label>
+            <div class="layui-input-block">
+            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
+                      name="check_point"></textarea>
+            </div>
         </div>
     </div>
 
-    <div class="layui-form-item layui-form-text">
-        <label class="layui-form-label">检查点</label>
-        <div class="layui-input-block">
-            <textarea placeholder="请输入内容" class="layui-textarea" name="check_point"></textarea>
-        </div>
-    </div>
-    <!--<div class="layui-form-item layui-form-text">
-      <label class="layui-form-label">编辑器</label>
-      <div class="layui-input-block">
-        <textarea class="layui-textarea layui-hide" name="content" lay-verify="content" id="LAY_demo_editor"></textarea>
-      </div>
-    </div>-->
 
     <div class="layui-form-item">
         <div class="layui-input-block">
-            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
-            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交保存</button>
+            <button type="button" class="layui-btn layui-btn-normal" id="test">调试(获取返回)</button>
+            <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>
         </div>
     </div>
 </form>
 
 
+<div class="layui-form json-height"></div>
 
+<!--    <div class="json-nb">-->
+<!--        <label class="layui-form-label">检查点</label>-->
+
+<!--        <div class="data_block layui-inline">-->
+<!--            <div class="layui-inline">-->
+<!--                <select name="service_name" id="json_head">-->
+<!--                    <option selected>第一层</option>-->
+<!--                </select>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="layui-inline">-->
+<!--            <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>-->
+<!--        </div>-->
+
+<!--        <div class="layui-inline">-->
+<!--            <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>-->
+<!--        </div>-->
+
+<!--        <div class="layui-inline">-->
+<!--            <select name="service_name">-->
+<!--                <option selected>eq</option>-->
+<!--                <option >in</option>-->
+<!--                <option >need</option>-->
+<!--            </select>-->
+<!--        </div>-->
+
+<!--        <div class="layui-inline">-->
+<!--            <input type="text" name="author" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">-->
+<!--        </div>-->
+
+<!--        <div class="layui-inline">-->
+<!--            <select name="service_name">-->
+<!--                <option selected>number</option>-->
+<!--                <option >string</option>-->
+<!--            </select>-->
+<!--        </div>-->
+<!--        <div class="layui-inline">-->
+<!--            <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>-->
+<!--        </div>-->
+<!--        <div class="layui-inline">-->
+<!--            <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+
+<script type="application/javascript" src="/static/js/case_json_add.js"></script>
+<script type="application/javascript" src="/static/js/jsonshow.js"></script>
+<script type="application/javascript" src="/static/js/libs.js"></script>
 
 <script>
     layui.use(['form', 'layedit', 'laydate'], function(){
@@ -158,7 +212,67 @@
         });
         form.render()
 
+        $(document).on('click', '#test', function () {
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            let res = ""
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    res = JSON.parse(data.data.body)
+                    var body = JSON.stringify(res, undefined, 4)
+                    document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+                }
+            });
+            /** 触发填充 **/
+            $(".json-height").append(pre)
+            // alert(res)
+            $.each(analysisJson(res), function(i,v){
+                console.log(v);
+                $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#make', function () {
+            const result_list = new Array()
+            $(".json-nb").each(function (){
+                const arr = $(this).find(".data_block").find("option:selected").text();
+                let node = ""
+                for(var i=0;i<arr.length;i++){
+                    node = node + arr[i] + "."
+                }
+                const checkType = $(this).find("#check_type").find("option:selected").text();
+                const value = $(this).find("#value").val();
+                const valueType = $(this).find("#value_type").find("option:selected").text();
+                const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
+                result_list.push(now)
+            });
+            $("#check_point").val(JSON.stringify(result_list))
+        });
     });
 </script>
+
+<style>
+    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: blue; }
+    .null { color: magenta; }
+    .key { color: red; }
+    #response_param::-webkit-scrollbar {
+        display: none;}
+</style>
+
 
 </body>
