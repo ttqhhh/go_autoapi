@@ -213,6 +213,7 @@
             window.location.href = "/case/show_report"
         });
 
+        let obj
         $(document).on('click', '#test', function () {
             var request_param = $("#request_param").text()
             var request_url = $("#api_url").val()
@@ -228,12 +229,13 @@
                     "parameter":request_param
                 },
                 success:function (data){
-                    var obj = JSON.parse(data.data.body)
+                    obj = JSON.parse(data.data.body)
                     var body = JSON.stringify(obj, undefined, 4)
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
                 }
             });
         });
+
         $(document).on('click', '#make', function () {
             const result_list = new Array()
             $(".json-nb").each(function (){
@@ -248,7 +250,11 @@
                 const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
                 result_list.push(now)
             });
-            $("#check_point").val(JSON.stringify(result_list))
+            /** 生成jsonpath**/
+            console.log(result_list)
+            console.log(obj)
+            const jsonPath = generateJsonPath(result_list,obj)
+            $("#check_point").val(JSON.stringify(jsonPath))
         });
     });
 
