@@ -1,12 +1,10 @@
 package libs
 
 import (
-	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/go-redis/redis"
 	"github.com/satori/go.uuid"
 	_ "go_autoapi/constants"
-	constant "go_autoapi/constants"
 	"go_autoapi/db_proxy"
 	"strings"
 )
@@ -28,15 +26,15 @@ type ReturnMsgPage struct {
 	Data  interface{} `json:"data"`
 }
 
-func (b *BaseController) Prepare() {
-	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
-	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
-		//logs.Error("not login")
-		//b.ErrorJson(-1, "not login", nil)
-		b.Redirect("/auto/to_login", 302)
-	}
-	fmt.Println(userId)
-}
+//func (b *BaseController) Prepare() {
+//	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
+//	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
+//		//logs.Error("not login")
+//		//b.ErrorJson(-1, "not login", nil)
+//		b.Redirect("/auto/to_login", 302)
+//	}
+//	fmt.Println(userId)
+//}
 
 func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
