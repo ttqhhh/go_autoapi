@@ -239,22 +239,24 @@
         $(document).on('click', '#make', function () {
             const result_list = new Array()
             $(".json-nb").each(function (){
-                const arr = $(this).find(".data_block").find("option:selected").text();
                 let node = ""
-                for(var i=0;i<arr.length;i++){
-                    node = node + arr[i] + "."
-                }
+                $(this).find(".data_block").find("option:selected").each(function (){
+                    node = node + $(this).text() +"."
+                });
+                node = node.substring(0,node.length-1)
                 const checkType = $(this).find("#check_type").find("option:selected").text();
                 const value = $(this).find("#value").val();
                 const valueType = $(this).find("#value_type").find("option:selected").text();
                 const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
                 result_list.push(now)
             });
-            /** 生成jsonpath**/
-            console.log(result_list)
-            console.log(obj)
-            const jsonPath = generateJsonPath(result_list,obj)
-            $("#check_point").val(JSON.stringify(jsonPath))
+            // 调用test
+            const result = generateJsonPath(result_list, obj)
+            if(result.code === -1){
+                alert(result.msg)
+                return
+            }
+            $("#check_point").val(JSON.stringify(result.data))
         });
     });
 

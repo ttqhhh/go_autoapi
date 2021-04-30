@@ -212,10 +212,10 @@
         });
         form.render()
 
+        let obj
         $(document).on('click', '#test', function () {
             var request_param = $("#request_param").val()
             var request_url = $("#api_url").val()
-            let res = ""
             $.ajax({
                 type: 'POST',
                 contentType: "application/x-www-form-urlencoded",
@@ -228,16 +228,15 @@
                     "parameter":request_param
                 },
                 success:function (data){
-                    res = JSON.parse(data.data.body)
-                    var body = JSON.stringify(res, undefined, 4)
+                    obj = JSON.parse(data.data.body)
+                    var body = JSON.stringify(obj, undefined, 4)
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
                 }
             });
             /** 触发填充 **/
             $(".json-height").append(pre)
             // alert(res)
-            $.each(analysisJson(res), function(i,v){
-                console.log(v);
+            $.each(analysisJson(obj), function(i,v){
                 $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
             });
             form.render()
@@ -247,18 +246,24 @@
         $(document).on('click', '#make', function () {
             const result_list = new Array()
             $(".json-nb").each(function (){
-                const arr = $(this).find(".data_block").find("option:selected").text();
                 let node = ""
-                for(var i=0;i<arr.length;i++){
-                    node = node + arr[i] + "."
-                }
+                $(this).find(".data_block").find("option:selected").each(function (){
+                    node = node + $(this).text() +"."
+                });
+                node = node.substring(0,node.length-1)
                 const checkType = $(this).find("#check_type").find("option:selected").text();
                 const value = $(this).find("#value").val();
                 const valueType = $(this).find("#value_type").find("option:selected").text();
                 const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
                 result_list.push(now)
             });
-            $("#check_point").val(JSON.stringify(result_list))
+            // 调用test
+            const result = generateJsonPath(result_list, obj)
+            if(result.code === -1){
+                alert(result.msg)
+                return
+            }
+            $("#check_point").val(JSON.stringify(result.data))
         });
     });
 </script>

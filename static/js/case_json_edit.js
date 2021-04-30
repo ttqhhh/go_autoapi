@@ -49,6 +49,43 @@ pre = '        <div class="json-nb">\n' +
     '        </div>'
 
 
+function analysisJsonPath(jsonpath) {
+    // jsonpath = jsonpath["data"]; // 用于测试
+    alert(jsonpath)
+    var result = new Array();
+    var keys = Object.keys(jsonpath)
+    for (let i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var item = jsonpath[key];
+        var innerKeys = Object.keys(item);
+        var checkType = innerKeys[0];
+        var checkValue = item[checkType];
+
+        // 生成checkpoint
+        var checkpoint = {};
+        // 对key做截取，去掉'$.'后为json的node节点value
+        var node = key.slice(2);
+        // 将node中的'[0]'剔除掉
+        while (node.indexOf('[0]')!=-1) {
+            var index = node.indexOf('[0]')
+            var temp = node.substring(0, index) + node.substring(index + 3, node.length);
+            node = temp;
+        }
+        checkpoint["node"] = node;
+        checkpoint["checkType"] = checkType;
+        checkpoint["value"] = checkValue;
+        var valueType = "string"
+        if (typeof(checkValue) == "number") {
+            valueType = "number";
+        }
+        checkpoint["valueType"] = valueType;
+
+        // 将解析出来的校验点push到数组中
+        result.push(checkpoint);
+    }
+    return result;
+}
+
 
 
 
@@ -249,7 +286,8 @@ layui.use(['form', 'layedit', 'laydate'], function() {
     }
 
     const js_list = $("#check_point").val()
-    make_response_to_select($.parseJSON(js_list))
+    const res = analysisJsonPath(JSON.parse(js_list))
+    make_response_to_select(res)
 
 });
 
