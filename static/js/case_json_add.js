@@ -27,6 +27,10 @@ pre = '        <div class="json-nb">\n' +
     '                    <option value="eq" selected>eq</option>\n' +
     '                    <option value="in">in</option>\n' +
     '                    <option value="need">need</option>\n' +
+    '                    <option value="lt">lt</option>\n' +
+    '                    <option value="gt">gt</option>\n' +
+    '                    <option value="lte">lte</option>\n' +
+    '                    <option value="gte">gte</option>\n' +
     '                </select>\n' +
     '            </div>\n' +
     '\n' +
