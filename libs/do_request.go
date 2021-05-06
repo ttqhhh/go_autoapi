@@ -187,6 +187,9 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			return
 		}
 	}
+
+	isPass := true
+	resultDesc := ""
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
 		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
@@ -203,52 +206,69 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			}
 			if subK == "eq" {
 				if subV != vv {
+					isPass = false
 					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "need" {
 				if subV != vv {
+					isPass = false
 					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "in" {
 				if !strings.Contains(vv.(string), subV.(string)) {
+					isPass = false
 					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "lt" {
 				if !(vv.(float64) < subV.(float64)) {
+					isPass = false
 					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "gt" {
 				if !(vv.(float64) > subV.(float64)) {
+					isPass = false
 					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "lte" {
 				if !(vv.(float64) <= subV.(float64)) {
+					isPass = false
 					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
+					continue
 				}
 			} else if subK == "gte" {
 				if !(vv.(float64) >= subV.(float64)) {
+					isPass = false
 					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					saveTestResult(uuid, caseId, fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV), runBy, response)
-					return
+					resultDesc += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
+					continue
 				}
 			} else {
 				logs.Error("do not support")
-				saveTestResult(uuid, caseId, fmt.Sprintf("do not support this operator"), runBy, "")
-				return
+				isPass = false
+				resultDesc += ";" + fmt.Sprintf("do not support this operator")
+				continue
 			}
 		}
+	}
+	// 将该case执行结果聚合入库
+	if !isPass {
+		isNeedSub := strings.HasPrefix(resultDesc, ";")
+		if isNeedSub {
+			resultDescRune := []rune(resultDesc)
+			resultDesc = string(resultDescRune[1:])
+		}
+		saveTestResult(uuid, caseId, resultDesc, runBy, response)
 	}
 }
 
