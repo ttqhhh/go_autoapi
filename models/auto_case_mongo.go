@@ -81,7 +81,7 @@ func (a *AutoCaseMongo) GetCaseById(id int64) (AutoCaseMongo, error) {
 	err := db.Find(query).One(&acm)
 	fmt.Println(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("GetCaseById获取AutoCase失败", err)
 	}
 	return acm, err
 }
@@ -94,7 +94,7 @@ func (a *AutoCaseMongo) UpdateCaseById(id int64, acm AutoCaseMongo) (AutoCaseMon
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("UpdateCaseById更新AutoCase失败", err)
 	}
 	return acm, err
 }

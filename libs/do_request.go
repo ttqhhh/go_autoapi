@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 func init() {
@@ -168,10 +169,10 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 
 // 采用jsonpath 对结果进行验证
 func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, runBy string) {
-
+	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
-		saveTestResult(uuid, caseId, "状态码不是200", runBy, response)
+		saveTestResult(uuid, caseId, result, "状态码不是200", runBy, response)
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -179,17 +180,16 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		verifyO, err := jsonpath.JSONPath([]byte(response), k)
 		if err != nil {
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
-			saveTestResult(uuid, caseId, k+" jsonpath err", runBy, response)
+			saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
-			saveTestResult(uuid, caseId, k+" the verify key not exist err", runBy, response)
+			saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
 			return
 		}
 	}
 
-	isPass := true
-	resultDesc := ""
+	reason := ""
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
 		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
@@ -206,74 +206,71 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			}
 			if subK == "eq" {
 				if subV != vv {
-					isPass = false
 					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "need" {
 				if subV != vv {
-					isPass = false
 					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "in" {
 				if !strings.Contains(vv.(string), subV.(string)) {
-					isPass = false
 					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "lt" {
 				if !(vv.(float64) < subV.(float64)) {
-					isPass = false
 					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "gt" {
 				if !(vv.(float64) > subV.(float64)) {
-					isPass = false
 					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "lte" {
 				if !(vv.(float64) <= subV.(float64)) {
-					isPass = false
 					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
 					continue
 				}
 			} else if subK == "gte" {
 				if !(vv.(float64) >= subV.(float64)) {
-					isPass = false
 					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					resultDesc += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
 					continue
 				}
 			} else {
 				logs.Error("do not support")
-				isPass = false
-				resultDesc += ";" + fmt.Sprintf("do not support this operator")
+				reason += ";" + fmt.Sprintf("do not support this operator")
 				continue
 			}
 		}
 	}
 	// 将该case执行结果聚合入库
-	if !isPass {
-		isNeedSub := strings.HasPrefix(resultDesc, ";")
+	if reason == "" {
+		result = models.AUTO_RESULT_SUCCESS
+	} else {
+		isNeedSub := strings.HasPrefix(reason, ";")
 		if isNeedSub {
-			resultDescRune := []rune(resultDesc)
-			resultDesc = string(resultDescRune[1:])
+			resultDescRune := []rune(reason)
+			reason = string(resultDescRune[1:])
 		}
-		saveTestResult(uuid, caseId, resultDesc, runBy, response)
 	}
+	saveTestResult(uuid, caseId, result, reason, runBy, response)
 }
 
-func saveTestResult(uuid string, caseId int64, reason string, author string, resp string) {
-	err := models.InsertResult(uuid, caseId, reason, author, resp)
+func saveTestResult(uuid string, caseId int64, result int, reason string, author string, resp string) {
+	var lock sync.Mutex
+	lock.Lock()
+	defer lock.Unlock()
+	err := models.InsertResult(uuid, caseId, result, reason, author, resp)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)
 	}

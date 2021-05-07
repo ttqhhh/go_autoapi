@@ -97,7 +97,7 @@ func (b *BaseController) GenUUid() (string, error) {
 	return u2.String(), nil
 }
 
-func (b *BaseController) GetRedis() *redis.Client {
+func GetRedis() *redis.Client {
 	_ = db_proxy.InitClient()
 	return db_proxy.GetRedisObject()
 }
