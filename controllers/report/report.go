@@ -106,9 +106,9 @@ func (c *ReportController) runReportDetail() {
 		if autoResult.Result == models.AUTO_RESULT_FAIL {
 			result = "失败"
 		}
-		reasons := strings.Split(autoResult.Reason, ";")
-		if len(reasons) == 1 {
-			reasons = []string{"完美Case!!!"}
+		reasons := []string{"完美Case!!!"}
+		if autoResult.Reason != "" {
+			reasons = strings.Split(autoResult.Reason, ";")
 		}
 		testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
 

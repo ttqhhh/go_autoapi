@@ -121,7 +121,7 @@ func (mongo *RunReportMongo) QueryByPage(business int8, serviceName string, page
 	}
 	runReportList := []RunReportMongo{}
 	skip := (pageNo - 1) * pageSize
-	err := db.Find(query).Skip(skip).Limit(pageSize).All(&runReportList)
+	err := db.Find(query).Sort("-_id").Skip(skip).Limit(pageSize).All(&runReportList)
 	if err != nil {
 		logs.Error("QueryByPage 错误: %v", err)
 	}
