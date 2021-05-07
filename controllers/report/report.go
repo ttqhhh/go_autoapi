@@ -57,12 +57,12 @@ func (c *ReportController) runReportDetail() {
 	id, _ := c.GetInt64("id")
 
 	type TestResult struct {
-		ClassName   string   `json:"className"`
-		MethodName  string   `json:"methodName"`
-		Description string   `json:"description"`
-		SpendTime   string   `json:"spendTime"`
-		Status      string   `json:"status"`
-		Log         []string `json:"log"`
+		BusinessName string   `json:"businessName"`
+		ServiceName  string   `json:"serviceName"`
+		CaseName     string   `json:"caseName"`
+		SpendTime    string   `json:"spendTime"`
+		Status       string   `json:"status"`
+		Log          []string `json:"log"`
 	}
 
 	type TemplateResp struct {
@@ -100,7 +100,7 @@ func (c *ReportController) runReportDetail() {
 	runId := runReport.RunId
 	autoResultList, _ = models.GetResultByRunId(runId)
 	testResultList := []TestResult{}
-	autoCaseMongo := models.AutoCaseMongo{}
+	testCaseMongo := models.TestCaseMongo{}
 	for _, autoResult := range autoResultList {
 		result := "成功"
 		if autoResult.Result == models.AUTO_RESULT_FAIL {
@@ -110,15 +110,15 @@ func (c *ReportController) runReportDetail() {
 		if len(reasons) == 1 {
 			reasons = []string{"完美Case!!!"}
 		}
-		autoCaseMongo, _ := autoCaseMongo.GetCaseById(autoResult.CaseId)
+		testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
 
 		testResult := &TestResult{
-			ClassName:   "SearchValid",
-			MethodName:  autoCaseMongo.CaseName,
-			Description: autoCaseMongo.Description,
-			SpendTime:   "-",
-			Status:      result,
-			Log:         reasons,
+			BusinessName: testCaseMongo.BusinessName,
+			ServiceName:  testCaseMongo.ServiceName,
+			CaseName:     testCaseMongo.CaseName,
+			SpendTime:    "-",
+			Status:       result,
+			Log:          reasons,
 		}
 
 		testResultList = append(testResultList, *testResult)
