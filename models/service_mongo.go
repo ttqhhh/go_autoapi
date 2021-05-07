@@ -10,7 +10,7 @@ import (
 const (
 	db          = "auto_api"
 	collection  = "service"
-	time_format = "2006-01-02 15:04:05"
+	Time_format = "2006-01-02 15:04:05"
 )
 
 type ServiceMongo struct {
@@ -43,7 +43,7 @@ func (mongo *ServiceMongo) Insert(service ServiceMongo) error {
 	}
 	service.Id = int64(cnt) + 1
 	// 处理添加时间字段
-	service.CreatedAt = time.Now().Format(time_format)
+	service.CreatedAt = time.Now().Format(Time_format)
 	// 新增时，默认status为0
 	service.Status = 0
 	err = db.Insert(service)
@@ -62,7 +62,7 @@ func (mongo *ServiceMongo) Delete(id int64) error {
 	data := bson.M{
 		"$set": bson.M{
 			"status":     1,
-			"updated_at": time.Now().Format(time_format),
+			"updated_at": time.Now().Format(Time_format),
 		},
 	}
 	changeInfo, err := db.UpsertId(id, data)
@@ -79,7 +79,7 @@ func (mongo *ServiceMongo) Update(service ServiceMongo) error {
 	defer ms.Close()
 
 	// 处理更新时间字段
-	service.UpdatedAt = time.Now().Format(time_format)
+	service.UpdatedAt = time.Now().Format(Time_format)
 	data := bson.M{
 		"$set": bson.M{
 			"service_name": service.ServiceName,

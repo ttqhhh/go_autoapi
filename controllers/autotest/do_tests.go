@@ -6,6 +6,9 @@ import (
 	"github.com/astaxie/beego/logs"
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
+	"go_autoapi/models"
+	"strconv"
+	"sync"
 )
 
 // 请求demo，如何传递jsonpath
@@ -81,11 +84,90 @@ func (c *AutoTestController) performTests() {
 		logs.Error("没有用例", err)
 		c.ErrorJson(-1, "没有用例", nil)
 	}
-	for _, val := range caseList {
-		go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
-			//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
-			libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
-		}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
+	// 对本次执行操作记录进行保存
+	totalCases := len(caseList)
+	runReport := models.RunReportMongo{}
+	runReport.CreateBy = userId
+	runReport.RunId = uuid
+	runReport.TotalCases = totalCases
+	runReport.IsPass = models.RUNNING
+	code, err := strconv.Atoi(caseList[0].BusinessCode)
+	if err != nil {
+		logs.Error("业务线代码转换异常", err)
+		c.ErrorJson(-1, "业务线代码转换异常", nil)
 	}
+	runReport.Business = int8(code)
+	runReport.ServiceName = caseList[0].ServiceName
+
+	id, err := runReport.Insert(runReport)
+	if err != nil {
+		logs.Error("插入执行记录失败", err)
+		c.ErrorJson(-1, "插入执行记录失败，请呼叫本平台相关负责同学", nil)
+	}
+
+	go func() {
+		wg := sync.WaitGroup{}
+		wg.Add(len(caseList))
+		for _, val := range caseList {
+			go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
+				//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
+				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
+				// 获取用例执行进度时使用
+				r := libs.GetRedis()
+				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				wg.Done()
+			}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
+		}
+		wg.Wait()
+
+		go func() {
+			autoResult, _ := models.GetResultByRunId(uuid)
+			var isPass int8 = models.SUCCESS
+			// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
+			for _, result := range autoResult {
+				if result.Result == models.AUTO_RESULT_FAIL {
+					isPass = models.FAIL
+					break
+				}
+			}
+			// 更新失败个数和本次执行记录状态
+			autoResultMongo := &models.AutoResult{}
+			failCount, _ := autoResultMongo.GetFailCount(uuid)
+			runReport.UpdateIsPass(id, isPass, failCount, userId)
+		}()
+	}()
+
+	//go func() {
+	//	r := libs.GetRedis()
+	//
+	//	count := 0
+	//	flag := true
+	//	autoResultMongo := &models.AutoResult{}
+	//	for flag {
+	//		hasCount, _ := r.Get(constant.RUN_RECORD_CASE_DONE_NUM +uuid).Int()
+	//		if hasCount == totalCases {
+	//			// 去处理本次执行记录的is_pass字段
+	//			autoResult, _ := models.GetResultByRunId(uuid)
+	//			// todo 因为当前只记录了失败的数据，所以当autoResult中有记录时，则认为本次执行操作失败
+	//			var isPass int8 = models.SUCCESS
+	//			if len(autoResult)> 0 {
+	//				isPass = models.FAIL
+	//			}
+	//			r.Del(constant.RUN_RECORD_CASE_DONE_NUM+uuid) // 将redis中的key删除，避免存在大量无用key
+	//			// 更新失败个数和本次执行记录状态
+	//			failCount, _ := autoResultMongo.GetFailCount(uuid)
+	//			runReport.UpdateIsPass(id, isPass, failCount, userId)
+	//			flag = false
+	//		}
+	//		if flag {
+	//			time.Sleep(1*time.Second)
+	//			count++
+	//			// todo 最多轮训10分钟，避免有死循环协程占用资源
+	//			if count > 600 {
+	//				flag = false
+	//			}
+	//		}
+	//	}
+	//}()
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 }
