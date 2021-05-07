@@ -1,6 +1,9 @@
 {{template "head.html" .}}
 
 <div style="margin:1%">
+<div style="text-align:right">
+    <button class="layui-btn add_case" >添加用例</button>
+</div>
 
 <table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
     <thead>
@@ -22,10 +25,9 @@
     </tr>
     </thead>
 </table>
-<div class="layui-btn-group demoTable" style="padding-left: 45%">
-    <button class="layui-btn layui-bg-blue" data-type="getCheckData">运行选中测试用例</button>
-    <!--    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>-->
-    <!--    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>-->
+
+<div class="layui-btn-group demoTable" style="margin-left:47%">
+    <button class="layui-btn layui-bg-blue"  data-type="getCheckData">运行选中测试用例</button>
 </div>
 
 <script type="text/html" id="barDemo">
@@ -118,6 +120,10 @@
         $('.demoTable .layui-btn').on('click', function(){
             var type = $(this).data('type');
             active[type] ? active[type].call(this) : '';
+        });
+
+        $(document).on("click",".add_case", function (){
+           window.location.href= "/case/show_add_case"
         });
     });
 </script>

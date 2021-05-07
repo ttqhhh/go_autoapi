@@ -36,20 +36,22 @@
 
 <!--        隐藏作者-->
         <input type="text" name="author" value={{.Author}} style="display: none">
-
+<!--        隐藏response-->
+        <input type="text" name="smoke_response" style="display: none" id="smoke_response">
+        
     </div>
 
     <div class="layui-form-item">
         <label class="layui-form-label">名称</label>
         <div class="layui-input-block" style="width:45%">
-            <input type="text" name="case_name" lay-verify="title" autocomplete="off" placeholder="请输入名称" class="layui-input">
+            <input type="text" name="case_name" lay-verify="required" autocomplete="off" placeholder="请输入名称" class="layui-input">
         </div>
     </div>
 
     <div class="layui-form-item">
         <label class="layui-form-label">描述</label>
         <div class="layui-input-block" style="width: 45%">
-            <input type="text" name="description" lay-verify="title" autocomplete="off" placeholder="请输入描述" class="layui-input">
+            <input type="text" name="description" lay-verify="required" autocomplete="off" placeholder="请输入描述" class="layui-input">
         </div>
     </div>
 
@@ -65,6 +67,9 @@
             <input type="text" id="api_url" name="api_url" lay-verify="required"
                    placeholder="例:http://api.izuiyou.com/index/recommend" autocomplete="off" class="layui-input">
         </div>
+        <button type="button" class="layui-btn layui-btn-normal" id="test">调试接口</button>
+        <button type="button" class="layui-btn layui-btn-normal" id="edit_point">编辑校验点</button>
+
     </div>
 
 
@@ -91,7 +96,7 @@
             <label class="layui-form-label">请求参数</label>
             <div class="layui-input-block" >
             <textarea placeholder="请输入内容" style="height: 200px" class="layui-textarea"
-                      name="parameter" id="request_param"></textarea>
+                      name="parameter" id="request_param" lay-verify="required"></textarea>
             </div>
         </div>
         <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
@@ -101,70 +106,27 @@
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">检查点</label>
             <div class="layui-input-block">
-            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
-                      name="check_point"></textarea>
+            <textarea placeholder="无法直接编辑，只能通过校验点组合" class="layui-textarea" style="height: 200px" id="check_point"
+                      name="check_point" lay-verify="required" readonly></textarea>
             </div>
         </div>
     </div>
 
 
     <div class="layui-form-item">
-        <div class="layui-input-block">
-            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交保存</button>
-            <button type="button" class="layui-btn layui-btn-normal" id="test">调试(获取返回)</button>
-            <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>
-        </div>
+
+        <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" id="submit">提交保存</button>
+
     </div>
 </form>
 
+<!--校验点列表-->
 
-<div class="layui-form json-height"></div>
+<div class="layui-form json-height" style="display: none">
 
-<!--    <div class="json-nb">-->
-<!--        <label class="layui-form-label">检查点</label>-->
+<!--    <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>-->
 
-<!--        <div class="data_block layui-inline">-->
-<!--            <div class="layui-inline">-->
-<!--                <select name="service_name" id="json_head">-->
-<!--                    <option selected>第一层</option>-->
-<!--                </select>-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <select name="service_name">-->
-<!--                <option selected>eq</option>-->
-<!--                <option >in</option>-->
-<!--                <option >need</option>-->
-<!--            </select>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <input type="text" name="author" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <select name="service_name">-->
-<!--                <option selected>number</option>-->
-<!--                <option >string</option>-->
-<!--            </select>-->
-<!--        </div>-->
-<!--        <div class="layui-inline">-->
-<!--            <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>-->
-<!--        </div>-->
-<!--        <div class="layui-inline">-->
-<!--            <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
+</div>
 
 
 <script type="application/javascript" src="/static/js/case_json_add.js"></script>
@@ -203,8 +165,12 @@
 
         let obj
         $(document).on('click', '#test', function () {
-            var request_param = $("#request_param").val()
-            var request_url = $("#api_url").val()
+            const request_param = $("#request_param").val()
+            const request_url = $("#api_url").val()
+            if(request_param === "" || request_url === ""){
+                layer.msg("请求地址和请求参数不能为空")
+                return
+            }
             $.ajax({
                 type: 'POST',
                 contentType: "application/x-www-form-urlencoded",
@@ -217,6 +183,8 @@
                     "parameter":request_param
                 },
                 success:function (data){
+                    // 将response写入到input中
+                    $("#smoke_response").val(data.data.body)
                     obj = JSON.parse(data.data.body)
                     var body = JSON.stringify(obj, undefined, 4)
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
@@ -232,27 +200,67 @@
             form.render("select")
         });
 
-        $(document).on('click', '#make', function () {
-            const result_list = new Array()
-            $(".json-nb").each(function (){
-                let node = ""
-                $(this).find(".data_block").find("option:selected").each(function (){
-                    node = node + $(this).text() +"."
-                });
-                node = node.substring(0,node.length-1)
-                const checkType = $(this).find("#check_type").find("option:selected").text();
-                const value = $(this).find("#value").val();
-                const valueType = $(this).find("#value_type").find("option:selected").text();
-                const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
-                result_list.push(now)
-            });
-            // 调用test
-            const result = generateJsonPath(result_list, obj)
-            if(result.code === -1){
-                alert(result.msg)
+        $(document).on('click', '#edit_point', function () {
+            if (obj === undefined) {
+                layer.msg("请先获取调试的返回数据")
                 return
             }
-            $("#check_point").val(JSON.stringify(result.data))
+            else{
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: '当你选择该窗体时，即会在最顶端'
+                    ,area: ['1500px', '700px']
+                    ,shade: 0
+                    ,maxmin: true
+                    ,offset: [ //为了演示，随机坐标
+                        100,100
+                    ]
+                    ,content: $(".json-height")
+                    ,btn: ['保存并关闭'] //只是为了演示
+                    ,yes: function(){
+                        const result_list = new Array()
+                        $(".json-nb").each(function (){
+                            let node = ""
+                            $(this).find(".data_block").find("option:selected").each(function (){
+                                node = node + $(this).text() +"."
+                            });
+                            node = node.substring(0,node.length-1)
+                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const value = $(this).find("#value").val();
+                            const valueType = $(this).find("#value_type").find("option:selected").text();
+                            const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
+                            result_list.push(now)
+                        });
+                        // 调用test
+                        const result = generateJsonPath(result_list, obj)
+                        if(result.code === -1){
+                            alert(result.msg)
+                            return
+                        }
+                        $("#check_point").val(JSON.stringify(result.data))
+                        layer.closeAll();
+                    }
+                    ,zIndex: layer.zIndex //重点1
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: '当你选择该窗体时，即会在最顶端'
+                    ,area: ['500px', '600px']
+                    ,shade: 0
+                    ,maxmin: true
+                    ,offset: [ //为了演示，随机坐标
+                        200,100
+                    ]
+                    ,content: $("#response_param")
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+            }
         });
     });
 </script>

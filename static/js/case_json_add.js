@@ -5,7 +5,7 @@ check_sel = '            <div class="layui-inline">\n' +
     '            </div>\n'
 
 pre = '        <div class="json-nb">\n' +
-    '            <label class="layui-form-label">检查点01</label>\n' +
+    '            <label class="layui-form-label">point</label>\n' +
     '            <div class="layui-inline data_block">\n' +
     '            <div class="layui-inline">\n' +
     '                <select name="check_name" id="json_head">\n' +
