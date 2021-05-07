@@ -78,7 +78,11 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}
-	response, _ := client.Do(req)
+	response, err := client.Do(req)
+	if err != nil{
+		logs.Error("冒烟请求失败, err:", err)
+		return
+	}
 	respStatus = response.StatusCode
 	var reader io.ReadCloser
 	if response.Header.Get("Content-Encoding") == "gzip" {

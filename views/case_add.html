@@ -13,13 +13,6 @@
             <label class="layui-form-label">业务-服务</label>
             <div class="layui-input-inline">
                 <select name="business_code" lay-filter="business" id="business">
-                    <option value=""></option>
-                    <option value="0" selected="">最右</option>
-                    <option value="1">皮皮</option>
-                    <option value="2">海外</option>
-                    <option value="3">中东</option>
-                    <option value="4">妈妈社区</option>
-                    <option value="5">商业化</option>
                 </select>
             </div>
 
@@ -140,6 +133,24 @@
             ,layer = layui.layer
             ,layedit = layui.layedit
             ,laydate = layui.laydate;
+
+        $(function (){
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/business/get_user_businesses",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var date = data.data.businesses
+                    $.each(date, function (n, val) {
+                        var option1 = '<option value="' + val["code"] + '" >' + val["name"] + '</option>'
+                        $("#business").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
+        })
 
         form.on('select(business)', function(data) {
             $.ajax({
