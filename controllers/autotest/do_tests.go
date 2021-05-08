@@ -7,6 +7,7 @@ import (
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
+	"go_autoapi/utils"
 	"strconv"
 	"sync"
 )
@@ -113,7 +114,7 @@ func (c *AutoTestController) performTests() {
 				//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
 				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
 				// 获取用例执行进度时使用
-				r := libs.GetRedis()
+				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
 			}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)

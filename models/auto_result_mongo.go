@@ -6,12 +6,14 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/constants"
 	"go_autoapi/db_proxy"
+	"go_autoapi/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
 
 const (
-	result_collection = "auto_result"
+	result_collection       = "auto_result"
+	auto_result_primary_key = "auto_result_primary_key"
 )
 
 const (
@@ -44,7 +46,12 @@ func (a *AutoResult) TableName() string {
 func InsertResult(uuid string, case_id int64, result int, reason string, author string, resp string) error {
 	now := time.Now().Format(constants.TimeFormat)
 	ar := AutoResult{}
-	id := GetId("result")
+	//id := GetId("result")
+	r := utils.GetRedis()
+	id, err := r.Incr(auto_result_primary_key).Result()
+	if err != nil {
+		logs.Error("auto_result新增数据时，从redis获取自增主键错误, err:", err)
+	}
 	logs.Info("插入操作时，获取到的自增主键为: ", id)
 	ar.Id = id
 	ar.RunId = uuid

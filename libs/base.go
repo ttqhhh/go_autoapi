@@ -2,10 +2,8 @@ package libs
 
 import (
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/go-redis/redis"
 	"github.com/satori/go.uuid"
 	_ "go_autoapi/constants"
-	"go_autoapi/db_proxy"
 	"strings"
 )
 
@@ -95,9 +93,4 @@ func (b *BaseController) FormErrorJson(code int, msg string) {
 func (b *BaseController) GenUUid() (string, error) {
 	u2 := uuid.NewV4()
 	return u2.String(), nil
-}
-
-func GetRedis() *redis.Client {
-	_ = db_proxy.InitClient()
-	return db_proxy.GetRedisObject()
 }

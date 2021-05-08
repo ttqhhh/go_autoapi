@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"sync"
 )
 
 func init() {
@@ -173,10 +172,12 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 
 // 采用jsonpath 对结果进行验证
 func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, runBy string) {
+	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
-		saveTestResult(uuid, caseId, result, "状态码不是200", runBy, response)
+		reason = "状态码不是200"
+		saveTestResult(uuid, caseId, result, reason, runBy, response)
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -184,16 +185,19 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		verifyO, err := jsonpath.JSONPath([]byte(response), k)
 		if err != nil {
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
-			saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
+			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
+			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
+			saveTestResult(uuid, caseId, result, reason, runBy, response)
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
-			saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
+			reason = "json路径: 【" + k + "】, 未配置有效的校验规则"
+			//saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
+			saveTestResult(uuid, caseId, result, reason, runBy, response)
 			return
 		}
 	}
 
-	reason := ""
 	for k, v := range verify {
 		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
 		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
@@ -211,48 +215,56 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			if subK == "eq" {
 				if subV != vv {
 					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "need" {
 				if subV != vv {
 					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【必须】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "in" {
 				if !strings.Contains(vv.(string), subV.(string)) {
 					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【包含】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【包含于%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "lt" {
 				if !(vv.(float64) < subV.(float64)) {
 					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【小于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "gt" {
 				if !(vv.(float64) > subV.(float64)) {
 					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【大于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "lte" {
 				if !(vv.(float64) <= subV.(float64)) {
 					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【小于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<=%v】", k, vv, subV)
 					continue
 				}
 			} else if subK == "gte" {
 				if !(vv.(float64) >= subV.(float64)) {
 					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
+					//reason += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
+					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>=%v】", k, vv, subV)
 					continue
 				}
 			} else {
-				logs.Error("do not support")
-				reason += ";" + fmt.Sprintf("do not support this operator")
+				logs.Error("do not support, subK: ", subK)
+				//reason += ";" + fmt.Sprintf("do not support this operator")
+				reason += ";" + fmt.Sprintf("不支持的验证类型: %s", subK)
 				continue
 			}
 		}
@@ -271,9 +283,6 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 }
 
 func saveTestResult(uuid string, caseId int64, result int, reason string, author string, resp string) {
-	var lock sync.Mutex
-	lock.Lock()
-	defer lock.Unlock()
 	err := models.InsertResult(uuid, caseId, result, reason, author, resp)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)

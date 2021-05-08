@@ -1,6 +1,10 @@
-package libs
+package utils
 
-import "reflect"
+import (
+	"github.com/go-redis/redis"
+	"go_autoapi/db_proxy"
+	"reflect"
+)
 
 func Struct2Map(obj interface{}) map[interface{}]interface{} {
 	t := reflect.TypeOf(obj)
@@ -11,4 +15,9 @@ func Struct2Map(obj interface{}) map[interface{}]interface{} {
 		data[t.Field(i).Name] = v.Field(i).Interface()
 	}
 	return data
+}
+
+func GetRedis() *redis.Client {
+	_ = db_proxy.InitClient()
+	return db_proxy.GetRedisObject()
 }

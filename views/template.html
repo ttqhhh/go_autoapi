@@ -6971,6 +6971,62 @@ body.skin-3 {
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
+                    <h5>详细数据</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="input-group panel-heading" style="width: 100%; background-color: #1ab394; margin-bottom: 10px; text-align: left; font-family: Consolas;">
+                        <label style="color: snow">业务线:</label>
+                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterBusiness" id="filterBusiness">
+                            <option value="">----------</option>
+                        </select>
+                        <label style="color: snow">服务:</label>
+                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterService" id="filterService">
+                            <option value="">----------</option>
+                        </select>
+                        <label style="color: snow">结果:</label>
+                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterResult" id="filterResult">
+                            <option value="">----------</option>
+                        </select>
+                        <div style="float: right">
+                            <label class="form-control">
+                                <span class="text-navy">用例数: </span><span class="text-navy b-r" id="filterAll">3</span><span> | </span>
+                                <span style="color: green">成功: </span><span style="color: green" id="filterOk">3</span><span> | </span>
+                                <span class="text-danger">失败: </span><span class="text-danger" id="filterFail">3</span><span> | </span>
+                                <span class="text-warning">跳过: </span><span class="text-warning" id="filterSkip">3</span>
+                            </label>
+                        </div>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>编号</th>
+                            <th>业务线</th>
+                            <th>服务名</th>
+                            <th>用例名</th>
+                            <th>运行时长</th>
+                            <th>结果</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody id="detailBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
                     <h5>报告汇总</h5>
                     <div class="ibox-tools">
                         <a class="collapse-link">
@@ -7033,62 +7089,6 @@ body.skin-3 {
                             <div style="height:350px" id="echarts-map-chart"></div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>详细数据</h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                        <a class="close-link">
-                            <i class="fa fa-times"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    <div class="input-group panel-heading" style="width: 100%; background-color: #1ab394; margin-bottom: 10px; text-align: left; font-family: Consolas;">
-                        <label style="color: snow">业务线:</label>
-                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterBusiness" id="filterBusiness">
-                            <option value="">----------</option>
-                        </select>
-                        <label style="color: snow">服务:</label>
-                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterService" id="filterService">
-                            <option value="">----------</option>
-                        </select>
-                        <label style="color: snow">结果:</label>
-                        <select class="chosen-select form-control" data-placeholder="----------" style="width: 300px;" name="filterResult" id="filterResult">
-                            <option value="">----------</option>
-                        </select>
-                        <div style="float: right">
-                            <label class="form-control">
-                                <span class="text-navy">用例数: </span><span class="text-navy b-r" id="filterAll">3</span><span> | </span>
-                                <span style="color: green">成功: </span><span style="color: green" id="filterOk">3</span><span> | </span>
-                                <span class="text-danger">失败: </span><span class="text-danger" id="filterFail">3</span><span> | </span>
-                                <span class="text-warning">跳过: </span><span class="text-warning" id="filterSkip">3</span>
-                            </label>
-                        </div>
-                    </div>
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th>编号</th>
-                            <th>业务线</th>
-                            <th>服务名</th>
-                            <th>用例名</th>
-                            <th>运行时长</th>
-                            <th>结果</th>
-                            <th>操作</th>
-                        </tr>
-                        </thead>
-                        <tbody id="detailBody">
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
