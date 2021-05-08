@@ -7,31 +7,7 @@
     {{/*        <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>*/}}
     {{/*    </div>*/}}
 
-    <table class="layui-table" lay-data="{url:'/report/run_record_list', page:true, limit:20 ,id:'idTest'}"
-           lay-filter="demo">
-        <thead>
-        <tr>
-            <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
-            <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
-            <th lay-data="{field:'create_by'}">执行人</th>
-            <th lay-data="{field:'created_at'}">执行时间</th>
-            <th lay-data="{field:'run_id'}">运行ID</th>
-            <th lay-data="{field:'is_pass', templet: function(d){
-                                                        if (d.is_pass == 0) {
-                                                            return '运行中'
-                                                        } else if (d.is_pass == 1) {
-                                                            return '成功'
-                                                        } else if (d.is_pass == 2) {
-                                                            return '失败'
-                                                        }
-                                                        return '未知'
-                                                    }}">
-                状态
-            </th>
-            <th lay-data="{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}">操作</th>
-        </tr>
-        </thead>
-    </table>
+    <table id="run_report_table" class="layui-table" lay-filter="demo"></table>
 
     <script type="text/html" id="barDemo">
         <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="detail">详情</a>
@@ -49,6 +25,49 @@
 
         layui.use('table', function () {
             var table = layui.table;
+
+            table.render({
+                elem: '#run_report_table'
+                // ,height: 312
+                ,url: '/report/run_record_list' //数据接口
+                ,page: true //开启分页
+                ,cols: [[ //表头
+                    {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                    {title: '执行人', field:'create_by'},
+                    {title: '执行时间', field:'created_at'},
+                    {title: '执行ID', field:'run_id'},
+                    {title: '状态', field:'is_pass', templet: function(d){
+                            if (d.is_pass == 0) {
+                                return '<div style="color: yellowgreen">运行中</div>'
+                            } else if (d.is_pass == 1) {
+                                return '<div style="color: green">成功</div>'
+                            } else if (d.is_pass == 2) {
+                                return '<div style="color: red">失败'
+                            }
+                            return '未知'
+                        }},
+                    {title: '操作', fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}
+                ]],
+
+                done: function (res, curr, count) {
+                    var that = this.elem.next();
+                    res.data.forEach(function (item, index) {
+                        var tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']").click(function () {
+                            layer.open({
+                                title: "详情",
+                                type: 2,
+                                // content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                                content: "/report/run_report_detail?id=" + item.id,
+                                area: ['1600px', '800px']
+                            })
+                        })
+                        // todo 等后续找到合适的色值，可以给失败行一个底色
+                        // if (item.is_pass == 2) {
+                        // var tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']").css("background-color", "grey");
+                        // }
+                    });
+                }
+            });
 
             //监听表格复选框选择
             table.on('checkbox(demo)', function (obj) {
@@ -68,30 +87,6 @@
                     });
                 }
             });
-
-            var $ = layui.$, active = {
-                getCheckData: function () { //获取选中数据
-                    var checkStatus = table.checkStatus('idTest'),
-                        data = checkStatus.data,
-                        arr_id = [];
-                    for (var i = 0; i < data.length; i++) {
-                        arr_id.push(data[i].id);
-                    }
-                    // 提交列表形式的id
-                    // $.ajax({
-                    //     url:
-                    // })
-                }
-                , getCheckLength: function () { //获取选中数目
-                    var checkStatus = table.checkStatus('idTest')
-                        , data = checkStatus.data;
-                    layer.msg('选中了：' + data.length + ' 个');
-                }
-                , isAll: function () { //验证是否全选
-                    var checkStatus = table.checkStatus('idTest');
-                    layer.msg(checkStatus.isAll ? '全选' : '未全选')
-                }
-            };
 
             $('.demoTable .layui-btn').on('click', function () {
                 var type = $(this).data('type');
