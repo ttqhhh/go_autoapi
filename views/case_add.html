@@ -28,7 +28,7 @@
         </div>
 
 <!--        隐藏作者-->
-        <input type="text" name="author" value={{.Author}} style="display: none">
+        <input type="text" name="author" style="display: none" value={{.Author}}>
 <!--        隐藏response-->
         <input type="text" name="smoke_response" style="display: none" id="smoke_response">
         
@@ -220,12 +220,10 @@
                 layer.open({
                     type: 1 //此处以iframe举例
                     ,title: '当你选择该窗体时，即会在最顶端'
-                    ,area: ['1500px', '700px']
+                    ,area: ['1400px', '700px']
                     ,shade: 0
                     ,maxmin: true
-                    ,offset: [ //为了演示，随机坐标
-                        100,100
-                    ]
+                    ,offset: "lt"
                     ,content: $(".json-height")
                     ,btn: ['保存并关闭'] //只是为了演示
                     ,yes: function(){
@@ -259,13 +257,12 @@
 
                 layer.open({
                     type: 1 //此处以iframe举例
-                    ,title: '当你选择该窗体时，即会在最顶端'
+                    ,title: ' response数据（位置固定，无法拖动，可以滚动）'
                     ,area: ['500px', '600px']
                     ,shade: 0
                     ,maxmin: true
-                    ,offset: [ //为了演示，随机坐标
-                        200,100
-                    ]
+                    ,move:false
+                    ,offset: "rt"
                     ,content: $("#response_param")
                     ,success: function(layero){
                         layer.setTop(layero); //重点2

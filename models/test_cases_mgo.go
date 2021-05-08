@@ -82,7 +82,7 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
 	// 获取指定业务线下全部case列表
-	err = c.Find(query).Skip((page - 1) * limit).Limit(limit).All(&result)
+	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
 	if err != nil {
 		logs.Error("查询分页列表数据报错, err: ", err)

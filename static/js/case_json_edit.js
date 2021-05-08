@@ -1,28 +1,24 @@
 
-check_sel = '            <div class="layui-inline">\n' +
-            '                <select name="check_name" id="json_head">\n' +
+check_sel = '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+            '                <select name="check_name" id="json_head" >\n' +
             '                </select>\n' +
             '            </div>\n'
 
 pre = '        <div class="json-nb">\n' +
-    '            <label class="layui-form-label">检查点01</label>\n' +
+    '            <label class="layui-form-label">检查点</label>\n' +
     '            <div class="layui-inline data_block">\n' +
-    '            <div class="layui-inline">\n' +
-    '                <select name="check_name" id="json_head">\n' +
-    '                    <option selected>新增第一层</option>\n' +
+    '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+    '                <select name="check_name" id="json_head" >\n' +
     '                </select>\n' +
     '            </div>\n' +
     '            </div>\n' +
     '\n' +
-    '            <div class="layui-inline">\n' +
-    '                <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>\n' +
+    '            <div class="layui-inline" style="margin:0">\n' +
+    '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="right_add" style="margin: 0">＋</button class="layui-btn layui-btn-normal">\n' +
+    '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="left_rm" style="margin: 0">－</button>\n' +
     '            </div>\n' +
     '\n' +
-    '            <div class="layui-inline">\n' +
-    '                <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>\n' +
-    '            </div>\n' +
-    '\n' +
-    '            <div class="layui-inline">\n' +
+    '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
     '                <select name="check_type" id="check_type">\n' +
     '                    <option value="eq" selected>eq</option>\n' +
     '                    <option value="in">in</option>\n' +
@@ -34,21 +30,19 @@ pre = '        <div class="json-nb">\n' +
     '                </select>\n' +
     '            </div>\n' +
     '\n' +
-    '            <div class="layui-inline">\n' +
+    '            <div class="layui-inline" style="margin: 0">\n' +
     '                <input type="text" name="value" id="value" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">\n' +
     '            </div>\n' +
     '\n' +
-    '            <div class="layui-inline">\n' +
+    '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
     '                <select name="value_type" id="value_type">\n' +
     '                    <option value="number">number</option>\n' +
     '                    <option value="string">string</option>\n' +
     '                </select>\n' +
     '            </div>\n' +
-    '            <div class="layui-inline">\n' +
-    '                <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>\n' +
-    '            </div>\n' +
-    '            <div class="layui-inline">\n' +
-    '                <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>\n' +
+    '            <div class="layui-inline" style="margin:0">\n' +
+    '                <button class="layui-btn layui-btn-danger layui-btn-sm" type="button" id="down_add" style="margin: 0">↓</button>\n' +
+    '                <button class="layui-btn layui-btn-danger layui-btn-sm" type="button" id="up_rm" style="margin:0">↑</button>\n' +
     '            </div>\n' +
     '        </div>'
 
@@ -200,13 +194,13 @@ layui.use(['form', 'layedit', 'laydate'], function() {
             let html_head =
                 '        <div class="json-nb">\n' +
                 '            <label class="layui-form-label">检查点</label>\n' +
-                '            <div class="layui-inline data_block">\n'
+                '            <div class="layui-inline data_block" >\n'
             const arr = v.node.split(".");
             const temp = new Array();
             let html_body = ""
             $.each(arr, function (i,v){
                  html_body = html_body +
-                     '            <div class="layui-inline">\n' +
+                     '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
                     '                <select name="check_name" id="json_head">\n' +
                     '                   <option selected value='+v+'>'+v+'</option>\n'
                 // 获取到正常的数据？？？
@@ -226,15 +220,15 @@ layui.use(['form', 'layedit', 'laydate'], function() {
             });
 
             let html_butt =
-                '            <div class="layui-inline">\n' +
-                '                <button class="layui-btn layui-btn-normal" type="button" id="right_add">＋</button>\n' +
+                '            <div class="layui-inline" style="margin:0">\n' +
+                '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
+                '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
                 '            </div>\n' +
+                // '\n' +
+                // '            <div class="layui-inline">\n' +
+                // '            </div>\n' +
                 '\n' +
-                '            <div class="layui-inline">\n' +
-                '                <button class="layui-btn layui-btn-normal" type="button" id="left_rm">－</button>\n' +
-                '            </div>\n' +
-                '\n' +
-                '            <div class="layui-inline">\n' +
+                '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                 '                <select name="check_type" id="check_type">\n' +
                 '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
                 '                    <option value="eq">eq</option>\n' +
@@ -247,23 +241,23 @@ layui.use(['form', 'layedit', 'laydate'], function() {
                 '                </select>\n' +
                 '            </div>\n' +
                 '\n' +
-                '            <div class="layui-inline">\n' +
+                '            <div class="layui-inline" style="margin: 0;">\n' +
                 '                <input type="text" id="value" value=' + v.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
                 '            </div>\n' +
                 '\n' +
-                '            <div class="layui-inline">\n' +
+                '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                 '                <select name="value_type" id="value_type">\n' +
                 '                    <option checked value='+v.valueType+'>' + v.valueType + '</option>\n' +
                 '                    <option value="number">number</option>\n' +
                 '                    <option value="string">string</option>\n' +
                 '                </select>\n' +
                 '            </div>\n' +
-                '            <div class="layui-inline">\n' +
-                '                <button class="layui-btn layui-btn-danger" type="button" id="down_add">↓</button>\n' +
+                '            <div class="layui-inline" style="margin: 0">\n' +
+                '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
+                '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
                 '            </div>\n' +
-                '            <div class="layui-inline">\n' +
-                '                <button class="layui-btn layui-btn-danger" type="button" id="up_rm">↑</button>\n' +
-                '            </div>\n' +
+                // '            <div class="layui-inline">\n' +
+                // '            </div>\n' +
                 '        </div>'
 
             $(".json-height").append(html_head + html_body + '</div>\n' +html_butt)
