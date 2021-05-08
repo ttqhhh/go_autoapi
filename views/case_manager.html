@@ -98,6 +98,7 @@
                 }
                 // alert(arr_id)
                 // 提交列表形式的id
+                var needJump = true
                 $.ajax({
                     type: 'POST',
                     contentType: "application/json",
@@ -107,9 +108,18 @@
                     timeout : 500000,
                     data: JSON.stringify({
                         "ids": arr_id,
-                    })
+                    }),
+                    success: function (data) {
+                        respCode = data.code
+                        if (respCode == -1) {
+                            needJump = false
+                            layer.msg(data.msg)
+                        }
+                    }
                 })
-                window.location.href="/report/show_run_record"
+                if (needJump) {
+                    window.location.href="/report/show_run_record";
+                }
             }
             ,getCheckLength: function(){ //获取选中数目
                 var checkStatus = table.checkStatus('idTest')
