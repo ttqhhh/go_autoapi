@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"sync"
 )
 
 func init() {
@@ -280,9 +279,6 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 }
 
 func saveTestResult(uuid string, caseId int64, result int, reason string, author string, resp string) {
-	var lock sync.Mutex
-	lock.Lock()
-	defer lock.Unlock()
 	err := models.InsertResult(uuid, caseId, result, reason, author, resp)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)
