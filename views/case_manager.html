@@ -1,32 +1,19 @@
 {{template "head.html" .}}
 
+
+<form class="layui-form" action="" id="test_service" style="display: none">
+    {{range .services}}
+        <input type="checkbox" name="service" title={{.ServiceName}} value={{.ServiceName}}>
+    {{end}}
+</form>
+
 <div style="margin:1%">
 <div style="text-align:right">
+    <button class="layui-btn open_service_list" >按服务执行</button>
     <button class="layui-btn add_case" >添加用例</button>
 </div>
 
 <table class="layui-table" lay-filter="demo" id="idTest"></table>
-
-<!--<table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">-->
-<!--    <thead>-->
-<!--    <tr>-->
-<!--        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>-->
-<!--        <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>-->
-<!--        <th lay-data="{field:'business_name', width:100}">业务线</th>-->
-<!--        <th lay-data="{field:'service_name', width:180}">服务名称</th>-->
-<!--        <th lay-data="{field:'case_name'}">用例名称</th>-->
-<!--        <th lay-data="{field:'description'}">用例描述</th>-->
-<!--        <th lay-data="{field:'author',width:150}">添加人</th>-->
-<!--        <th lay-data="{field:'api_url',templet:'#titleTpl'}">接口数据</th>-->
-<!--&lt;!&ndash;        <th lay-data="{field:'test_env', width:120}">测试环境</th>&ndash;&gt;-->
-<!--        <th lay-data="{field:'request_method', width:135, sort: true}">请求方式</th>-->
-<!--&lt;!&ndash;        <th lay-data="{field:'parameter', width:135, sort: true}">参数</th>&ndash;&gt;-->
-<!--&lt;!&ndash;        <th lay-data="{field:'check_point', width:135, sort: true}">检查点</th>&ndash;&gt;-->
-<!--        <th lay-data="{field:'level', width:80, sort: true, fixed: 'right'}">等级</th>-->
-<!--        <th lay-data="{fixed: 'right', width:100, align:'center', toolbar: '#barDemo'}">操作</th>-->
-<!--    </tr>-->
-<!--    </thead>-->
-<!--</table>-->
 
 <div class="layui-btn-group demoTable" style="margin-left:47%">
     <button class="layui-btn layui-bg-blue"  data-type="getCheckData">运行选中测试用例</button>
@@ -39,11 +26,13 @@
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
+    
 <script src="/static/layui/layui.js" charset="utf-8"></script>
 
 <script>
-    layui.use(['table','laytpl'], function(){
-        var table = layui.table;
+    layui.use(['table','laytpl','form'], function(){
+        const table = layui.table;
+        const form = layui.form;
         //表格渲染
         table.render({
             elem:'#idTest'
@@ -163,6 +152,32 @@
 
         $(document).on("click",".add_case", function (){
            window.location.href= "/case/show_add_case"
+        });
+
+        $(document).on("click", ".open_service_list" , function (){
+            layer.open({
+                type: 1 //此处以iframe举例
+                ,title: '选择服务'
+                ,area: ['1000px', '600px']
+                ,shade: 0
+                ,maxmin: true
+                ,offset: "rt"
+                ,content: $("#test_service")
+                ,btn: ['执行'] //只是为了演示
+                ,yes: function (){
+                    var checkStatus = form.checkStatus('test_service'),
+                        data = checkStatus.data,
+                        arr_id = new Array();
+                    for(var i = 0;i<data.length;i++){
+                        arr_id.push(data[i].id)
+                    }
+                    alert("开始测试")
+                    // 将服务信息提交给服务端进行测试
+                }
+                ,success: function(layero){
+                    layer.setTop(layero); //重点2
+                }
+            });
         });
     });
 </script>

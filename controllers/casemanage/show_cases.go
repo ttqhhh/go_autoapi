@@ -8,7 +8,10 @@ import (
 )
 
 func (c *CaseManageController) ShowCases() {
-	c.Data["business"] = c.GetString("business")
+	business := c.GetString("business")
+	c.Data["business"] = business
+	services := GetServiceList(business)
+	c.Data["services"] = services
 	c.TplName = "case_manager.html"
 }
 
