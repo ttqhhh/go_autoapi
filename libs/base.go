@@ -4,6 +4,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/satori/go.uuid"
 	_ "go_autoapi/constants"
+	constant "go_autoapi/constants"
 	"strings"
 )
 
@@ -24,15 +25,16 @@ type ReturnMsgPage struct {
 	Data  interface{} `json:"data"`
 }
 
-//func (b *BaseController) Prepare() {
-//	userId, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
-//	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
-//		//logs.Error("not login")
-//		//b.ErrorJson(-1, "not login", nil)
-//		b.Redirect("/auto/to_login", 302)
-//	}
-//	fmt.Println(userId)
-//}
+// todo 该方法不要注释掉，不然登录功能就没意义了
+func (b *BaseController) Prepare() {
+	_, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
+		//logs.Error("not login")
+		//b.ErrorJson(-1, "not login", nil)
+		b.Redirect("/auto/to_login", 302)
+	}
+	//fmt.Println(userId)
+}
 
 func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
