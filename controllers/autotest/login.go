@@ -54,11 +54,15 @@ func (c *AutoTestController) login() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	if len(sr.Entries) < 1 {
+		logs.Error("user does not exist")
+		c.ErrorJson(-1, "用户名或密码错误，登录失败", nil)
+	}
 	userDN := sr.Entries[0].DN
 	err = conn.Bind(userDN, u.Passwrod)
 	if err != nil {
 		logs.Error("password does not exist or too many entries returned")
-		c.ErrorJson(-1, "登录失败", nil)
+		c.ErrorJson(-1, "用户名或密码错误，登录失败", nil)
 	}
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
