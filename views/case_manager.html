@@ -5,30 +5,33 @@
     <button class="layui-btn add_case" >添加用例</button>
 </div>
 
-<table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">
-    <thead>
-    <tr>
-        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
-        <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>
-        <th lay-data="{field:'business_name', width:100}">业务线</th>
-        <th lay-data="{field:'service_name', width:180}">服务名称</th>
-        <th lay-data="{field:'case_name'}">用例名称</th>
-        <th lay-data="{field:'description'}">用例描述</th>
-        <th lay-data="{field:'author',width:150}">添加人</th>
-        <th lay-data="{field:'api_url'}">接口数据</th>
-<!--        <th lay-data="{field:'test_env', width:120}">测试环境</th>-->
-        <th lay-data="{field:'request_method', width:135, sort: true}">请求方式</th>
-<!--        <th lay-data="{field:'parameter', width:135, sort: true}">参数</th>-->
-<!--        <th lay-data="{field:'check_point', width:135, sort: true}">检查点</th>-->
-        <th lay-data="{field:'level', width:80, sort: true, fixed: 'right'}">等级</th>
-        <th lay-data="{fixed: 'right', width:100, align:'center', toolbar: '#barDemo'}">操作</th>
-    </tr>
-    </thead>
-</table>
+<table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+<!--<table class="layui-table" lay-data="{url:'/case/get_all_cases?business={{.business}}', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">-->
+<!--    <thead>-->
+<!--    <tr>-->
+<!--        <th lay-data="{type:'checkbox', fixed: 'left'}"></th>-->
+<!--        <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>-->
+<!--        <th lay-data="{field:'business_name', width:100}">业务线</th>-->
+<!--        <th lay-data="{field:'service_name', width:180}">服务名称</th>-->
+<!--        <th lay-data="{field:'case_name'}">用例名称</th>-->
+<!--        <th lay-data="{field:'description'}">用例描述</th>-->
+<!--        <th lay-data="{field:'author',width:150}">添加人</th>-->
+<!--        <th lay-data="{field:'api_url',templet:'#titleTpl'}">接口数据</th>-->
+<!--&lt;!&ndash;        <th lay-data="{field:'test_env', width:120}">测试环境</th>&ndash;&gt;-->
+<!--        <th lay-data="{field:'request_method', width:135, sort: true}">请求方式</th>-->
+<!--&lt;!&ndash;        <th lay-data="{field:'parameter', width:135, sort: true}">参数</th>&ndash;&gt;-->
+<!--&lt;!&ndash;        <th lay-data="{field:'check_point', width:135, sort: true}">检查点</th>&ndash;&gt;-->
+<!--        <th lay-data="{field:'level', width:80, sort: true, fixed: 'right'}">等级</th>-->
+<!--        <th lay-data="{fixed: 'right', width:100, align:'center', toolbar: '#barDemo'}">操作</th>-->
+<!--    </tr>-->
+<!--    </thead>-->
+<!--</table>-->
 
 <div class="layui-btn-group demoTable" style="margin-left:47%">
     <button class="layui-btn layui-bg-blue"  data-type="getCheckData">运行选中测试用例</button>
 </div>
+
 
 <script type="text/html" id="barDemo">
 <!--    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="run">运行</a>-->
@@ -39,13 +42,34 @@
 <script src="/static/layui/layui.js" charset="utf-8"></script>
 
 <script>
-    layui.use('table', function(){
+    layui.use(['table','laytpl'], function(){
         var table = layui.table;
+        //表格渲染
+        table.render({
+            elem:'#idTest'
+            ,url:'/case/get_all_cases?business={{.business}}'
+            ,page:true
+            ,cols:[[
+                {type:"checkbox",fixed:'left'},
+                {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                {title: '业务线', field:'business_name', width:100},
+                {title: '服务名称', field:'service_name', width:150},
+                {title: '用例名称', field:'case_name', width:200},
+                {title: '用例描述', field:'description'},
+                {title: '添加人', field:'author', width:150},
+                {title: '接口数据', field:'api_url',templet:function (d){
+                        return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
+                    }},
+                {title: '请求方式', field:'request_method',width:100},
+                {title: '操作', fixed:"right",toolbar:'#barDemo', width:80},
+            ]]
+        })
+
         //监听表格复选框选择
         table.on('checkbox(demo)', function(obj){
-            console.log(obj)
+            layui.close(obj);
         });
-        table.on('row(demo)', function(obj){
+        table.on('rowDouble(demo)', function(obj){
             var data = obj.data;
             window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
         });
@@ -135,3 +159,9 @@
 </div>
 </body>
 </html>
+
+<style>
+    .layui-table-grid-down {
+        display: none;
+    }
+</style>

@@ -198,10 +198,12 @@
                     $("#smoke_response").val(data.data.body)
                     obj = JSON.parse(data.data.body)
                     var body = JSON.stringify(obj, undefined, 4)
+                    $("#response_param").html("")
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
                 }
             });
             /** 触发填充 **/
+            $(".json-height").html("")
             $(".json-height").append(pre)
             // alert(res)
             $.each(analysisJson(obj), function(i,v){
