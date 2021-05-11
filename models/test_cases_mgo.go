@@ -27,6 +27,7 @@ type TestCaseMongo struct {
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
+	ServiceId     int64  `form:"service_id" json:"service_id" bson:"service_id"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
 	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`
 	TestEnv       string `form:"test_env" json:"test_env" bson:"test_env"`
@@ -156,4 +157,43 @@ func (t *TestCaseMongo) DelCase(id int64) {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)
 	}
+}
+
+// 获取指定业务线下所有Case
+func (t *TestCaseMongo) GetAllCasesByBusiness(business string) (result []*TestCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	query := bson.M{"status": status, "business_code": business}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
+// 获取指定服务集合下所有Case
+func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*TestCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	query := bson.M{}
+	if len(serviceIds) > 0 {
+		//queryCond := []interface{}{bson.D{"business"}}
+		queryCond := []interface{}{}
+		for _, serviceId := range serviceIds {
+			queryCond = append(queryCond, bson.M{"service_id": serviceId})
+		}
+		query["$or"] = queryCond
+	}
+	query["status"] = status
+	//query := bson.M{"status": status, "service_id": business}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务集合下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
 }
