@@ -80,33 +80,6 @@
     </div>
 
 
-<!--        <div class="layui-inline">-->
-<!--            <label class="layui-form-label">测试环境</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                {{if eq .a.TestEnv "env1"}}-->
-<!--                <input type="radio" name="test_env" value="env1" title="ENV1" checked="">-->
-<!--                <input type="radio" name="test_env" value="env2" title="ENV2">-->
-<!--                {{else}}-->
-<!--                <input type="radio" name="test_env" value="env1" title="ENV1" >-->
-<!--                <input type="radio" name="test_env" value="env2" title="ENV2" checked="">-->
-<!--                {{end}}-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <label class="layui-form-label">mock</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                {{if eq .a.Mock "mock1"}}-->
-<!--                <input type="radio" name="mock" value="mock1" title="MOCK1" checked="">-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK2">-->
-<!--                {{else}}-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK1">-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK2" checked="">-->
-<!--                {{end}}-->
-<!--            </div>-->
-<!--        </div>-->
-
-
     <div class="layui-form-item layui-form-text">
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">请求参数</label>
@@ -191,25 +164,20 @@
 
         // $(document).on('click', '#test', function () {  });
 
-
+        // 获取业务线下对应的service
         form.on('select(business)', function (data) {
 
             $.ajax({
-                type: 'POST',
-                url: '/case/get_service_by_business',
-                contentType: "application/x-www-form-urlencoded",
-                data: {"business": data.value},
-                dataType: 'json',
+                type: 'GET',
+                url: '/service/list?business='+data.value,
                 success: function (data) {
-                    // $("#City").html("");
                     $("#services").children().remove()
                     $.each(data.data, function (key, val) {
                         // alert(val["service_name"])
-                        var option1 = '<option value="' + val["service_name"] + '" >' + val["service_name"] + '</option>'
+                        var option1 = '<option value="' + val["id"] + '" >' + val["service_name"] + '</option>'
                         $("#services").append(option1);
                         form.render('select');
                     });
-                    // $("#City").get(0).selectedIndex=0;
                 }
             });
         });
