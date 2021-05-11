@@ -24,9 +24,9 @@
             <div class="layui-input-inline">
                 <select name="service_name" lay-filter="services" id="services">
                     <option selected>{{.a.ServiceName}}</option>
-                    {{range .services}}
-                    <option value={{.ServiceName}}>{{.ServiceName}}</option>
-                    {{end}}
+<!--                    {{range .services}}-->
+<!--                    <option value={{.ServiceName}}>{{.ServiceName}}</option>-->
+<!--                    {{end}}-->
                 </select>
             </div>
         </div>
@@ -80,33 +80,6 @@
     </div>
 
 
-<!--        <div class="layui-inline">-->
-<!--            <label class="layui-form-label">测试环境</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                {{if eq .a.TestEnv "env1"}}-->
-<!--                <input type="radio" name="test_env" value="env1" title="ENV1" checked="">-->
-<!--                <input type="radio" name="test_env" value="env2" title="ENV2">-->
-<!--                {{else}}-->
-<!--                <input type="radio" name="test_env" value="env1" title="ENV1" >-->
-<!--                <input type="radio" name="test_env" value="env2" title="ENV2" checked="">-->
-<!--                {{end}}-->
-<!--            </div>-->
-<!--        </div>-->
-
-<!--        <div class="layui-inline">-->
-<!--            <label class="layui-form-label">mock</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                {{if eq .a.Mock "mock1"}}-->
-<!--                <input type="radio" name="mock" value="mock1" title="MOCK1" checked="">-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK2">-->
-<!--                {{else}}-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK1">-->
-<!--                <input type="radio" name="mock" value="mock2" title="MOCK2" checked="">-->
-<!--                {{end}}-->
-<!--            </div>-->
-<!--        </div>-->
-
-
     <div class="layui-form-item layui-form-text">
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">请求参数</label>
@@ -131,7 +104,7 @@
     <div class="layui-form-item">
         <div class="layui-input-block">
             <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
-            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>
+<!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
         </div>
     </div>
 </form>
@@ -149,8 +122,24 @@
             , $ = layui.jquery
             , layedit = layui.layedit
             , laydate = layui.laydate;
+        function get_service_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business='+bus,
+                success: function (data) {
+                    // $("#City").html("");
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                        $("#services").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
 
         let obj
+        let first_business
         $(function () {
             $.ajax({
                 type: 'GET',
@@ -160,6 +149,7 @@
                 timeout: 500000,
                 success: function (data) {
                     var date = data.data.businesses
+                    first_business = date[0]['code']
                     $.each(date, function (n, val) {
                         var option1 = '<option value="' + val["code"] + '" >' + val["name"] + '</option>'
                         $("#business").append(option1);
@@ -167,6 +157,7 @@
                     })
                 }
             })
+            get_service_by_business(first_business)
 
             var request_param = $("#request_param").text()
             var request_url = $("#api_url").val()
@@ -191,27 +182,10 @@
 
         // $(document).on('click', '#test', function () {  });
 
-
+        // 获取业务线下对应的service
         form.on('select(business)', function (data) {
-
-            $.ajax({
-                type: 'POST',
-                url: '/case/get_service_by_business',
-                contentType: "application/x-www-form-urlencoded",
-                data: {"business": data.value},
-                dataType: 'json',
-                success: function (data) {
-                    // $("#City").html("");
-                    $("#services").children().remove()
-                    $.each(data.data, function (key, val) {
-                        // alert(val["service_name"])
-                        var option1 = '<option value="' + val["service_name"] + '" >' + val["service_name"] + '</option>'
-                        $("#services").append(option1);
-                        form.render('select');
-                    });
-                    // $("#City").get(0).selectedIndex=0;
-                }
-            });
+            $("#services").children().remove()
+            get_service_by_business(data.value)
         });
         form.render()
         $(document).on('click', '#run', function () {

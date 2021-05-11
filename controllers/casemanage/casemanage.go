@@ -41,8 +41,10 @@ func (c *CaseManageController) Post() {
 		c.AddOneCase()
 	case "del_one_case":
 		c.DelCaseByID()
-	case "get_service_by_business":
-		c.GetServiceByBusiness()
+	//case "get_service_by_business":
+	//	c.GetServiceByBusiness()
+	case "get_caseId_by_service":
+		c.GetCaseIdByService()
 	//case "do_test":
 	//	c.performTests()
 	default:

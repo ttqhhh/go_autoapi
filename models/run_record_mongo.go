@@ -2,7 +2,9 @@ package models
 
 import (
 	"github.com/astaxie/beego/logs"
+	"go_autoapi/constants"
 	"go_autoapi/db_proxy"
+	"go_autoapi/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -20,6 +22,7 @@ const (
 
 type RunReportMongo struct {
 	Id             int64  `form:"id" json:"id" bson:"_id"`
+	Name           string `form:"name" json:"name" bson:"name"`
 	ServiceName    string `form:"service_name" json:"service_name" bson:"service_name"` // 服务名
 	Business       int8   `form:"business" json:"business" bson:"business"`
 	TotalCases     int    `form:"total_cases" json:"total_cases" bson:"total_case"`                // 本次执行操作运行的case总条数
@@ -41,14 +44,12 @@ func (mongo *RunReportMongo) Insert(service RunReportMongo) (int64, error) {
 	ms, db := db_proxy.Connect(db, run_record_collection)
 	defer ms.Close()
 
-	// id自增
-	cnt, err := db.Count()
+	r := utils.GetRedis()
+	id, err := r.Incr(constants.RUN_RECORD_PRIMARY_KEY).Result()
 	if err != nil {
-		logs.Error("Insert 错误: %v", err)
+		logs.Error("新增运行记录时报错, err:", err)
 		return -1, err
 	}
-	// todo 存在并发风险
-	id := int64(cnt) + 1
 	service.Id = id
 	// 处理添加时间字段
 	service.CreatedAt = time.Now().Format(Time_format)
@@ -106,15 +107,20 @@ func (mongo *RunReportMongo) UpdateIsPass(id int64, isPass int8, totalFailCase i
 
 // todo 根据服务名模糊查询待实现
 // 分页查询
-func (mongo *RunReportMongo) QueryByPage(business int8, serviceName string, pageNo int, pageSize int) ([]RunReportMongo, int64, error) {
+func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, pageNo int, pageSize int) ([]RunReportMongo, int64, error) {
 	ms, db := db_proxy.Connect(db, run_record_collection)
 	defer ms.Close()
 
 	// 查询分页数据
 	//query := bson.M{"status": 0}
 	query := bson.M{}
-	if business != -1 {
-		query["business"] = business
+	if len(businesses) > 0 {
+		//queryCond := []interface{}{bson.D{"business"}}
+		queryCond := []interface{}{}
+		for _, v := range businesses {
+			queryCond = append(queryCond, bson.M{"business": v})
+		}
+		query["$or"] = queryCond
 	}
 	if serviceName != "" {
 		query["service_name"] = bson.M{"$regex": serviceName}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/beego/beego/v2/core/logs"
+	"go_autoapi/libs"
 	"go_autoapi/models"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -26,4 +27,11 @@ func (c *CaseManageController) GetCasesByQuery() {
 		logs.Error(1024, err)
 	}
 	c.SuccessJson(result)
+}
+
+
+func (c *CaseManageController) GetCaseIdByService() {
+	services := c.GetStrings("service")
+	ids := libs.GetCasesByServices(services)
+	c.SuccessJson(ids)
 }

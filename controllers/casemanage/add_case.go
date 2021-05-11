@@ -3,6 +3,8 @@ package controllers
 import (
 	"go_autoapi/constants"
 	"go_autoapi/models"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -12,6 +14,11 @@ func (c *CaseManageController) AddOneCase() {
 	if err := c.ParseForm(&acm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
+	// todo service_id 和 service_name 在一起,需要分割后赋值
+	arr := strings.Split(acm.ServiceName,";")
+	acm.ServiceName = arr[1]
+	id64, _ := strconv.ParseInt(arr[0], 10, 64)
+	acm.ServiceId = id64
 	acm.Id = models.GetId("case")
 	acm.CreatedAt = now
 	acm.UpdatedAt = now

@@ -16,6 +16,19 @@
     <script src="/static/layui/layui.js" charset="utf-8"></script>
 
     <script>
+        // 初始化一个业务线代码和名字的Map映射,用于转码列表中的业务线
+        var businessMap = {}
+        $.ajax({
+            url: "/business/get_user_businesses",
+            type: "GET",
+            dataType: "json",
+            sync: true,
+            success: function (data) {
+                $.each(data.data.businesses, function (index, value) {
+                    businessMap[value.code]=value.name
+                })
+            }
+        })
 
         $('body',document).on('keyup', function (e) {
             if (e.which === 27) {
@@ -34,6 +47,12 @@
                 ,page: true //开启分页
                 ,cols: [[ //表头
                     {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                    {title: '报告名', field:'name'},
+                    {title: '业务线', field:'business', templet: function(d){
+                            var code = d.business
+                            var name = businessMap[code]
+                            return name
+                        }},
                     {title: '执行人', field:'create_by'},
                     {title: '执行时间', field:'created_at'},
                     {title: '执行ID', field:'run_id'},

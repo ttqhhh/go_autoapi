@@ -280,8 +280,14 @@ layui.use(['form', 'layedit', 'laydate'], function() {
                 "parameter":request_param
             },
             success:function (data){
-                body = JSON.parse(data.data.body)
-            }
+                try {
+                    body = JSON.parse(data.data.body)
+                }
+                catch(err){
+                    alert("冒烟失败 - " + err)
+                    return
+                }
+            },
         });
         return body
     }
