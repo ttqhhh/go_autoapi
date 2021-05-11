@@ -23,18 +23,18 @@ func (c *BusinessController) Get() {
 
 var userBusinessMap = map[string][]int{
 	// 4个超级管理员
-	"fengmanlong": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"xueyibing":   {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"liuweiqiang": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"wangzhen":    {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"fengmanlong": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
+	"xueyibing":   {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
+	//"liuweiqiang": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
+	"wangzhen": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
 	// 普通用户
-	"wangjun":       {haiwai, zhongdong, mama},
+	"wangjun":       {haiwai, zhongdong, mama, haiwaius},
 	"sunzhiying":    {haiwai},
 	"zhangjuan":     {shangyehua, zuiyou},
 	"liuyinan":      {pipi},
 	"sunmingyao":    {pipi},
 	"zhangdanbing":  {pipi},
-	"xufei":         {haiwai, zhongdong},
+	"xufei":         {haiwai, zhongdong, haiwaius},
 	"suhuimin":      {zhongdong},
 	"wanglanjin":    {zhongdong, mama},
 	"yangjingfang":  {shangyehua, zuiyou},
@@ -49,6 +49,7 @@ var businessCodeNameMap = map[int]string{
 	zhongdong:  zhongdong_name,
 	mama:       mama_name,
 	shangyehua: shangyehua_name,
+	haiwaius:   haiwaius_name,
 }
 
 func (c *BusinessController) getUserBusinesses() {
@@ -65,7 +66,7 @@ func GetBusinesses(username string) []map[string]interface{} {
 	businesses, ok := userBusinessMap[username]
 	if !ok {
 		// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
-		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua}
+		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
 	}
 	for _, v := range businesses {
 		temp := make(map[string]interface{})
@@ -90,7 +91,7 @@ func GetBusinesses(username string) []map[string]interface{} {
 	return businessResp
 }
 
-// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化
+// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化，6：海外-US
 const (
 	zuiyou = iota
 	pipi
@@ -98,6 +99,7 @@ const (
 	zhongdong
 	mama
 	shangyehua
+	haiwaius
 )
 
 const (
@@ -107,4 +109,5 @@ const (
 	zhongdong_name  = "中东"
 	mama_name       = "妈妈社区"
 	shangyehua_name = "商业化"
+	haiwaius_name   = "海外-US"
 )
