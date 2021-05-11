@@ -117,7 +117,7 @@
                     data: JSON.stringify({
                         "ids": arr,
                         "type": 2,
-                        "business":'{{.business}}'
+                        "business":parseInt('{{.business}}'),
                     }),
                     success: function (data) {
                         respCode = data.code
@@ -154,7 +154,7 @@
                     timeout : 500000,
                     data: JSON.stringify({
                         "ids": arr_id,
-                        "business":'{{.business}}',
+                        "business":parseInt('{{.business}}'),
                         "type":2
                     }),
                     success: function (data) {
