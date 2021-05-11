@@ -8,6 +8,7 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -62,35 +63,75 @@ func (c *AutoTestController) performSmoke() {
 	c.SuccessJson(result)
 }
 
-type CaseList struct {
-	Business int8    `json:"business" form:"business"`
-	CaseList []int64 `json:"ids" form:"ids" `
+type performParam struct {
+	Type        int8    `json:"type" form:"type"`             // 必填。执行Case的维度：0-业务线维度，1-服务维度，2-Case维度
+	Business    int8    `json:"business" form:"business"`     // 必填
+	ServiceList []int64 `json:"serviceIds" form:"serviceIds"` // 非必填。type=1时，必填
+	CaseList    []int64 `json:"ids" form:"ids" `              // 非必填
 }
+
+// 执行case的维度类型，performTests接口使用
+const (
+	BUSINESS_TYPE = iota
+	SERVICE_TYPE
+	CASE_TYPE
+)
 
 // 执行case
 func (c *AutoTestController) performTests() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	uuid, _ := c.GenUUid()
-	cl := CaseList{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
+	param := performParam{}
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &param); err != nil {
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
-	count := len(cl.CaseList)
-	caseList, err := libs.GetCasesByIds(cl.CaseList)
-	if err != nil {
-		logs.Error("获取测试用例列表失败", err)
-		c.ErrorJson(-1, "获取测试用例失败", nil)
+	// 进行必要的参数验证
+	performType := param.Type
+	business := param.Business
+	if performType != BUSINESS_TYPE && performType != SERVICE_TYPE && performType != CASE_TYPE {
+		c.ErrorJson(-1, "请求参数中type为不支持的类型", nil)
 	}
+	if performType == 1 && len(param.ServiceList) == 0 {
+		c.ErrorJson(-1, "以服务维度执行Case时，请至少选择一个服务", nil)
+	}
+
+	mongo := models.TestCaseMongo{}
+	// 根据不同的执行维度，聚合需要执行的所有Case集合
+	caseList := []*models.TestCaseMongo{}
+	if performType == BUSINESS_TYPE {
+		var err error
+		// 查询该业务线下所有的Case
+		caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
+		if err != nil {
+			logs.Error("获取测试用例列表失败, err: ", err)
+			c.ErrorJson(-1, "业务线维度执行Case时，获取测试用例失败", nil)
+		}
+	} else if performType == SERVICE_TYPE {
+		var err error
+		// 查询指定服务集合下所有的Case
+		caseList, err = mongo.GetAllCasesByServiceList(param.ServiceList)
+		if err != nil {
+			logs.Error("获取测试用例列表失败, err: ", err)
+			c.ErrorJson(-1, "服务维度执行Case时，获取测试用例失败", nil)
+		}
+	} else if performType == CASE_TYPE {
+		var err error
+		caseList, err = libs.GetCasesByIds(param.CaseList)
+		if err != nil {
+			logs.Error("获取测试用例列表失败, err: ", err)
+			c.ErrorJson(-1, "Case维度执行Case时，获取测试用例失败", nil)
+		}
+	}
+	count := len(caseList)
 	fmt.Println("case list is", caseList)
 	if len(caseList) == 0 {
-		logs.Error("没有用例", err)
+		logs.Error("没有用例")
 		c.ErrorJson(-1, "没有用例", nil)
 	}
 	// 对本次执行操作记录进行保存
 	totalCases := len(caseList)
 	runReport := models.RunReportMongo{}
 	// 报告的名字：业务线-执行人-时间戳（日期）
-	business := cl.Business
 	businessMap := GetBusinesses(userId)
 	businessName := "未知"
 	for _, v := range businessMap {
@@ -105,10 +146,6 @@ func (c *AutoTestController) performTests() {
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
 	runReport.IsPass = models.RUNNING
-	if err != nil {
-		logs.Error("业务线代码转换异常", err)
-		c.ErrorJson(-1, "业务线代码转换异常", nil)
-	}
 	runReport.Business = business
 	runReport.ServiceName = caseList[0].ServiceName
 
