@@ -10,26 +10,15 @@ import (
 func (c *CaseManageController) ShowCases() {
 	business := c.GetString("business")
 	c.Data["business"] = business
-	services := GetServiceList(business)
-	c.Data["services"] = services
 	c.TplName = "case_manager.html"
 }
 
 func GetServiceList(business string) (service []models.ServiceMongo) {
-	var busCode = int8(0)
-	if business == "0" {
-		busCode = int8(0)
-	} else if business == "1" {
-		busCode = int8(1)
-	} else if business == "2" {
-		busCode = int8(2)
-	} else if business == "3" {
-		busCode = int8(3)
-	} else if business == "4" {
-		busCode = int8(4)
-	} else if business == "5" {
-		busCode = int8(5)
+	bs, err := strconv.Atoi(business)
+	if err != nil{
+		logs.Error("类型转换失败", err)
 	}
+	busCode := int8(bs)
 	serviceMongo := models.ServiceMongo{}
 	services, err := serviceMongo.QueryByBusiness(busCode)
 	if err != nil {

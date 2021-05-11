@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/astaxie/beego/validation"
 	"github.com/beego/beego/v2/core/logs"
+	"go_autoapi/libs"
 	"go_autoapi/models"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -29,17 +29,9 @@ func (c *CaseManageController) GetCasesByQuery() {
 	c.SuccessJson(result)
 }
 
-type services struct {
-	Service []string `json:"services" form:"services" `
-}
 
 func (c *CaseManageController) GetCaseIdByService() {
-	cl := services{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &cl); err != nil {
-		logs.Error("获取用例，解析json数据")
-	}
-	for _, i := range cl.Service{
-
-	}
-	c.SuccessJson(cl)
+	services := c.GetStrings("service")
+	ids := libs.GetCasesByServices(services)
+	c.SuccessJson(ids)
 }

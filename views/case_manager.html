@@ -99,6 +99,7 @@
                     timeout : 500000,
                     data: JSON.stringify({
                         "ids": arr,
+                        "business":'{{.business}}'
                     }),
                     success: function (data) {
                         respCode = data.code
@@ -180,14 +181,13 @@
                 ,content: $("#test_service")
                 ,btn: ['执行'] //只是为了演示
                 ,yes: function (){
-                    var checkStatus = form.checkStatus('test_service'),
-                        data = checkStatus.data,
-                        arr_id = new Array();
-                    for(var i = 0;i<data.length;i++){
-                        arr_id.push(data[i].id)
-                    }
-                    alert("开始测试")
+                    var arr_box = [];
+                    $('input[type=checkbox]:checked').each(function() {
+                        arr_box.push($(this).val());
+                    });
+                    alert(arr_box);
                     // 将服务信息提交给服务端进行测试
+
                 }
                 ,success: function(layero){
                     layer.setTop(layero); //重点2
