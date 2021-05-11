@@ -56,11 +56,11 @@ func (c *BusinessController) getUserBusinesses() {
 
 	result := make(map[string]interface{})
 	result["username"] = userId
-	result["businesses"] = getBusinesses(userId)
+	result["businesses"] = GetBusinesses(userId)
 	c.SuccessJson(result)
 }
 
-func getBusinesses(username string) []map[string]interface{} {
+func GetBusinesses(username string) []map[string]interface{} {
 	businessResp := [](map[string]interface{}){}
 	businesses, ok := userBusinessMap[username]
 	if !ok {

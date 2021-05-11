@@ -3,6 +3,8 @@ package report
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	constant "go_autoapi/constants"
+	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"strconv"
@@ -37,6 +39,17 @@ func (c *ReportController) ShowRunReport() {
 获取执行记录列表
 */
 func (c *ReportController) runRecordList() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	businessList := []int{}
+	businessMap := controllers.GetBusinesses(userId)
+	for _, business := range businessMap {
+		for k, v := range business {
+			if k == "code" {
+				businessList = append(businessList, v.(int))
+			}
+		}
+	}
+
 	var rp = models.RunReportMongo{}
 	//var ids = models.Ids{}
 	page, _ := strconv.Atoi(c.GetString("page"))
@@ -46,7 +59,7 @@ func (c *ReportController) runRecordList() {
 
 	//count := ids.GetCollectionLength("result")
 	// 默认暂不支持business和serviceName条件查询
-	result, count, err := rp.QueryByPage(-1, "", page, limit)
+	result, count, err := rp.QueryByPage(businessList, "", page, limit)
 	if err != nil {
 		c.FormErrorJson(-1, "获取报告列表数据失败")
 	}
@@ -126,7 +139,7 @@ func (c *ReportController) runReportDetail() {
 
 	resp := &TemplateResp{
 		TestPass:   testPass,
-		TestName:   runReport.RunId,
+		TestName:   runReport.Name,
 		TestAll:    runReport.TotalCases,
 		TestFail:   runReport.TotalFailCases,
 		BeginTime:  runReport.CreatedAt,

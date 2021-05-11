@@ -8,6 +8,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	constant "go_autoapi/constants"
 	"go_autoapi/models"
+	"go_autoapi/utils"
 	"gopkg.in/mgo.v2"
 	"strconv"
 	"time"
@@ -66,7 +67,9 @@ func (c *AutoTestController) login() {
 	}
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
-	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: models.GetId("user_id"), UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
+	r := utils.GetRedis()
+	autoUserId, err := r.Incr(constant.AUTO_USER_PRIMARY_KEY).Result()
+	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: autoUserId, UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 	loginUser, err := au.GetUserInfoByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		err = au.InsertUser(au)
@@ -83,7 +86,7 @@ func (c *AutoTestController) login() {
 	}
 	//c.SuccessJsonWithMsg(ul, "OK")
 	// 默认跳转到第一个有权限的业务线case页面
-	businesses := getBusinesses(u.UserName)
+	businesses := GetBusinesses(u.UserName)
 	business := businesses[0]
 	code := business["code"]
 	codeInt := code.(int)
