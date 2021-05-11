@@ -24,9 +24,9 @@
             <div class="layui-input-inline">
                 <select name="service_name" lay-filter="services" id="services">
                     <option selected>{{.a.ServiceName}}</option>
-                    {{range .services}}
-                    <option value={{.ServiceName}}>{{.ServiceName}}</option>
-                    {{end}}
+<!--                    {{range .services}}-->
+<!--                    <option value={{.ServiceName}}>{{.ServiceName}}</option>-->
+<!--                    {{end}}-->
                 </select>
             </div>
         </div>
@@ -122,8 +122,24 @@
             , $ = layui.jquery
             , layedit = layui.layedit
             , laydate = layui.laydate;
+        function get_service_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business='+bus,
+                success: function (data) {
+                    // $("#City").html("");
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                        $("#services").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
 
         let obj
+        let first_business
         $(function () {
             $.ajax({
                 type: 'GET',
@@ -133,6 +149,7 @@
                 timeout: 500000,
                 success: function (data) {
                     var date = data.data.businesses
+                    first_business = date[0]['code']
                     $.each(date, function (n, val) {
                         var option1 = '<option value="' + val["code"] + '" >' + val["name"] + '</option>'
                         $("#business").append(option1);
@@ -140,6 +157,7 @@
                     })
                 }
             })
+            get_service_by_business(first_business)
 
             var request_param = $("#request_param").text()
             var request_url = $("#api_url").val()

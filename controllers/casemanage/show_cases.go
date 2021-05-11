@@ -35,11 +35,11 @@ func (c *CaseManageController) ShowCases() {
 
 func (c *CaseManageController) ShowAddCase() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
-	//business := c.GetString("business")
+	business := c.GetString("business")
 	//services := GetServiceList(business)
 	// 获取全部service
 	c.Data["Author"] = userId
-	//c.Data["services"] = services
+	c.Data["business"] = business
 	c.TplName = "case_add.html"
 }
 
