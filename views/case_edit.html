@@ -73,10 +73,9 @@
             <input type="text" id="api_url" name="api_url" lay-verify="required"
                    placeholder="例:http://api.izuiyou.com/index/recommend" autocomplete="off" class="layui-input" value={{.a.ApiUrl}}>
         </div>
-<!--        <button type="button" class="layui-btn layui-btn-normal" id="test">调试(获取返回)</button>-->
 <!--        <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>-->
         <button type="button" class="layui-btn layui-btn-normal" id="edit_point">编辑校验点</button>
-
+        <button type="button" class="layui-btn layui-btn-normal" id="test">手动调试</button>
     </div>
 
 
@@ -180,7 +179,9 @@
             });
         });
 
-        // $(document).on('click', '#test', function () {  });
+        $(document).on('click', '#test', function () {
+
+        });
 
         // 获取业务线下对应的service
         form.on('select(business)', function (data) {
@@ -234,7 +235,7 @@
                             const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
                             result_list.push(now)
                         });
-                        // 调用test
+                        // 组合校验点变成json-path
                         const result = generateJsonPath(result_list, obj)
                         if(result.code === -1){
                             alert(result.msg)
