@@ -184,20 +184,8 @@
 
         // 获取业务线下对应的service
         form.on('select(business)', function (data) {
-
-            $.ajax({
-                type: 'GET',
-                url: '/service/list?business='+data.value,
-                success: function (data) {
-                    $("#services").children().remove()
-                    $.each(data.data, function (key, val) {
-                        // alert(val["service_name"])
-                        var option1 = '<option value="' + val["id"] + '" >' + val["service_name"] + '</option>'
-                        $("#services").append(option1);
-                        form.render('select');
-                    });
-                }
-            });
+            $("#services").children().remove()
+            get_service_by_business(data.value)
         });
         form.render()
         $(document).on('click', '#run', function () {
