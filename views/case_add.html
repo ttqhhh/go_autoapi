@@ -154,11 +154,8 @@
 
         form.on('select(business)', function(data) {
             $.ajax({
-                type: 'POST',
-                url: '/case/get_service_by_business',
-                contentType: "application/x-www-form-urlencoded",
-                data: {"business": data.value},
-                dataType: 'json',
+                type: 'GET',
+                url: '/service/list?business='+data.value,
                 success: function (data) {
                     // $("#City").html("");
                     $("#services").children().remove()
