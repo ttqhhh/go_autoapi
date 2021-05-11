@@ -67,11 +67,12 @@ func (c *AutoTestController) login() {
 	}
 	now := time.Now()
 	timestamp := now.Format(constant.TimeFormat)
-	r := utils.GetRedis()
-	autoUserId, err := r.Incr(constant.AUTO_USER_PRIMARY_KEY).Result()
-	au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: autoUserId, UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
+	au := models.AutoUser{}
 	loginUser, err := au.GetUserInfoByName(u.UserName)
 	if err == mgo.ErrNotFound {
+		r := utils.GetRedis()
+		autoUserId, err := r.Incr(constant.AUTO_USER_PRIMARY_KEY).Result()
+		au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: autoUserId, UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 		err = au.InsertUser(au)
 		if err != nil {
 			logs.Error("failed to store in db")
