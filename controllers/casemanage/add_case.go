@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/astaxie/beego/logs"
 	"go_autoapi/constants"
 	"go_autoapi/models"
 	"strconv"
@@ -38,6 +39,7 @@ func (c *CaseManageController) AddOneCase() {
 		acm.BusinessName = "商业化"
 	}
 	if err := acm.AddCase(acm); err != nil {
+		logs.Error("保存Case报错，err: ", err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("添加成功")
