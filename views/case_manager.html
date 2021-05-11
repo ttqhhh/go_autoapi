@@ -189,6 +189,7 @@
            window.location.href= "/case/show_add_case"
         });
 
+        let needJump = true
         $(document).on("click", ".open_service_list" , function (){
             layer.open({
                 type: 1 //此处以iframe举例
@@ -212,7 +213,7 @@
                         async:false,
                         timeout : 500000,
                         data: JSON.stringify({
-                            "business":'{{.business}}',
+                            "business":parseInt('{{.business}}'),
                             "serviceIds":arr_box,
                             "type":1
                         }),
@@ -243,7 +244,7 @@
                 async:false,
                 timeout : 500000,
                 data: JSON.stringify({
-                    "business":'{{.business}}',
+                    "business":parseInt('{{.business}}'),
                     "type":0
                 }),
                 success: function (data) {
