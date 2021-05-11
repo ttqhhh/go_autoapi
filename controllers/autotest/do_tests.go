@@ -8,8 +8,8 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
-	"strconv"
 	"sync"
+	"time"
 )
 
 // 请求demo，如何传递jsonpath
@@ -63,6 +63,7 @@ func (c *AutoTestController) performSmoke() {
 }
 
 type CaseList struct {
+	Business int8    `json:"business" form:"business"`
 	CaseList []int64 `json:"ids" form:"ids" `
 }
 
@@ -88,16 +89,27 @@ func (c *AutoTestController) performTests() {
 	// 对本次执行操作记录进行保存
 	totalCases := len(caseList)
 	runReport := models.RunReportMongo{}
+	// 报告的名字：业务线-执行人-时间戳（日期）
+	business := cl.Business
+	businessMap := GetBusinesses(userId)
+	businessName := "未知"
+	for _, v := range businessMap {
+		if int8(v["code"].(int)) == business {
+			businessName = v["name"].(string)
+			break
+		}
+	}
+	format := "20060102/150405"
+	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
 	runReport.CreateBy = userId
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
 	runReport.IsPass = models.RUNNING
-	code, err := strconv.Atoi(caseList[0].BusinessCode)
 	if err != nil {
 		logs.Error("业务线代码转换异常", err)
 		c.ErrorJson(-1, "业务线代码转换异常", nil)
 	}
-	runReport.Business = int8(code)
+	runReport.Business = business
 	runReport.ServiceName = caseList[0].ServiceName
 
 	id, err := runReport.Insert(runReport)

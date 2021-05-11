@@ -78,7 +78,7 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 		req.Header.Add(k, v)
 	}
 	response, err := client.Do(req)
-	if err != nil{
+	if err != nil {
 		logs.Error("冒烟请求失败, err:", err)
 		return
 	}
@@ -188,6 +188,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
 			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
 			saveTestResult(uuid, caseId, result, reason, runBy, response)
+			return
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
