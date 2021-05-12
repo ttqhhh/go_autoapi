@@ -195,7 +195,13 @@
                 success:function (data){
                     // 将response写入到input中
                     $("#smoke_response").val(data.data.body)
-                    obj = JSON.parse(data.data.body)
+                    try {
+                        obj = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        alert("冒烟失败 - " +data.data.httpCode + "--" + err)
+                        return
+                    }
                     var body = JSON.stringify(obj, undefined, 4)
                     $("#response_param").html("")
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
