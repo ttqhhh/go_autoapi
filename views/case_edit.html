@@ -7,7 +7,8 @@
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
-
+    <input type="text" name="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
+    
     <!--    <input type="text" name="id" value="0" style="display: none">-->
     <!--    <input type="text" name="created_at" value="none" style="display: none">-->
     <!--    <input type="text" name="updated_at" value="none" style="display: none">-->
@@ -23,10 +24,7 @@
             </div>
             <div class="layui-input-inline">
                 <select name="service_name" lay-filter="services" id="services">
-                    <option selected>{{.a.ServiceName}}</option>
-<!--                    {{range .services}}-->
-<!--                    <option value={{.ServiceName}}>{{.ServiceName}}</option>-->
-<!--                    {{end}}-->
+<!--                    <option selected>{{.a.ServiceName}}</option>-->
                 </select>
             </div>
         </div>
@@ -95,7 +93,7 @@
             <label class="layui-form-label">检查点</label>
             <div class="layui-input-block">
             <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
-                      name="check_point" lay-verify="required">{{.a.Checkpoint}}</textarea>
+                      name="check_point" lay-verify="required" readonly>{{.a.Checkpoint}}</textarea>
             </div>
         </div>
     </div>
@@ -121,6 +119,7 @@
             , $ = layui.jquery
             , layedit = layui.layedit
             , laydate = layui.laydate;
+
         function get_service_by_business(bus){
             $.ajax({
                 type: 'GET',
@@ -128,8 +127,13 @@
                 success: function (data) {
                     // $("#City").html("");
                     $.each(data.data, function(key, val) {
-                        // alert(val["service_name"])
-                        var option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                        let option1;
+                        if(val["service_name"] === '{{.a.ServiceName}}'){
+                            // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                            option1 = '<option value='+val["id"]+";"+val["service_name"]+'checked>'+val["service_name"]+'</option>'
+                        }else{
+                            option1 = $("<option>").val(val["id"] + ";" + val["service_name"]).text(val["service_name"]);
+                        }
                         $("#services").append(option1);
                         form.render('select');
                     });
@@ -180,7 +184,25 @@
         });
 
         $(document).on('click', '#test', function () {
-
+            var request_param = $("#request_param").text()
+            var request_url = $("#api_url").val()
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    obj = JSON.parse(data.data.body)
+                    var body = JSON.stringify(obj, undefined, 4)
+                    document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+                }
+            });
         });
 
         // 获取业务线下对应的service
