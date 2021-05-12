@@ -68,9 +68,15 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 		"Accept-Charset":  "utf-8"}
 	//redis? 不知道干嘛的
 	client := &http.Client{}
-	var v interface{}
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	paramByte, err := json.Marshal(json.Unmarshal([]byte(strings.TrimSpace(param)), v))
+	v := make(map[string]interface{})
+	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	if err != nil {
+		logs.Error("发送冒烟请求前，解码json报错，err：", err)
+		return
+	}
+	paramByte, err := json.Marshal(v)
+	//logs.Info("打印json", string(paramByte))
 	if err != nil {
 		logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
 		return
