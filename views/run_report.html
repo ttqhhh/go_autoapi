@@ -73,13 +73,7 @@
                     var that = this.elem.next();
                     res.data.forEach(function (item, index) {
                         var tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']").click(function () {
-                            layer.open({
-                                title: "详情",
-                                type: 2,
-                                // content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
-                                content: "/report/run_report_detail?id=" + item.id,
-                                area: ['1600px', '800px']
-                            })
+                        window.open("/report/run_report_detail?id=" + item.id, "_blank");
                         })
                         // todo 等后续找到合适的色值，可以给失败行一个底色
                         // if (item.is_pass == 2) {
