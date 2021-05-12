@@ -3,8 +3,8 @@
  *
  * 入参：json对象（不要传字符串）、path数组对象
  */
-function analysisJson(json, path) {
-    if (path != "undefined" && path != null) {
+export function analysisJson(json, path) {
+    if (path !== "undefined" && path != null) {
         for (let i = 0; i < path.length; i++) {
             if (json == undefined) {
                 return new Array();
@@ -80,7 +80,7 @@ function analysisJson(json, path) {
     }
 }
  */
-function generateJsonPath(checkpoints, json) {
+export function generateJsonPath(checkpoints, json) {
     var result = {};
     var data = {};
     // 对checkpoint进行循环遍历，生成相应的jsonpath
