@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/models"
 	"strconv"
+	"strings"
 )
 
 func (c *CaseManageController) updateCaseByID() {
@@ -12,6 +13,11 @@ func (c *CaseManageController) updateCaseByID() {
 	if err := c.ParseForm(&acm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
+	// todo service_id 和 service_name 在一起,需要分割后赋值
+	arr := strings.Split(acm.ServiceName,";")
+	acm.ServiceName = arr[1]
+	id64, _ := strconv.ParseInt(arr[0], 10, 64)
+	acm.ServiceId = id64
 	caseId := acm.Id
 	business := acm.BusinessCode
 	if business == "0" {

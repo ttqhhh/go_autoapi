@@ -2,18 +2,15 @@
 
 
 <form class="layui-form" action="" id="test_service" style="display: none">
-    <div class="layui-form-item">
-        {{range .services}}
-        <div class="layui-input-inline">
-            <input type="checkbox" name="service" title={{.ServiceName}} value={{.ServiceName}}>
-        </div>
-        {{end}}
+    <div class="layui-form-item" id="test_service_list">
+<!--        <div class="layui-input-inline"><input type="checkbox" name="" title="写作" checked></div>-->
     </div>
 </form>
 
 <div style="margin:1%">
 <div style="text-align:right">
-    <button class="layui-btn open_service_list" >按服务执行</button>
+    <button class="layui-btn open_service_list" >按服务执行用例</button>
+    <button class="layui-btn run_all_case_by_business" >执行当前业务下全部用例</button>
     <button class="layui-btn add_case" >添加用例</button>
 </div>
 
@@ -31,11 +28,31 @@
 </script>
 
 <script src="/static/layui/layui.js" charset="utf-8"></script>
-
+<script src="/static/js/public.js" charset="utf-8"></script>
 <script>
     layui.use(['table','laytpl','form'], function(){
         const table = layui.table;
-        const form = layui.form;
+        var form = layui.form;
+        $ = layui.jquery
+        // 获取service的方法
+        $(function () {
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business={{.business}}',
+                success: function (data) {
+                    var date = data.data
+                    var html = ""
+                    $.each(date, function (n, val) {
+                        const option1 = '<div class="layui-input-inline">' +
+                            '<input type="checkbox" name="service" value='+val["id"]+' title='+val["service_name"]+'></div>';
+                        html = html + option1
+                    })
+                    $("#test_service_list").append(html);
+                    form.render();
+                }
+            })
+        })
+
         //表格渲染
         table.render({
             elem:'#idTest'
@@ -99,7 +116,8 @@
                     timeout : 500000,
                     data: JSON.stringify({
                         "ids": arr,
-                        "business":'{{.business}}'
+                        "type": 2,
+                        "business":parseInt('{{.business}}'),
                     }),
                     success: function (data) {
                         respCode = data.code
@@ -115,7 +133,7 @@
             }
             layui.close(obj);
         });
-
+        // 监听表格复选框选中状态，并且执行测试
         var $ = layui.$, active = {
             getCheckData: function(){ //获取选中数据
                 var checkStatus = table.checkStatus('idTest'),
@@ -136,6 +154,8 @@
                     timeout : 500000,
                     data: JSON.stringify({
                         "ids": arr_id,
+                        "business":parseInt('{{.business}}'),
+                        "type":2
                     }),
                     success: function (data) {
                         respCode = data.code
@@ -169,7 +189,7 @@
            window.location.href= "/case/show_add_case"
         });
 
-
+        let needJump = true
         $(document).on("click", ".open_service_list" , function (){
             layer.open({
                 type: 1 //此处以iframe举例
@@ -183,17 +203,63 @@
                 ,yes: function (){
                     var arr_box = [];
                     $('input[type=checkbox]:checked').each(function() {
-                        arr_box.push($(this).val());
+                        arr_box.push(parseInt($(this).val()));
                     });
-                    alert(arr_box);
-                    // 将服务信息提交给服务端进行测试
-
+                    $.ajax({
+                        type: 'POST',
+                        contentType: "application/json",
+                        dataType:"json",
+                        url: "/auto/perform_tests",
+                        async:false,
+                        timeout : 500000,
+                        data: JSON.stringify({
+                            "business":parseInt('{{.business}}'),
+                            "serviceIds":arr_box,
+                            "type":1
+                        }),
+                        success: function (data) {
+                            respCode = data.code
+                            if (respCode == -1) {
+                                needJump = false
+                                layer.msg(data.msg)
+                            }
+                        }
+                    });
+                    if (needJump) {
+                        window.location.href="/report/show_run_record";
+                    }
                 }
                 ,success: function(layero){
                     layer.setTop(layero); //重点2
                 }
             });
         });
+
+        $(document).on("click", ".run_all_case_by_business", function (){
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json",
+                dataType:"json",
+                url: "/auto/perform_tests",
+                async:false,
+                timeout : 500000,
+                data: JSON.stringify({
+                    "business":parseInt('{{.business}}'),
+                    "type":0
+                }),
+                success: function (data) {
+                    respCode = data.code
+                    if (respCode == -1) {
+                        needJump = false
+                        layer.msg(data.msg)
+                    }
+                }
+            });
+            if (needJump) {
+                window.location.href="/report/show_run_record";
+            }
+        });
+
     });
 </script>
 </div>

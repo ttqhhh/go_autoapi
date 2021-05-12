@@ -83,6 +83,7 @@ func (c *AutoTestController) performTests() {
 	uuid, _ := c.GenUUid()
 	param := performParam{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &param); err != nil {
+		logs.Error("请求参数解析错误， err: ", err)
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	// 进行必要的参数验证
