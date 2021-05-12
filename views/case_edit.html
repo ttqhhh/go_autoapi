@@ -200,7 +200,13 @@
                             $("#response_param").text("")
                             $("#response_param_tip").text("当前值为主动获取的冒烟数据")
                             $("#smoke_response").val(data.data.body)
-                            obj = JSON.parse(data.data.body)
+                            try {
+                                obj = JSON.parse(data.data.body)
+                            }
+                            catch(err){
+                                alert("冒烟失败 - " +data.data.httpCode + "--" + err)
+                                return
+                            }
                             var body = JSON.stringify(obj, undefined, 4)
                             document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
                         }

@@ -137,7 +137,15 @@ layui.use(['form', 'layedit', 'laydate'], function() {
     /** 获取冒烟数据 **/
 
     // const obj = get_response()
-    let obj = JSON.parse($("#smoke_response").val())
+    let obj
+    try {
+        obj = JSON.parse($("#smoke_response").val())
+    }
+    catch(err){
+        alert("获取库中的冒烟数据失败 - " + err)
+        return
+    }
+
     /**
      * 给第一个下拉框填上默认的第一组json数据
      */
@@ -165,7 +173,13 @@ layui.use(['form', 'layedit', 'laydate'], function() {
                 "parameter": request_param
             },
             success: function (data) {
-                obj = JSON.parse(data.data.body)
+                try {
+                    obj = JSON.parse(data.data.body)
+                }
+                catch(err){
+                    // alert("冒烟失败 - " + err)
+                    return
+                }
             }
         });
     });
