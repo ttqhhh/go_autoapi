@@ -85,8 +85,6 @@ function analysisJsonPath(jsonpath) {
 }
 
 
-
-
 layui.use(['form', 'layedit', 'laydate'], function() {
     var form = layui.form
         , layer = layui.layer
@@ -136,11 +134,10 @@ layui.use(['form', 'layedit', 'laydate'], function() {
         var keys = Object.keys(json);
         return keys;
     }
-    /** 测试数据 **/
-        // var obj = {a:1, 'b':'foo', c:[false,'false',null, 'null', {d:{e:1.3e5,f:'1.3e5'}}]};
-    // var obj = {"a":1, "b":"foo'", "c":{"d":{"e":"1.3e5","f":"1.3e5'"}}};
-    // analysisJson(obj,["c","d","e"])
-    const obj = get_response()
+    /** 获取冒烟数据 **/
+
+    // const obj = get_response()
+    let obj = JSON.parse($("#smoke_response").val())
     /**
      * 给第一个下拉框填上默认的第一组json数据
      */
@@ -148,7 +145,30 @@ layui.use(['form', 'layedit', 'laydate'], function() {
     $.each(analysisJson(obj), function(i,v){
         $("#json_head").append('<option value='+v+'>'+ v+'</option>')
     });
-
+    /** 通过test变更冒烟数据 **/
+    $(document).on('click', '#test', function () {
+        var request_param = $("#request_param").val()
+        var request_url = $("#api_url").val()
+        if (request_param === "" || request_url === "") {
+            layer.msg("请求地址和请求参数不能为空")
+            return
+        }
+        $.ajax({
+            type: 'POST',
+            contentType: "application/x-www-form-urlencoded",
+            dataType: "json",
+            url: "/auto/perform_smoke",
+            async: false,
+            timeout: 500000,
+            data: {
+                "api_url": request_url,
+                "parameter": request_param
+            },
+            success: function (data) {
+                obj = JSON.parse(data.data.body)
+            }
+        });
+    });
     $(document).on('click', '#right_add', function () {
         $(this).parent().parent().find(".data_block").append(check_sel)
         var arr =new Array();
