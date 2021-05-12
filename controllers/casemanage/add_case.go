@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/constants"
 	"go_autoapi/models"
@@ -17,15 +18,15 @@ func (c *CaseManageController) AddOneCase() {
 		c.Ctx.WriteString("出错了！")
 	}
 	// todo service_id 和 service_name 在一起,需要分割后赋值
-	arr := strings.Split(acm.ServiceName,";")
+	arr := strings.Split(acm.ServiceName, ";")
 	acm.ServiceName = arr[1]
 	id64, _ := strconv.ParseInt(arr[0], 10, 64)
 	acm.ServiceId = id64
 	//acm.Id = models.GetId("case")
-	r:=utils.GetRedis()
+	r := utils.GetRedis()
 	testCaseId, err := r.Incr(constants.TEST_CASE_PRIMARY_KEY).Result()
 	if err != nil {
-	    logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
+		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	acm.Id = testCaseId
@@ -46,6 +47,18 @@ func (c *CaseManageController) AddOneCase() {
 	} else if business == "5" {
 		acm.BusinessName = "商业化"
 	}
+	// 去除请求路径前后的空格
+	apiUrl := acm.ApiUrl
+	acm.ApiUrl = strings.TrimSpace(apiUrl)
+	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	param := acm.Parameter
+	var v interface{}
+	paramByte, err := json.Marshal(json.Unmarshal([]byte(strings.TrimSpace(param)), v))
+	if err != nil {
+		logs.Error("保存Case时，处理请求json报错， err:", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	acm.Parameter = string(paramByte)
 	if err := acm.AddCase(acm); err != nil {
 		logs.Error("保存Case报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
