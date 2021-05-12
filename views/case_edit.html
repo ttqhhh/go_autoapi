@@ -7,7 +7,8 @@
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
-    <input type="text" name="smoke_response" id="smoke_response" value="{{.a.SmokeResponse}}">
+<!--    冒烟数据在这里，修改和展示都在这 默认隐藏 调试可以展开-->
+    <input type="text" name="smoke_response" id="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
     
     <!--    <input type="text" name="id" value="0" style="display: none">-->
     <!--    <input type="text" name="created_at" value="none" style="display: none">-->
@@ -19,7 +20,7 @@
             <label class="layui-form-label">业务-服务</label>
             <div class="layui-input-inline">
                 <select name="business_code" lay-filter="business" id="business">
-                    <option selected value={{.a.BusinessCode}}>{{.a.BusinessName}}</option>
+<!--                    <option selected value={{.a.BusinessCode}}>{{.a.BusinessName}}</option>-->
                 </select>
             </div>
             <div class="layui-input-inline">
@@ -131,7 +132,7 @@
                         let option1;
                         if(val["service_name"] === '{{.a.ServiceName}}'){
                             // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
-                            option1 = '<option value='+val["id"]+";"+val["service_name"]+'checked>'+val["service_name"]+'</option>'
+                            option1 = '<option selected value='+val["id"]+";"+val["service_name"]+'>'+val["service_name"]+'</option>'
                         }else{
                             option1 = $("<option>").val(val["id"] + ";" + val["service_name"]).text(val["service_name"]);
                         }
@@ -153,9 +154,14 @@
                 timeout: 500000,
                 success: function (data) {
                     var date = data.data.businesses
-                    first_business = date[0]['code']
                     $.each(date, function (n, val) {
-                        var option1 = '<option value="' + val["code"] + '" >' + val["name"] + '</option>'
+                        let option1;
+                        if(val["name"] === "{{.a.BusinessName}}"){
+                            first_business = val["code"]
+                            option1 = '<option selected value=' + val["code"] + '>' + val["name"] + '</option>';
+                        }else{
+                            option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
+                        }
                         $("#business").append(option1);
                         form.render('select');
                     })
@@ -174,35 +180,45 @@
                 layer.msg("请求地址和请求参数不能为空")
                 return
             }
-            $.ajax({
-                type: 'POST',
-                contentType: "application/x-www-form-urlencoded",
-                dataType: "json",
-                url: "/auto/perform_smoke",
-                async: false,
-                timeout: 500000,
-                data: {
-                    "api_url":request_url,
-                    "parameter":request_param
-                },
-                success:function (data){
-                    $("#response_param").text("")
-                    $("#response_param_tip").text("当前值为主动获取的冒烟数据")
-                    $("#smoke_response").val(data.data.body)
-                    obj = JSON.parse(data.data.body)
-                    var body = JSON.stringify(obj, undefined, 4)
-                    document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+            layer.msg('手动获取冒烟数据，将清空当前页面展示的组合校验点', {
+                time: 20000, //20s后自动关闭
+                btn: ['知道了', '手滑了']
+                ,yes: function(){
+                    layer.closeAll();
+                    $.ajax({
+                        type: 'POST',
+                        contentType: "application/x-www-form-urlencoded",
+                        dataType: "json",
+                        url: "/auto/perform_smoke",
+                        async: false,
+                        timeout: 500000,
+                        data: {
+                            "api_url":request_url,
+                            "parameter":request_param
+                        },
+                        success:function (data){
+                            $("#response_param").text("")
+                            $("#response_param_tip").text("当前值为主动获取的冒烟数据")
+                            $("#smoke_response").val(data.data.body)
+                            obj = JSON.parse(data.data.body)
+                            var body = JSON.stringify(obj, undefined, 4)
+                            document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+                        }
+                    });
+                    /** 触发填充 **/
+                    $(".json-height").html("")
+                    $(".json-height").append(pre)
+                    // alert(res)
+                    $.each(analysisJson(obj), function(i,v){
+                        $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+                    });
+                    form.render()
+                    form.render("select")
+                }
+                ,btn2: function(){
+                    layer.closeAll();
                 }
             });
-            /** 触发填充 **/
-            $(".json-height").html("")
-            $(".json-height").append(pre)
-            // alert(res)
-            $.each(analysisJson(obj), function(i,v){
-                $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
-            });
-            form.render()
-            form.render("select")
         });
 
         // 获取业务线下对应的service
@@ -210,6 +226,7 @@
             $("#services").children().remove()
             get_service_by_business(data.value)
         });
+
         form.render()
         $(document).on('click', '#run', function () {
             var arr = new Array()
