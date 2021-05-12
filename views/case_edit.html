@@ -7,7 +7,7 @@
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
-    <input type="text" name="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
+    <input type="text" name="smoke_response" id="smoke_response" value="{{.a.SmokeResponse}}">
     
     <!--    <input type="text" name="id" value="0" style="display: none">-->
     <!--    <input type="text" name="created_at" value="none" style="display: none">-->
@@ -86,6 +86,7 @@
             </div>
         </div>
         <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <span id="response_param_tip">当前值为上次入库的冒烟数据</span>
             <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
         </div>
 
@@ -161,31 +162,18 @@
                 }
             })
             get_service_by_business(first_business)
-
-            var request_param = $("#request_param").text()
-            var request_url = $("#api_url").val()
-            $.ajax({
-                type: 'POST',
-                contentType: "application/x-www-form-urlencoded",
-                dataType: "json",
-                url: "/auto/perform_smoke",
-                async: false,
-                timeout: 500000,
-                data: {
-                    "api_url":request_url,
-                    "parameter":request_param
-                },
-                success:function (data){
-                    obj = JSON.parse(data.data.body)
-                    var body = JSON.stringify(obj, undefined, 4)
-                    document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
-                }
-            });
+            obj = JSON.parse($("#smoke_response").val())
+            var body = JSON.stringify(obj, undefined, 4)
+            document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
         });
 
         $(document).on('click', '#test', function () {
-            var request_param = $("#request_param").text()
+            var request_param = $("#request_param").val()
             var request_url = $("#api_url").val()
+            if(request_param === "" || request_url === ""){
+                layer.msg("请求地址和请求参数不能为空")
+                return
+            }
             $.ajax({
                 type: 'POST',
                 contentType: "application/x-www-form-urlencoded",
@@ -198,11 +186,23 @@
                     "parameter":request_param
                 },
                 success:function (data){
+                    $("#response_param").text("")
+                    $("#response_param_tip").text("当前值为主动获取的冒烟数据")
+                    $("#smoke_response").val(data.data.body)
                     obj = JSON.parse(data.data.body)
                     var body = JSON.stringify(obj, undefined, 4)
                     document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
                 }
             });
+            /** 触发填充 **/
+            $(".json-height").html("")
+            $(".json-height").append(pre)
+            // alert(res)
+            $.each(analysisJson(obj), function(i,v){
+                $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
         });
 
         // 获取业务线下对应的service
