@@ -70,6 +70,10 @@ func (c *CaseManageController) SetInspection() {
 		logs.Error("Case设置巡检状态接口解析参数错误， err: ", err)
 		c.ErrorJson(-1, "参数解析错误", nil)
 	}
+	// 巡检字段参数值有效性验证
+	if param.Is_inspection != models.NOT_INSPECTION && param.Is_inspection != models.INSPECTION {
+		c.ErrorJson(-1, "不支持的请求参数值", nil)
+	}
 	model := &models.TestCaseMongo{}
 	err = model.SetInspection(param.Id, param.Is_inspection)
 	if err != nil {

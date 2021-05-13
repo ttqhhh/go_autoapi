@@ -15,6 +15,11 @@ const (
 	del_   = 1
 )
 
+const (
+	NOT_INSPECTION = iota // 非线上巡检接口
+	INSPECTION            // 线上巡检接口
+)
+
 type TestCaseMongo struct {
 	Id           int64  `form:"id" json:"id" bson:"_id"`
 	ApiName      string `form:"api_name" json:"api_name" bson:"api_name"`
@@ -214,6 +219,21 @@ func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*
 	err = c.Find(query).All(&result)
 	if err != nil {
 		logs.Error("查询指定服务集合下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
+// 获取指定服务集合下所有Case
+func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
 		return nil, err
 	}
 	return
