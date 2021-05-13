@@ -34,8 +34,11 @@
     function inspection(obj) {
         alert(obj)
         // alert($(obj).firstChild.length)
-        checkBox = $(obj).firstChild
-        alert(checkBox)
+        // checkBox = $(obj).firstChild
+        // alert(checkBox)
+        $(obj).each(function () {
+            alert($(this).text())
+        });
         alert(111)
         var currentStatus = $(checkBox).val()
         alert(currentStatus)
