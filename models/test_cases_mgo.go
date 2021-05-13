@@ -18,6 +18,7 @@ type TestCaseMongo struct {
 	Id          int64  `form:"id" json:"id" bson:"_id"`
 	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
 	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
+	IsInspection int8	`form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
 	Description string `form:"description" json:"description" bson:"description"`
 	Method      string `form:"method" json:"method" bson:"method"`
 	CreatedAt   string `json:"created_at"`
