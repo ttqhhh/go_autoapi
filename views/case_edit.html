@@ -95,7 +95,7 @@
             <label class="layui-form-label">检查点</label>
             <div class="layui-input-block">
             <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
-                      name="check_point" lay-verify="required" readonly>{{.a.Checkpoint}}</textarea>
+                      name="check_point" lay-verify="required">{{.a.Checkpoint}}</textarea>
             </div>
         </div>
     </div>
@@ -119,9 +119,11 @@
         var form = layui.form
             , layer = layui.layer
             , $ = layui.jquery
-            , layedit = layui.layedit
-            , laydate = layui.laydate;
 
+
+        let obj
+        let first_business
+        /** 通用方法 ；通过业务获取服务 ; 将jsonpath映射成校验点(有点逻辑，注释尽量写得详细些) ; 获取冒烟数据**/
         function get_service_by_business(bus){
             $.ajax({
                 type: 'GET',
@@ -143,8 +145,152 @@
             });
         }
 
-        let obj
-        let first_business
+        function make_response_to_select(json){
+            $.each(json, function (i,v){
+                let html_head =
+                    '        <div class="json-nb">\n' +
+                    '            <label class="layui-form-label">检查点</label>\n' +
+                    '            <div class="layui-inline data_block" >\n'
+                const arr = v.node.split(".");
+                const temp = new Array();
+                let html_body = ""
+                let vdIndex;
+                /** node select 层**/
+                $.each(arr, function (i,v){
+                    /** 待优化项，select头部数据 是直接写的 而不是判断选中，会造成重复数据**/
+                    /** 判断头部数据 是否含有[] 含有并分割获取 键 和 下标**/
+                    let vh;
+                    var patt1 = new RegExp("]");
+                    if (patt1.test(v)) {
+                        vh = v.split("[")[0];
+                        const vd = v.split("[")[1];
+                        vdIndex = parseInt(vd.substring(0, vd.length - 1))
+                        v = vh
+                    }
+                    /**---------------分割线-----------------------**/
+                    html_body = html_body +
+                        '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+                        '                <select name="check_name" id="json_head">\n' +
+                        '                   <option selected value='+v+'>'+v+'</option>\n'
+                    /** option 层**/
+                    if(i===0){
+                        const res = analysisJson(obj)
+                        $.each(res.keys, function(i,j){
+                            html_body  = html_body  + '<option value=' + j + '>' + j + '</option>\n'
+                        });
+                    }else{
+                        const res = analysisJson(obj, temp);
+                        $.each(res.keys, function(i,v){
+                            html_body  = html_body  + '<option value='+v+'>'+ v+'</option>\n'
+                        });
+                    }
+                    temp.push(v)
+                    html_body = html_body + '</select>\n</div>\n'
+                    /** 判断vdindex大于0 则在后面添加一个长度的下拉框的select列 **/
+                    if(vdIndex !== undefined){
+                        html_body = html_body +
+                            '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+                            '                <select name="check_name" id="json_head">\n'
+                        const res = analysisJson(obj, temp);
+                        for (let i = 0; i < res.arrayLength; i++) {
+                            if(i === vdIndex){
+                                html_body  = html_body  + '<option selected value='+i+'>'+ i+'</option>\n'
+                            }else{
+                                html_body  = html_body  + '<option value='+i+'>'+ i+'</option>\n'
+                            }
+                        }
+                        html_body = html_body + '</select>\n</div>\n'
+                        vdIndex = undefined
+                    }
+                });
+                /** 非动态项 作为尾部直接加在后面就ok **/
+                let html_butt =
+                    '            <div class="layui-inline" style="margin:0">\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+                    '            </div>\n' +
+                    // '\n' +
+                    // '            <div class="layui-inline">\n' +
+                    // '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
+                    '                <select name="check_type" id="check_type">\n' +
+                    '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
+                    '                    <option value="eq">eq</option>\n' +
+                    '                    <option value="in">in</option>\n' +
+                    '                    <option value="need">need</option>\n' +
+                    '                    <option value="lt">lt</option>\n' +
+                    '                    <option value="gt">gt</option>\n' +
+                    '                    <option value="lte">lte</option>\n' +
+                    '                    <option value="gte">gte</option>\n' +
+                    '                </select>\n' +
+                    '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="margin: 0;">\n' +
+                    '                <input type="text" id="value" value=' + v.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
+                    '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
+                    '                <select name="value_type" id="value_type">\n' +
+                    '                    <option checked value='+v.valueType+'>' + v.valueType + '</option>\n' +
+                    '                    <option value="number">number</option>\n' +
+                    '                    <option value="string">string</option>\n' +
+                    '                </select>\n' +
+                    '            </div>\n' +
+                    '            <div class="layui-inline" style="margin: 0">\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
+                    '            </div>\n' +
+                    // '            <div class="layui-inline">\n' +
+                    // '            </div>\n' +
+                    '        </div>'
+
+                $(".json-height").append(html_head + html_body + '</div>\n' +html_butt)
+            });
+        }
+
+        function isNumber(val) {
+            var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+            var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+            if(regPos.test(val) || regNeg.test(val)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function get_response(){
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            let body = ""
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    try {
+                        body = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        alert("冒烟失败 - " + err)
+                        return
+                    }
+                },
+            });
+            return body
+        }
+
+        /** ----------------------------分隔符---------------------------**/
+
+        /** 默认执行 **/
+
         $(function () {
             $.ajax({
                 type: 'GET',
@@ -168,9 +314,39 @@
                 }
             })
             get_service_by_business(first_business)
-            obj = JSON.parse($("#smoke_response").val())
+            try {
+                obj = JSON.parse($("#smoke_response").val())
+            }
+            catch(err){
+                alert("获取库中的冒烟数据失败 - " + err)
+                return
+            }
             var body = JSON.stringify(obj, undefined, 4)
             document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+
+            /**
+             * 给第一个下拉框填上默认的第一组json数据
+             */
+
+            // $.each(analysisJson(obj).keys, function(i,v){
+            //     $("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            // });
+
+            /** 返回数据映射填充 **/
+            const js_list = $("#check_point").val()
+            const res = analysisJsonPath(JSON.parse(js_list))
+            make_response_to_select(res)
+        });
+
+
+        /** ----------------------------分隔符---------------------------**/
+
+        /** 监听表单事件 **/
+        form.on('select(business)', function (data) {
+            $("#services").children().remove()
+            get_service_by_business(data.value)
+            form.render("select")
+            form.render()
         });
 
         $(document).on('click', '#test', function () {
@@ -215,7 +391,7 @@
                     $(".json-height").html("")
                     $(".json-height").append(pre)
                     // alert(res)
-                    $.each(analysisJson(obj), function(i,v){
+                    $.each(analysisJson(obj).keys, function(i,v){
                         $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
                     });
                     form.render()
@@ -227,13 +403,6 @@
             });
         });
 
-        // 获取业务线下对应的service
-        form.on('select(business)', function (data) {
-            $("#services").children().remove()
-            get_service_by_business(data.value)
-        });
-
-        form.render()
         $(document).on('click', '#run', function () {
             var arr = new Array()
             arr.push(parseInt("{{.a.Id}}"))
@@ -271,7 +440,11 @@
                         $(".json-nb").each(function (){
                             let node = ""
                             $(this).find(".data_block").find("option:selected").each(function (){
-                                node = node + $(this).text() +"."
+                                if(isNumber($(this).text())){
+                                    node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                }else{
+                                    node = node + $(this).text() +"."
+                                }
                             });
                             node = node.substring(0,node.length-1)
                             const checkType = $(this).find("#check_type").find("option:selected").text();
@@ -281,6 +454,7 @@
                             result_list.push(now)
                         });
                         // 组合校验点变成json-path
+                        // alert(result_list)
                         const result = generateJsonPath(result_list, obj)
                         if(result.code === -1){
                             alert(result.msg)
@@ -311,6 +485,85 @@
                 });
             }
         });
+
+        /** 通过test变更冒烟数据 **/
+        $(document).on('click', '#test', function () {
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            if (request_param === "" || request_url === "") {
+                layer.msg("请求地址和请求参数不能为空")
+                return
+            }
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url": request_url,
+                    "parameter": request_param
+                },
+                success: function (data) {
+                    try {
+                        obj = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        // alert("冒烟失败 - " + err)
+                        return
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '#right_add', function () {
+            // $(this).parent().parent().find(".data_block").append(check_sel)
+            var arr =new Array();
+            const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
+            sel_val.each(function() {
+                arr.push($(this).text())
+            });
+            const res = analysisJson(obj, arr);
+            /** 判断如果是数组则新增一列 **/
+            if(res["isArray"] === true){
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                for (let i = 0; i < res.arrayLength; i++) {
+                    last_json.append('<option value='+i+'>'+ i+'</option>')
+                }
+            }
+            $(this).parent().parent().find(".data_block").append(check_sel)
+            var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+            $.each(res.keys, function(i,v){
+                last_json.append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+        });
+
+        $(document).on('click', '#left_rm', function () {
+            $(this).parent().parent().find(".data_block").children().last().remove()
+            form.render()
+        });
+
+        $(document).on('click', '#down_add', function () {
+            // alert("down_add")
+            const these = $(this);
+            these.parent().parent().after(pre)
+            // alert($(this).parent().parent().next().find("#json_head").text())
+            $.each(analysisJson(obj).keys, function(i,v){
+                these.parent().parent().next().find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#up_rm', function () {
+            // alert("down_add")
+            $(this).parent().parent().remove()
+            form.render()
+        });
+
     });
 
 
