@@ -3,11 +3,17 @@
  *
  * 入参：json对象（不要传字符串）、path数组对象
  */
-export function analysisJson(json, path) {
-    if (path !== "undefined" && path != null) {
+
+function analysisJson(json, path) {
+    var result = {}
+    var isArray = false
+    if (path != "undefined" && path != null) {
         for (let i = 0; i < path.length; i++) {
             if (json == undefined) {
-                return new Array();
+                result["isArray"] = isArray // 不是数组
+                result["arrayLength"] = null // 没有数组长度字段
+                result["keys"] = new Array() // 返回的该节点的keys为空数组
+                return result;
             }
             if (Array.isArray(json)) {
                 if (json.length > 0) {
@@ -15,7 +21,10 @@ export function analysisJson(json, path) {
                     json = json[0];
                 } else {
                     // 当json数组中没有数据时，再去取深层节点肯定报错，所以，直接返回
-                    return new Array();
+                    result["isArray"] = isArray // 是数组
+                    result["arrayLength"] = null // 没有数组长度字段
+                    result["keys"] = new Array() // 返回的该节点的keys为空数组
+                    return result;
                 }
             }
             json = json[path[i]];
@@ -24,21 +33,34 @@ export function analysisJson(json, path) {
     // 获取相关层级的所有子节点
     // 首先验证undefined
     if (json == undefined) {
-        return new Array();
+        result["isArray"] = isArray // 是数组
+        result["arrayLength"] = null // 没有数组长度字段
+        result["keys"] = new Array() // 返回的该节点的keys为空数组
+        return result;
     }
     // alert("是否数组？？" + Array.isArray(json) + "\n\n" + json);
     var isArray = Array.isArray(json);
+    // 取出来数组的长度
+    var arrayLength = null
     if (isArray) {
+        arrayLength = json.length
         if (json.length > 0) {
             // 确保数组中有第一个元素
             json = json[0];
         } else {
             // 返回空数组
-            return new Array()
+            result["isArray"] = isArray // 是数组
+            result["arrayLength"] = 0 // 没有数组长度字段
+            result["keys"] = new Array() // 返回的该节点的keys为空数组
+            return result;
         }
     }
     var keys = Object.keys(json);
-    return keys;
+    result["isArray"] = isArray // 是数组
+    result["arrayLength"] = arrayLength; // 没有数组长度字段
+    result["keys"] = keys // 返回的该节点的keys为空数组
+    return result;
+    // return keys;
 }
 
 /** 此处入参为一个校验点数组对象、一个能匹配上校验点的json对象（冒烟响应json）
@@ -48,6 +70,7 @@ export function analysisJson(json, path) {
         {"node":"data.code","checkType":"eq", "value":1, "valueType":"number"},
         {"node":"data.name","checkType":"eq", "value":"wahaha", "valueType":"string"},
         {"node":"data.sex","checkType":"in", "value":"2,3,4,5", "valueType":"number"}
+        {"node":"data.relations[2].mother","checkType":"eq", "value":"小美", "valueType":"string"}
     ]
  * @param json
  * var json = {
@@ -80,7 +103,7 @@ export function analysisJson(json, path) {
     }
 }
  */
-export function generateJsonPath(checkpoints, json) {
+function generateJsonPath(checkpoints, json) {
     var result = {};
     var data = {};
     // 对checkpoint进行循环遍历，生成相应的jsonpath
@@ -108,28 +131,28 @@ export function generateJsonPath(checkpoints, json) {
         data["$."+node] = checkMap
     }
 
-    for (let i = 0; i < checkpoints.length; i++) {
-        // 根据node值，判断每层中是否有数组情况
-        var finalNode = "$";
-        var checkpoint = checkpoints[i]
-        var node = checkpoint.node
-        var innerJson = json;
-        var nodes = node.split(".");
-        for (let j = 0; j < nodes.length; j++) {
-            var innerNode = nodes[j];
-            if (Array.isArray(innerJson)) {
-                innerJson = innerJson[0][innerNode];
-                finalNode += "[0]" + "." + innerNode;
-            } else {
-                innerJson = innerJson[innerNode];
-                finalNode += "." + innerNode;
-            }
-        }
-        var key = "$." + node;
-        var value = data[key];
-        delete data[key];
-        data[finalNode] = value;
-    }
+    // for (let i = 0; i < checkpoints.length; i++) {
+    //     // 根据node值，判断每层中是否有数组情况
+    //     var finalNode = "$";
+    //     var checkpoint = checkpoints[i]
+    //     var node = checkpoint.node
+    //     var innerJson = json;
+    //     var nodes = node.split(".");
+    //     for (let j = 0; j < nodes.length; j++) {
+    //         var innerNode = nodes[j];
+    //         if (Array.isArray(innerJson)) {
+    //             innerJson = innerJson[0][innerNode];
+    //             finalNode += "[0]" + "." + innerNode;
+    //         } else {
+    //             innerJson = innerJson[innerNode];
+    //             finalNode += "." + innerNode;
+    //         }
+    //     }
+    //     var key = "$." + node;
+    //     var value = data[key];
+    //     delete data[key];
+    //     data[finalNode] = value;
+    // }
 
     // var innerJson;
     // var nodes = node.split(".")
@@ -160,7 +183,7 @@ export function generateJsonPath(checkpoints, json) {
             "$.data.sex": {
                 "in": "2,3,4,5"
             },
-            "$.data.relations[0].mother[0].inblood": {
+            "$.data.relations[2].inblood": {
                 "in": "2,3,4,5"
             }
     }
@@ -170,6 +193,7 @@ export function generateJsonPath(checkpoints, json) {
         {"node":"data.code","checkType":"eq", "value":1, "valueType":"number"},
         {"node":"data.name","checkType":"eq", "value":"wahaha", "valueType":"string"},
         {"node":"data.sex","checkType":"in", "value":"2,3,4,5", "valueType":"number"}
+        {"node":"data.relations[2].inblood","checkType":"in", "value":"2,3,4,5", "valueType":"string"}
     ]
  */
 function analysisJsonPath(jsonpath) {
@@ -188,11 +212,11 @@ function analysisJsonPath(jsonpath) {
         // 对key做截取，去掉'$.'后为json的node节点value
         var node = key.slice(2);
         // 将node中的'[0]'剔除掉
-        while (node.indexOf('[0]')!=-1) {
-            var index = node.indexOf('[0]')
-            var temp = node.substring(0, index) + node.substring(index + 3, node.length);
-            node = temp;
-        }
+        // while (node.indexOf('[0]')!=-1) {
+        //     var index = node.indexOf('[0]')
+        //     var temp = node.substring(0, index) + node.substring(index + 3, node.length);
+        //     node = temp;
+        // }
         checkpoint["node"] = node;
         checkpoint["checkType"] = checkType;
         checkpoint["value"] = checkValue;

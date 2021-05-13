@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -7011,6 +7012,7 @@ body.skin-3 {
                             <th>业务线</th>
                             <th>服务名</th>
                             <th>用例名</th>
+                            <th>URL</th>
                             <th>运行时长</th>
                             <th>结果</th>
                             <th>操作</th>
@@ -7189,6 +7191,7 @@ body.skin-3 {
                         "<td>" + n["businessName"] + "</td>" +
                         "<td>" + n["serviceName"] + "</td>" +
                         "<td>"+n["caseName"] + "</td>" +
+                        "<td>"+n["caseUrl"] + "</td>" +
                         "<td>" + n["spendTime"] + "</td>" +
                         status + "<td><button type='button' onclick='details(this)' buttonIndex='" + i + "' class='btn btn-primary btn-xs' style='margin-bottom: 0px'>展开</button></td></tr>"
                     $("#detailBody").append(tr);
@@ -7202,7 +7205,14 @@ body.skin-3 {
 
         generateResult("", "", "");
 
-        $("#filterClass").on('change', function () {
+        $("#filterBusiness").on('change', function () {
+            var businessName = $("#filterBusiness").val();
+            var serviceName = $("#filterService").val();
+            var caseResult = $("#filterResult").val();
+            generateResult(businessName, serviceName, caseResult);
+        });
+
+        $("#filterService").on('change', function () {
             var businessName = $("#filterBusiness").val();
             var serviceName = $("#filterService").val();
             var caseResult = $("#filterResult").val();

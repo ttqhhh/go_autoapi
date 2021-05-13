@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/models"
 	"strconv"
@@ -14,7 +14,7 @@ func (c *CaseManageController) updateCaseByID() {
 		c.Ctx.WriteString("出错了！")
 	}
 	// todo service_id 和 service_name 在一起,需要分割后赋值
-	arr := strings.Split(acm.ServiceName,";")
+	arr := strings.Split(acm.ServiceName, ";")
 	acm.ServiceName = arr[1]
 	id64, _ := strconv.ParseInt(arr[0], 10, 64)
 	acm.ServiceId = id64
@@ -33,9 +33,21 @@ func (c *CaseManageController) updateCaseByID() {
 	} else if business == "5" {
 		acm.BusinessName = "商业化"
 	}
-	acm, err := acm.UpdateCase(caseId, acm)
+	// 去除请求路径前后的空格
+	apiUrl := acm.ApiUrl
+	acm.ApiUrl = strings.TrimSpace(apiUrl)
+	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	param := acm.Parameter
+	var v interface{}
+	paramByte, err := json.Marshal(json.Unmarshal([]byte(strings.TrimSpace(param)), v))
 	if err != nil {
-		fmt.Println(err)
+		logs.Error("更新Case时，处理请求json报错， err:", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	acm.Parameter = string(paramByte)
+	acm, err = acm.UpdateCase(caseId, acm)
+	if err != nil {
+		logs.Error("更新Case报错，err: ", err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("更新成功")

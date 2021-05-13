@@ -68,10 +68,17 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 		"Accept-Charset":  "utf-8"}
 	//redis? 不知道干嘛的
 	client := &http.Client{}
-	postData := bytes.NewReader([]byte(param))
+	var v interface{}
+	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	paramByte, err := json.Marshal(json.Unmarshal([]byte(strings.TrimSpace(param)), v))
+	if err != nil {
+		logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
+		return
+	}
+	postData := bytes.NewReader(paramByte)
 	req, err := http.NewRequest("POST", url, postData)
 	if err != nil {
-		logs.Error("请求失败")
+		logs.Error("冒烟发送业务请求失败，err: ", err)
 		return
 	}
 	for k, v := range headers {

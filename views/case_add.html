@@ -121,15 +121,13 @@
 <script type="application/javascript" src="/static/js/case_json_add.js"></script>
 <script type="application/javascript" src="/static/js/jsonshow.js"></script>
 <script type="application/javascript" src="/static/js/libs.js"></script>
-
-<script>
+<script type="module">
     layui.use(['form', 'layedit', 'laydate'], function(){
         var form = layui.form
             ,$ = layui.jquery
             ,layer = layui.layer
-            ,layedit = layui.layedit
-            ,laydate = layui.laydate;
 
+        /** 通用：通过业务线获取service列表; 通过url和data获取冒烟数据*/
         function get_service_by_business(bus){
             $.ajax({
                 type: 'GET',
@@ -147,6 +145,40 @@
             });
         }
 
+        function get_response(){
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            let body = ""
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    // alert(data.data.body)
+                    body = JSON.parse(data.data.body)
+                }
+            });
+            return body
+        }
+
+        function isNumber(val) {
+            var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+            var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+            if(regPos.test(val) || regNeg.test(val)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        /** 默认加载任务：获取用户下的业务线和其关联的服务； */
         let first_business
         $(function (){
             $.ajax({
@@ -168,10 +200,13 @@
             get_service_by_business(first_business)
         })
 
+        /** 监听业务select,联动改变service select */
         form.on('select(business)', function(data) {
             get_service_by_business(data.value)
         });
         form.render()
+
+        /** 监听事件 */
 
         let obj
         $(document).on('click', '#test', function () {
@@ -211,7 +246,7 @@
             $(".json-height").html("")
             $(".json-height").append(pre)
             // alert(res)
-            $.each(analysisJson(obj), function(i,v){
+            $.each(analysisJson(obj).keys, function(i,v){
                 $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
             });
             form.render()
@@ -234,11 +269,16 @@
                     ,content: $(".json-height")
                     ,btn: ['保存并关闭'] //只是为了演示
                     ,yes: function(){
+                        /** 保存校验点成为 jsonpath **/
                         const result_list = new Array()
                         $(".json-nb").each(function (){
                             let node = ""
                             $(this).find(".data_block").find("option:selected").each(function (){
-                                node = node + $(this).text() +"."
+                                if(isNumber($(this).text())){
+                                    node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                }else{
+                                    node = node + $(this).text() +"."
+                                }
                             });
                             node = node.substring(0,node.length-1)
                             const checkType = $(this).find("#check_type").find("option:selected").text();
@@ -276,6 +316,55 @@
                     }
                 });
             }
+        });
+
+        $(document).on('click', '#right_add', function () {
+            // const obj = get_response()
+            var arr =new Array();
+            const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
+            sel_val.each(function() {
+                arr.push($(this).text())
+            });
+            // alert(arr)
+            const res = analysisJson(obj, arr);
+            if(res["isArray"] === true){
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                for (let i = 0; i < res.arrayLength; i++) {
+                    last_json.append('<option value='+i+'>'+ i+'</option>')
+                }
+            }
+            $(this).parent().parent().find(".data_block").append(check_sel)
+            var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+            $.each(res.keys, function(i,v){
+                last_json.append('<option value='+v+'>'+ v+'</option>')
+            });
+
+            form.render()
+        });
+
+        $(document).on('click', '#left_rm', function () {
+            $(this).parent().parent().find(".data_block").children().last().remove()
+            form.render()
+        });
+
+        $(document).on('click', '#down_add', function () {
+            // alert("down_add")
+            // const obj = get_response()
+            const these = $(this);
+            these.parent().parent().after(pre)
+            // alert($(this).parent().parent().next().find("#json_head").text())
+            $.each(analysisJson(obj), function(i,v){
+                these.parent().parent().next().find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#up_rm', function () {
+            // alert("down_add")
+            $(this).parent().parent().remove()
+            form.render()
         });
     });
 </script>

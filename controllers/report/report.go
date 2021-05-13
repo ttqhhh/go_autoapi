@@ -73,6 +73,7 @@ func (c *ReportController) runReportDetail() {
 		BusinessName string   `json:"businessName"`
 		ServiceName  string   `json:"serviceName"`
 		CaseName     string   `json:"caseName"`
+		CaseUrl      string   `json:"caseUrl"`
 		SpendTime    string   `json:"spendTime"`
 		Status       string   `json:"status"`
 		Log          []string `json:"log"`
@@ -129,6 +130,7 @@ func (c *ReportController) runReportDetail() {
 			BusinessName: testCaseMongo.BusinessName,
 			ServiceName:  testCaseMongo.ServiceName,
 			CaseName:     testCaseMongo.CaseName,
+			CaseUrl:      testCaseMongo.ApiUrl,
 			SpendTime:    "-",
 			Status:       result,
 			Log:          reasons,
