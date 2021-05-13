@@ -31,17 +31,35 @@
 <script src="/static/js/public.js" charset="utf-8"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script>
-    function inspection(obj) {
-        alert(obj)
-        // alert($(obj).firstChild.length)
-        // checkBox = $(obj).firstChild
-        // alert(checkBox)
+    function inspection(obj, id) {
+        var newStatus = 1   // 操作的预期状态，默认为打开巡检，1
         $(obj).each(function () {
-            alert($(this).text())
+            var text = $(this).text()
+            if (text == "否") {
+                newStatus = 0 // 当前状态为是时，操作的预期状态为否，0
+            }
         });
-        alert(111)
-        var currentStatus = $(checkBox).val()
-        alert(currentStatus)
+        var param = {id: id, is_inspection: newStatus}
+        $.ajax({
+            url: '/case/set_inspection',
+            type: "POST",
+            data: JSON.stringify(param),
+            contentType: 'application/json;charset=utf-8',
+            // dataType: "json",
+            success: function (data) {
+                var code = data.code
+                if (code != 200) {
+                    layer.msg(data.msg);
+                } else {
+                    // layer.msg("操作成功")
+                    if (newStatus == 1) {
+                        layer.msg("该接口已设为巡检状态")
+                    } else {
+                        layer.msg("该接口已解除巡检状态")
+                    }
+                }
+            }
+        })
     }
 
     layui.use(['table','laytpl','form'], function(){
@@ -95,7 +113,7 @@
                         if (d.is_inspection == 1) {
                             checked = "checked";
                         }
-                        return "<div onclick='inspection(this)'><input type='checkbox' value='1' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " /></div>";
+                        return "<div onclick='inspection(this, " + d.id + ")'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " /></div>";
                         // return "<input type='checkbox' onclick='inspection()' value=" + d.is_inspection + " lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " />";
                     }},
                 {title: '操作', fixed:"right",toolbar:'#barDemo', width:200},

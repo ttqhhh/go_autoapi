@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
+	"github.com/astaxie/beego/logs"
 	"github.com/siddontang/go/log"
 	"go_autoapi/libs"
+	"go_autoapi/models"
 )
 
 type CaseManageController struct {
@@ -47,8 +50,30 @@ func (c *CaseManageController) Post() {
 		c.GetCaseIdByService()
 	//case "do_test":
 	//	c.performTests()
+	case "set_inspection":
+		c.SetInspection()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
 	}
+}
+
+func (c *CaseManageController) SetInspection() {
+	//userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	type paramStruct struct {
+		Id            int64
+		Is_inspection int8
+	}
+	param := &paramStruct{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, param)
+	if err != nil {
+		logs.Error("Case设置巡检状态接口解析参数错误， err: ", err)
+		c.ErrorJson(-1, "参数解析错误", nil)
+	}
+	model := &models.TestCaseMongo{}
+	err = model.SetInspection(param.Id, param.Is_inspection)
+	if err != nil {
+		c.ErrorJson(-1, "设置接口为巡检状态出错", nil)
+	}
+	c.SuccessJson(nil)
 }

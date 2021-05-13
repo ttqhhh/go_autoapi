@@ -7,6 +7,7 @@ import (
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
+	"time"
 )
 
 const (
@@ -15,14 +16,14 @@ const (
 )
 
 type TestCaseMongo struct {
-	Id          int64  `form:"id" json:"id" bson:"_id"`
-	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
-	IsInspection int8	`form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
-	Description string `form:"description" json:"description" bson:"description"`
-	Method      string `form:"method" json:"method" bson:"method"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	Id           int64  `form:"id" json:"id" bson:"_id"`
+	ApiName      string `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName     string `form:"case_name" json:"case_name" bson:"case_name"`
+	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
+	Description  string `form:"description" json:"description" bson:"description"`
+	Method       string `form:"method" json:"method" bson:"method"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
 	//zen
 	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
@@ -144,6 +145,25 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 		logs.Error(1024, err)
 	}
 	return acm, err
+}
+
+//
+func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	data := bson.M{
+		"$set": bson.M{
+			"is_inspection": is_inspection,
+			"updated_at":    time.Now().Format(Time_format),
+		},
+	}
+	changeInfo, err := db.UpsertId(id, data)
+	if err != nil {
+		logs.Error("设置巡检状态错误: err: ", err)
+	}
+	logs.Info("upsert函数返回的响应为：%v", changeInfo)
+	return err
 }
 
 // 修改status
