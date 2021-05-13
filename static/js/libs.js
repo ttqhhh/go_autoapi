@@ -3,6 +3,7 @@
  *
  * 入参：json对象（不要传字符串）、path数组对象
  */
+
 function analysisJson(json, path) {
     var result = {}
     var isArray = false
