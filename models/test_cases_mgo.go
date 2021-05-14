@@ -25,6 +25,7 @@ type TestCaseMongo struct {
 	//zen
 	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	Domain 		  string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceId     int64  `form:"service_id" json:"service_id" bson:"service_id"`
