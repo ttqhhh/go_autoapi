@@ -18,6 +18,8 @@ func (c *CaseManageController) Get() {
 		c.ShowAddCase()
 	case "show_edit_case":
 		c.ShowEditCase()
+	case "show_copy_case":
+		c.ShowCopyCase()
 	case "get_all_cases":
 		c.GetAllCases()
 	case "show_report":
