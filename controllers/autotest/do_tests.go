@@ -161,7 +161,12 @@ func (c *AutoTestController) performTests() {
 		wg.Add(len(caseList))
 		for _, val := range caseList {
 			go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
-				//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
+				defer func() {
+					if err :=recover(); err != nil {
+					    logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+					    // todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+					}
+				}()
 				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
