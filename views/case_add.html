@@ -354,7 +354,7 @@
             const these = $(this);
             these.parent().parent().after(pre)
             // alert($(this).parent().parent().next().find("#json_head").text())
-            $.each(analysisJson(obj), function(i,v){
+            $.each(analysisJson(obj).keys, function(i,v){
                 these.parent().parent().next().find("#json_head").append('<option value='+v+'>'+ v+'</option>')
             });
             form.render()
