@@ -87,6 +87,12 @@ func performInspection(businessId int8, serviceId int64) (err error) {
 		wg.Add(len(caseList))
 		for _, val := range caseList {
 			go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
+				defer func() {
+					if err :=recover(); err != nil {
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+					}
+				}()
 				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
@@ -103,7 +109,7 @@ func performInspection(businessId int8, serviceId int64) (err error) {
 			for _, result := range autoResult {
 				if result.Result == models.AUTO_RESULT_FAIL {
 					isPass = models.FAIL
-					// 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
+					// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 					logs.Warn("巡检任务失败，发送一条钉钉通知消息")
 					//req := httplib.Post("http://beego.me/").Debug(true)
 					//resp, err := req.Response()
