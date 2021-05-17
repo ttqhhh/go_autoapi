@@ -99,12 +99,10 @@ func GetAllBusinesses() []map[string]interface{} {
 	// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
 	//businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
 	//}
-	for _, v := range userBusinessMap {
+	for k, v := range businessCodeNameMap {
 		temp := make(map[string]interface{})
-
-		temp["code"] = v
-		temp["name"] = businessCodeNameMap[v]
-
+		temp["code"] = k
+		temp["name"] = v
 		businessResp = append(businessResp, temp)
 	}
 	// 对resp中的值进行排序

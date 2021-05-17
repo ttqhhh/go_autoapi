@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const ONLINE_INSPECTION_EXPRESSION = "0 0 9 * * ? *"
+const ONLINE_INSPECTION_EXPRESSION = "0 0 9 * * *"
 
 func OnlineInspection() error {
 	logs.Info("启动定时任务：Online Inspection")
