@@ -24,6 +24,7 @@
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="copy">复制</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
@@ -116,7 +117,7 @@
                         return "<div onclick='inspection(this, " + d.id + ")'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " /></div>";
                         // return "<input type='checkbox' onclick='inspection()' value=" + d.is_inspection + " lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " />";
                     }},
-                {title: '操作', fixed:"right",toolbar:'#barDemo', width:200},
+                {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
             ]]
         })
 
@@ -148,22 +149,24 @@
                 });
             } else if(obj.event === 'edit'){
                 window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
-            } else if(obj.event === "run"){
-                var arr = new Array()
-                arr.push(data.id)
+            }else if(obj.event === 'copy'){
+                window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+            } else if (obj.event === "run") {
+                var arr = new Array();
+                arr.push(data.id);
                 // alert(arr)
-                var needJump = true
+                var needJump = true;
                 $.ajax({
                     type: 'POST',
                     contentType: "application/json",
-                    dataType:"json",
+                    dataType: "json",
                     url: "/auto/perform_tests",
-                    async:false,
-                    timeout : 500000,
+                    async: false,
+                    timeout: 500000,
                     data: JSON.stringify({
                         "ids": arr,
                         "type": 2,
-                        "business":parseInt('{{.business}}'),
+                        "business": parseInt('{{.business}}'),
                     }),
                     success: function (data) {
                         respCode = data.code
@@ -172,9 +175,9 @@
                             layer.msg(data.msg)
                         }
                     }
-                })
+                });
                 if (needJump) {
-                    window.location.href="/report/show_run_record";
+                    window.location.href = "/report/show_run_record";
                 }
             }
             layui.close(obj);
