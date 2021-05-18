@@ -323,9 +323,13 @@
             var arr =new Array();
             const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
             sel_val.each(function() {
-                arr.push($(this).text())
+                if(isNumber($(this).text())){
+                    console.log("is a number so pass")
+                }else{
+                    arr.push($(this).text())
+                }
             });
-            // alert(arr)
+            alert(arr)
             const res = analysisJson(obj, arr);
             if(res["isArray"] === true){
                 $(this).parent().parent().find(".data_block").append(check_sel)
