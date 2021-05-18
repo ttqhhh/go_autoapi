@@ -98,7 +98,7 @@ func (c *AutoTestController) performTests() {
 
 	mongo := models.TestCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
-	caseList := []*models.TestCaseMongo{}
+	var caseList []*models.TestCaseMongo
 	if performType == BUSINESS_TYPE {
 		var err error
 		// 查询该业务线下所有的Case
@@ -160,14 +160,14 @@ func (c *AutoTestController) performTests() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
-			go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
+			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				//libs.DoRequestV2(url, uuid, val.Parameter, val.Checkpoint, val.Id) bug?
-				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
-			}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
+			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
 		wg.Wait()
 

@@ -59,10 +59,10 @@
 <!--        autocomplete=“off” 为了不自动填充input框，免得压盖select选项-->
 
         <div class="layui-input-inline">
-            <input type="text" name="domain" id="HandoverCompany" class="layui-input" style="position:absolute;z-index:2;width:83%;" lay-verify="required" value="http://api.izuiyou.com/" onkeyup="search()" autocomplete="off">
+            <input type="text" name="domain" id="HandoverCompany" placeholder="请输入或选择域名" class="layui-input" style="position:absolute;z-index:2;width:83%;" lay-verify="required" value="" onkeyup="search()" autocomplete="off">
             <select type="text" id="hc_select" lay-filter="hc_select" autocomplete="off" placeholder="移交单位全称" lay-verify="required" class="layui-select" lay-search>
-                <option value="http://api.izuiyou.com/">http://api.izuiyou.com/</option>
-                <option value="http://test.izuiyou.com/">http://test.izuiyou.com/</option>
+<!--                <option value="http://api.izuiyou.com/">http://api.izuiyou.com/</option>-->
+<!--                <option value="http://test.izuiyou.com/">http://test.izuiyou.com/</option>-->
             </select>
         </div>
 
@@ -174,6 +174,22 @@
             }
         }
 
+        function get_domain_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/case/get_domains?business='+bus,
+                success: function (data) {
+                    $("#hc_select").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["domain_name"]).text(val["domain_name"]);
+                        $("#hc_select").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
         /** 默认加载任务：获取用户下的业务线和其关联的服务； */
         let first_business
         $(function (){
@@ -193,12 +209,17 @@
                     })
                 }
             });
+            /** 默认加载一列服务 **/
             get_service_by_business(first_business)
+            /** 默认加载一列域名 **/
+            get_domain_by_business(first_business)
+
         })
 
         /** form 监听事件 */
         form.on('select(business)', function(data) {
             get_service_by_business(data.value)
+            get_domain_by_business(data.value)
             form.render()
         });
 
@@ -215,10 +236,12 @@
         $(document).on('click', '#test', function () {
             const request_param = $("#request_param").val()
             const request_url = $("#api_url").val()
-            if(request_param === "" || request_url === ""){
-                layer.msg("请求地址和请求参数不能为空")
+            var domain = $('#HandoverCompany').val()
+            if(request_param === "" || request_url === "" || domain === ""){
+                layer.msg("请求地址,参数,域名不能为空")
                 return
             }
+            console.log(domain+request_url)
             $.ajax({
                 type: 'POST',
                 contentType: "application/x-www-form-urlencoded",
@@ -227,7 +250,7 @@
                 async: false,
                 timeout: 500000,
                 data: {
-                    "api_url":request_url,
+                    "api_url":domain + request_url,
                     "parameter":request_param
                 },
                 success:function (data){
