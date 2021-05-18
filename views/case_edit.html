@@ -486,44 +486,18 @@
             }
         });
 
-        /** 通过test变更冒烟数据 **/
-        $(document).on('click', '#test', function () {
-            var request_param = $("#request_param").val()
-            var request_url = $("#api_url").val()
-            if (request_param === "" || request_url === "") {
-                layer.msg("请求地址和请求参数不能为空")
-                return
-            }
-            $.ajax({
-                type: 'POST',
-                contentType: "application/x-www-form-urlencoded",
-                dataType: "json",
-                url: "/auto/perform_smoke",
-                async: false,
-                timeout: 500000,
-                data: {
-                    "api_url": request_url,
-                    "parameter": request_param
-                },
-                success: function (data) {
-                    try {
-                        obj = JSON.parse(data.data.body)
-                    }
-                    catch(err){
-                        // alert("冒烟失败 - " + err)
-                        return
-                    }
-                }
-            });
-        });
-
         $(document).on('click', '#right_add', function () {
             // $(this).parent().parent().find(".data_block").append(check_sel)
             var arr =new Array();
             const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
             sel_val.each(function() {
-                arr.push($(this).text())
+                if(isNumber($(this).text())){
+                    console.log("is a number so pass")
+                }else{
+                    arr.push($(this).text())
+                }
             });
+            // alert(arr)
             const res = analysisJson(obj, arr);
             /** 判断如果是数组则新增一列 **/
             if(res["isArray"] === true){
