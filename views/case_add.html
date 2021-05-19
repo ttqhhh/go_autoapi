@@ -329,7 +329,7 @@
                     arr.push($(this).text())
                 }
             });
-            alert(arr)
+            // alert(arr)
             const res = analysisJson(obj, arr);
             if(res["isArray"] === true){
                 $(this).parent().parent().find(".data_block").append(check_sel)
