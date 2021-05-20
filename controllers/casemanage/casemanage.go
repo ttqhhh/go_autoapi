@@ -22,6 +22,8 @@ func (c *CaseManageController) Get() {
 		c.ShowCopyCase()
 	case "get_all_cases":
 		c.GetAllCases()
+	case "search_case":
+		c.SearchCase()
 	case "show_report":
 		c.ShowReport()
 	case "get_all_report":
