@@ -98,7 +98,7 @@ func (c *AutoTestController) performTests() {
 
 	mongo := models.TestCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
-	caseList := []*models.TestCaseMongo{}
+	var caseList []*models.TestCaseMongo
 	if performType == BUSINESS_TYPE {
 		var err error
 		// 查询该业务线下所有的Case
@@ -160,19 +160,19 @@ func (c *AutoTestController) performTests() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
-			go func(url string, uuid string, param string, checkout string, caseId int64, runBy string) {
+			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err :=recover(); err != nil {
-					    logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
-					    // todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
-				libs.DoRequestV2(url, uuid, param, checkout, caseId, runBy)
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
-			}(val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
+			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
 		wg.Wait()
 

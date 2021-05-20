@@ -114,7 +114,7 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 	return
 }
 
-func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId int64, runBy string) {
+func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, runBy string) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -129,7 +129,7 @@ func DoRequestV2(url string, uuid string, m string, checkPoint string, caseId in
 	//redis? 不知道干嘛的
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
-	req, err := http.NewRequest("POST", url, postData)
+	req, err := http.NewRequest("POST", domain + url, postData)
 	if err != nil {
 		logs.Error("构建请求失败, err:", err)
 		return
