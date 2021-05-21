@@ -8,10 +8,26 @@
 </form>
 
 <div style="margin:1%">
-<div style="text-align:right">
-    <button class="layui-btn open_service_list" >按服务执行用例</button>
-    <button class="layui-btn run_all_case_by_business" >执行当前业务下全部用例</button>
-    <button class="layui-btn add_case" >添加用例</button>
+<div>
+    <div class="layui-form layui-inline" style="margin-left:45%">
+        <div class="layui-inline">
+            <select name="" id="search_service">
+                <option value="">请选择</option>
+            </select>
+
+        </div>
+        <div class="layui-inline">
+            <input type="text" class="search_input_url layui-input" placeholder="请输入url">
+        </div>
+        <div class="layui-inline">
+            <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
+        </div>
+    </div>
+    <div class="layui-inline" style="float: right">
+        <button class="layui-btn layui-btn-sm open_service_list">按服务执行用例</button>
+        <button class="layui-btn layui-btn-sm run_all_case_by_business" >执行当前业务下全部用例</button>
+        <button class="layui-btn layui-btn-sm add_case" >添加用例</button>
+    </div>
 </div>
 
 <table class="layui-table" lay-filter="demo" id="idTest"></table>
@@ -47,6 +63,7 @@
                         const option1 = '<div class="layui-input-inline">' +
                             '<input type="checkbox" name="service" value='+val["id"]+' title='+val["service_name"]+'></div>';
                         html = html + option1
+                        $("#search_service").append('<option value='+val["service_name"]+'>'+val["service_name"]+'</option>');
                     })
                     $("#test_service_list").append(html);
                     form.render();
@@ -74,12 +91,6 @@
                 {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
             ]]
         })
-
-        //监听表格复选框选择
-        // table.on('rowDouble(demo)', function(obj){
-        //     var data = obj.data;
-        //     window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
-        // });
 
         //监听工具条
         table.on('tool(demo)', function(obj){
@@ -261,6 +272,36 @@
             if (needJump) {
                 window.location.href="/report/show_run_record";
             }
+        });
+
+        $(document).on("click", "#search_btn", function (){
+            let url = $(".search_input_url").val();
+            let service = $("#search_service option:selected").val()
+            if(url === undefined){url = ""}
+            if(service === undefined){service = ""}
+            if(url === "" && service  === ""){
+                layer.msg("url或service至少一个不能为空")
+                return
+            }
+            table.render({
+                elem:'#idTest'
+                ,url:'/case/search_case?business={{.business}}&url='+url +'&service='+service
+                ,page:true
+                ,cols:[[
+                    {type:"checkbox",fixed:'left'},
+                    {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                    {title: '业务线', field:'business_name', width:100},
+                    {title: '服务名称', field:'service_name', width:150},
+                    {title: '用例名称', field:'case_name', width:200},
+                    {title: '用例描述', field:'description'},
+                    {title: '添加人', field:'author', width:150},
+                    {title: '接口数据', field:'api_url',templet:function (d){
+                            return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
+                        }},
+                    {title: '请求方式', field:'request_method',width:100},
+                    {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
+                ]]
+            })
         });
 
     });

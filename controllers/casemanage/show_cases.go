@@ -57,6 +57,20 @@ func (c *CaseManageController) GetAllCases() {
 	c.FormSuccessJson(count, result)
 }
 
+func (c *CaseManageController) SearchCase(){
+	acm := models.TestCaseMongo{}
+	business := c.GetString("business")
+	url := c.GetString("url")
+	service := c.GetString("service")
+	page, _ := strconv.Atoi(c.GetString("page"))
+	limit, _ := strconv.Atoi(c.GetString("limit"))
+	result, count, err := acm.GetCasesByConfusedUrl(page, limit, business, url, service)
+	if err != nil {
+		c.FormErrorJson(-1, "获取测试用例列表数据失败")
+	}
+	c.FormSuccessJson(count, result)
+}
+
 func (c *CaseManageController) ShowEditCase() {
 	id := c.GetString("id")
 	//business := c.GetString("business")
