@@ -1,0 +1,32 @@
+{{template "head.html" .}}
+
+<div style="margin:1%" xmlns:page="http://www.w3.org/1999/xhtml">
+    <button id="web_report_all" type="submit" class="layui-btn layui-btn-normal" onclick="showreport()" >添加测试报告</button>
+    <table class="layui-table" lay-data="{url:'/web_report/query', page:true, limit:10}"
+           lay-filter="demo">
+        <thead>
+        <tr>
+            <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
+            <th lay-data="{field:'Id', width:80, sort: true, fixed: true}">ID</th>
+            <th lay-data="{field:'Name'}">项目名称</th>
+            <th lay-data="{field:'Describe'}">质量描述</th>
+            <th lay-data="{field:'Xmyl'}">遗留问题</th>
+            <th lay-data="{field:'Jszb'}">技术指标</th>
+            <th lay-data="{field:'Fx'}">发布风险及灰度计划</th>
+            <th lay-data="{field:'Zb'}">具体质量指标</th>
+            <th lay-data="{field:'Sm'}">其他说明</th>
+        </tr>
+        </thead>
+    </table>
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        const  showreport = () => {
+            // window.open('/web_report/queryAll1')
+            window.location.href = '/web_report/show_web_report'
+        }
+
+
+    </script>
+</div>
+</body>
+</html>

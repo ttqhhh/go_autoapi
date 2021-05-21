@@ -1,0 +1,146 @@
+{{template "head.html" .}}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>web_report</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+    <meta http-equiv="description" content="ajax方式">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+    <div style="margin:0 auto; margin-top: 50px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">项目名称</label>
+            <div class="layui-input-block">
+                <input  type="text"  id="name" lay-verify="required" autocomplete="off" placeholder="请输入项目名称" class="layui-input" style="width: 400px">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">质量描述</label>
+            <div class="layui-input-block" style="width:70%">
+                <textarea rows="6" cols="50" type="text" id="describe" name="describe" lay-verify="required" autocomplete="off"
+                          placeholder="xx项目Vx.xx版本已于2021年x月y日测试完成，达到发版/上线要求。共发现缺陷x个，已修复y个，遗留x-y个。"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">遗留问题</label>
+            <div class="layui-input-block" style="width: 70%">
+                <textarea rows="6" cols="50" type="text" id="xmyl" lay-verify="required" autocomplete="off"
+                          placeholder="xx项目Vx.xx版本已于2021年x月y日测试完成，达到发版/上线要求。共发现缺陷x个，已修复y个，遗留x-y个。"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">技术指标</label>
+            <div class="layui-input-block" style="width: 70%;">
+                <textarea rows="6" cols="50" type="text" id="jszb" lay-verify="required" autocomplete="off"
+                          placeholder="crash率：，往期均值：。首屏展现时间：，往期均值：。其他技术指标" ></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">发布风险及灰度计划</label>
+            <div class="layui-input-block" style="width: 70%">
+                <textarea rows="6" cols="50" type="text" id="fx" lay-verify="required" autocomplete="off"
+                          placeholder="发布风险：由于xx问题，可能造成过审风险。灰度计划：ios过审后放量10%。 " ></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">具体质量指标</label>
+            <div class="layui-input-block" style="width: 70%">
+                <textarea rows="6" cols="50" type="text" id="zb" lay-verify="required" autocomplete="off"
+                          placeholder="业务需求：双端bug数，开发：xx，测试：xx" ></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">其他说明</label>
+            <div class="layui-input-block" style="width: 70%">
+                <textarea rows="6" cols="50" type="text" id="sm" lay-verify="required" autocomplete="off" placeholder="其他备注" ></textarea>
+            </div>
+        </div>
+        <div style="margin: 0 auto; width: 250px">
+            <button id="submit" type="submit" class="layui-btn layui-btn-normal" onclick="submit()">提交</button>
+            <button id="web_report_all" type="submit" class="layui-btn layui-btn-normal" onclick="query()" >获取所有历史报告</button>
+        </div>
+
+        </div>
+    <script type="text/javascript">
+        function submit() {
+
+            // 非空校验
+            if($("#name").val()==""){
+                alert("请输入项目名称");
+                return;
+            }
+            if($("#describe").val()==""){
+                alert("请输入项目描述");
+                return;
+            }
+            if($("#xmyl").val()==""){
+                alert("请输入遗留问题");
+                return;
+            }
+           if($("#jszb").val()==""){
+                alert("请输入技术指标");
+                return;
+            }
+            if($("#fx").val()==""){
+                alert("请输入发布风险及灰度计划");
+                return;
+            }
+            if($("#zb").val()==""){
+                alert("请输入具体质量指标");
+                return;
+            }
+
+
+            // 提交输入内容
+            const submitData = {
+                name:$("#name").val(),
+                describe:$("#describe").val(),
+                xmyl:$("#xmyl").val(),
+                jszb:$("#jszb").val(),
+                fx : $("#fx").val(),
+                zb:$("#zb").val(),
+                sm:$("#sm").val()
+            }
+            // console.log('???submitData',submitData)
+            // 页面输入内容提交给服务端
+            $.ajax({
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "/web_report/submit" ,//url
+                // data: $('#form1').serialize(),
+                data:submitData,
+                success: function (result) {
+                    console.log(result);//打印服务端返回的数据(调试用)
+                    if (result.code == 0) {
+                        alert("SUCCESS");
+                    }
+                    window.location.href = '/web_report/queryAll'
+                },
+                error : function() {
+                    alert("异常！");
+                }
+            });
+
+        }
+        //定义跳转历史报告页面
+        const  query = () => {
+            // window.open('/web_report/queryAll1')
+            window.location.href = '/web_report/queryAll'
+        }
+    </script>
+
+
+</body>
+</html>
