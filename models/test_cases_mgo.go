@@ -75,6 +75,38 @@ func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
 	return caseList
 }
 
+func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string)(result []TestCaseMongo, totalCount int64, err error){
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	var query = bson.M{}
+	if service == "" && url != ""{
+		query = bson.M{"status": status,
+					   "business_code": business,
+					   "api_url": bson.M{"$regex": bson.RegEx{Pattern:url, Options: "im"}}}
+	}else if service != "" && url == ""{
+		query = bson.M{"status": status, "business_code": business, "service_name":service}
+	}else if service != "" && url != ""{
+		query = bson.M{"status": status,
+						"business_code": business,
+						"service_name":service,
+						"api_url": bson.M{"$regex": bson.RegEx{Pattern:url, Options: "im"}}}
+	}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
+	if err != nil {
+		logs.Error("查询分页列表数据报错, err: ", err)
+		return nil, 0, err
+	}
+	// 获取指定业务线下全部case数量
+	total, err := c.Find(query).Count()
+	if err != nil {
+		logs.Error("数据库查询指定业务线下case数量报错, err: ", err)
+		return nil, 0, err
+	}
+	totalCount = int64(total)
+	return
+}
+
 // 获取指定业务线下的指定页面case
 func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {
 	//acm := TestCaseMongo{}
