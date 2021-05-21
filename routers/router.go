@@ -11,7 +11,7 @@ import (
 
 func init() {
 	beego.Router("/", &controllers.MainController{})
-	beego.Router("/api", &api.ApiController{})
+	beego.Router("/api/*", &api.ApiController{})
 	beego.Router("/user/*", &controllers.UserController{})
 	beego.Router("/auto/*", &auto.AutoTestController{})
 	beego.Router("/case/*", &casemanage.CaseManageController{})
