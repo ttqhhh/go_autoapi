@@ -30,7 +30,7 @@ func (c *ApiController) Get() {
 func (c *ApiController) Post() {
 	do := c.GetMethodName()
 	switch do {
-	case "get_case_info":
+	case "login":
 		c.login()
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -94,9 +94,6 @@ func (c *ApiController) login() {
 	}
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
 	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
-	var ul []*models.AutoUser
-	for i := 0; i < 10; i++ {
-		ul = append(ul, &au)
-	}
-	c.SuccessJsonWithMsg(ul, "登录成功")
+
+	c.SuccessJsonWithMsg(nil, "登录成功")
 }
