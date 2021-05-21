@@ -84,3 +84,16 @@ func (c *CaseManageController) ShowCopyCase() {
 	//c.Data["services"] = services
 	c.TplName = "case_copy.html"
 }
+
+func (c *CaseManageController) ShowInspectionCase() {
+	id := c.GetString("id")
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		logs.Error("转换类型错误")
+	}
+	acm := models.TestCaseMongo{}
+	res := acm.GetOneCase(idInt)
+	c.Data["a"] = &res
+	//c.Data["services"] = services
+	c.TplName = "case_inspection.html"
+}

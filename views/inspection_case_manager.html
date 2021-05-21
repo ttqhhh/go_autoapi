@@ -11,7 +11,6 @@
 <div style="text-align:right">
     <button class="layui-btn open_service_list" >按服务执行用例</button>
     <button class="layui-btn run_all_case_by_business" >执行当前业务下全部用例</button>
-    <button class="layui-btn add_case" >添加用例</button>
 </div>
 
 <table class="layui-table" lay-filter="demo" id="idTest"></table>
@@ -22,8 +21,7 @@
 
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
-    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
-    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="copy">复制</a>
+{{/*    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
@@ -62,17 +60,6 @@
     //     })
     // }
 
-    function inspection(obj, id, target) {
-        if (target == 1) { // 操作的预期状态，1-打开；0-关闭
-            // 弹出配置巡检Case的窗口
-            window.location.href = "/case/show_inspection_case?id=" + id + "&business={{.business}}";
-        } else {
-            // 直接更改巡检Case状态和测试Case关联的巡检Case字段
-            layer.msg("请去「巡检用例管理」页面删除该巡检Case")
-            $(obj).html('<input type="checkbox" lay-skin="switch" lay-text="是|否" lay-filter="ifNullDemo" checked="" disabled=""><div class="layui-unselect layui-form-switch layui-form-onswitch layui-checkbox-disbaled layui-disabled" lay-skin="_switch"><em>是</em><i></i></div>')
-        }
-    }
-
     layui.use(['table','laytpl','form'], function(){
         const table = layui.table;
         var form = layui.form;
@@ -99,7 +86,7 @@
         //表格渲染
         table.render({
             elem:'#idTest'
-            ,url:'/case/get_all_cases?business={{.business}}'
+            ,url:'/inspection/get_all_cases?business={{.business}}'
             ,page:true
             ,cols:[[
                 {type:"checkbox",fixed:'left'},
@@ -113,24 +100,7 @@
                         return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
                     }},
                 {title: '请求方式', field:'request_method',width:100},
-                {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
-                        // if (d.is_inspection == 1) {
-                        //     return "<div class='layui-input-block'><input type='checkbox' name='switch' lay-skin='switch'></div>"
-                        // } else {
-                        //
-                        // }
-                        // return "<div class='layui-input-block'><input type='checkbox' lay-skin='switch'></div>"
-                        var checked = "";
-                        if (d.is_inspection == 1) {
-                            // checked = "checked";
-                            // return "<div onclick='inspection(this, " + d.id + ")'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
-                            return "<div onclick='inspection(this, " + d.id + ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
-                        } else {
-                            return "<div onclick='inspection(this, " + d.id + ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
-                        }
-                        // return "<input type='checkbox' onclick='inspection()' value=" + d.is_inspection + " lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " />";
-                    }},
-                {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
+                {title: '操作', fixed:"right",toolbar:'#barDemo', width:180},
             ]]
         })
 
@@ -320,6 +290,10 @@
             if (needJump) {
                 window.location.href="/report/show_run_record";
             }
+        });
+
+        $(document).on("click", ".inspection_online", function (){
+            window.location.href = '/inspection/show_cases?business=?business={{.business}}';
         });
 
     });

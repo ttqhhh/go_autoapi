@@ -23,6 +23,8 @@ func (c *CaseManageController) Get() {
 		c.ShowEditCase()
 	case "show_copy_case":
 		c.ShowCopyCase()
+	case "show_inspection_case":
+		c.ShowInspectionCase()
 	case "get_all_cases":
 		c.GetAllCases()
 	case "show_report":
@@ -96,36 +98,22 @@ func (c *CaseManageController) AddOneDomain() {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	err := Dom.DomainInsert(Dom)
-	if err !=nil{
-		c.ErrorJson(-1,"插入域名失败",err)
+	if err != nil {
+		c.ErrorJson(-1, "插入域名失败", err)
 	}
 	c.SuccessJson("成功插入域名数据")
 }
 
-func (c *CaseManageController) GetDomains(){
-	business ,err:= c.GetInt8("business")
-	if err !=nil{
-		logs.Error("获取域名的business可能不是int8类型",err)
-		c.ErrorJson(-1,"获取域名的business可能不是int8类型",nil)
+func (c *CaseManageController) GetDomains() {
+	business, err := c.GetInt8("business")
+	if err != nil {
+		logs.Error("获取域名的business可能不是int8类型", err)
+		c.ErrorJson(-1, "获取域名的business可能不是int8类型", nil)
 	}
 	Dom := models.Domain{}
 	domains, err := Dom.GetDomainByBusiness(business)
-	if err != nil{
+	if err != nil {
 		logs.Error("获取domains失败")
 	}
 	c.SuccessJson(domains)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

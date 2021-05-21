@@ -41,9 +41,9 @@ func performInspection(businessId int8, serviceId int64) (err error) {
 	u2 := uuid.NewV4()
 	uuid := u2.String()
 
-	mongo := models.TestCaseMongo{}
+	mongo := models.InspectionCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
-	caseList := []*models.TestCaseMongo{}
+	caseList := []*models.InspectionCaseMongo{}
 
 	// 查询指定服务下所有的Case
 	caseList, err = mongo.GetAllInspectionCasesByService(serviceId)
