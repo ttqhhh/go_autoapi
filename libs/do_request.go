@@ -129,7 +129,24 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 	//redis? 不知道干嘛的
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
-	req, err := http.NewRequest("POST", domain+url, postData)
+	// 对domain和url进行兼容性拼接
+	if strings.HasSuffix(domain, "/") {
+		domain = domain[:len(domain)-1]
+	}
+	if strings.HasPrefix(url, "/") {
+		url = url[1:]
+	}
+	var path = ""
+	if domain != "" {
+		path = domain + "/" + url
+	} else {
+		path = url
+	}
+	if path == "" {
+		logs.Error("请求路径为空，请检查Case配置是否有误")
+		return
+	}
+	req, err := http.NewRequest("POST", path, postData)
 	if err != nil {
 		logs.Error("构建请求失败, err:", err)
 		return
