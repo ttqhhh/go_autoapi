@@ -6,7 +6,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
 	"time"
 )
 
@@ -32,7 +31,7 @@ type TestCaseMongo struct {
 	//zen
 	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
-	Domain 		  string `form:"domain" json:"domain" bson:"domain"`
+	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceId     int64  `form:"service_id" json:"service_id" bson:"service_id"`
@@ -70,18 +69,18 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error
 
 //通过id list 获取用例
 
-func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
-	var caseList []TestCaseMongo
-	for _, i := range ids {
-		id64, err := strconv.ParseInt(i, 10, 64)
-		if err != nil {
-			logs.Error("类型转换失败")
-		}
-		acm := t.GetOneCase(id64)
-		caseList = append(caseList, acm)
-	}
-	return caseList
-}
+//func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
+//	var caseList []TestCaseMongo
+//	for _, i := range ids {
+//		id64, err := strconv.ParseInt(i, 10, 64)
+//		if err != nil {
+//			logs.Error("类型转换失败")
+//		}
+//		acm := t.GetOneCase(id64)
+//		caseList = append(caseList, acm)
+//	}
+//	return caseList
+//}
 
 // 获取指定业务线下的指定页面case
 func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {

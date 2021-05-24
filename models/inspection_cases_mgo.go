@@ -6,7 +6,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
 	"time"
 )
 
@@ -64,18 +63,18 @@ func (t *InspectionCaseMongo) GetCasesByQuery(query interface{}) (InspectionCase
 
 //通过id list 获取用例
 
-func (t *InspectionCaseMongo) GetCasesByIds(ids []string) []InspectionCaseMongo {
-	var caseList []InspectionCaseMongo
-	for _, i := range ids {
-		id64, err := strconv.ParseInt(i, 10, 64)
-		if err != nil {
-			logs.Error("类型转换失败")
-		}
-		acm := t.GetOneCase(id64)
-		caseList = append(caseList, acm)
-	}
-	return caseList
-}
+//func (t *InspectionCaseMongo) GetCasesByIds(ids []string) []InspectionCaseMongo {
+//	var caseList []InspectionCaseMongo
+//	for _, i := range ids {
+//		id64, err := strconv.ParseInt(i, 10, 64)
+//		if err != nil {
+//			logs.Error("类型转换失败")
+//		}
+//		acm := t.GetOneCase(id64)
+//		caseList = append(caseList, acm)
+//	}
+//	return caseList
+//}
 
 // 获取指定业务线下的指定页面case
 func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string) (result []InspectionCaseMongo, totalCount int64, err error) {
@@ -224,12 +223,19 @@ func (t *InspectionCaseMongo) GetAllInspectionCasesByService(serviceId int64) (r
 	ms, c := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
 
-	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
+	query := bson.M{"status": status, "service_id": serviceId}
 	// 获取指定业务线下全部case列表
 	err = c.Find(query).All(&result)
 	if err != nil {
 		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
 		return nil, err
 	}
+	return
+}
+func GetCasesByIds(ids []int64) (acms []*InspectionCaseMongo, err error) {
+	ms, db := db_proxy.Connect(db, inspection_collection)
+	defer ms.Close()
+	query := bson.M{"_id": bson.M{"$in": ids}, "status": 0}
+	err = db.Find(query).All(&acms)
 	return
 }

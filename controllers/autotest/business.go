@@ -52,6 +52,11 @@ var businessCodeNameMap = map[int]string{
 	haiwaius:   haiwaius_name,
 }
 
+func GetBusinessNameByCode(code int) string {
+	businessName := businessCodeNameMap[code]
+	return businessName
+}
+
 func (c *BusinessController) getUserBusinesses() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 

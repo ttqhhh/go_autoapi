@@ -22,13 +22,14 @@ const (
 )
 
 type AutoResult struct {
-	Id       int64   `json:"id,omitempty" bson:"_id"`
-	RunId    string  `json:"run_id,omitempty" bson:"run_id"`
-	CaseId   int64   `json:"case_id" bson:"case_id"`
-	Result   int     `json:"result" bson:"result"` // 0：失败 1-成功
-	Reason   string  `json:"reason" bson:"reason"`
-	Author   string  `json:"author" bson:"author"`
-	Response string  `json:"response,omitempty" bson:"response"`
+	Id           int64  `json:"id,omitempty" bson:"_id"`
+	RunId        string `json:"run_id,omitempty" bson:"run_id"`
+	CaseId       int64  `json:"case_id" bson:"case_id"`
+	IsInspection int    `json:"is_inspection" bson:"is_inspection"`
+	Result       int    `json:"result" bson:"result"` // 0：失败 1-成功
+	Reason       string `json:"reason" bson:"reason"`
+	Author       string `json:"author" bson:"author"`
+	Response     string `json:"response,omitempty" bson:"response"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -43,7 +44,7 @@ func (a *AutoResult) TableName() string {
 	return "auto_result"
 }
 
-func InsertResult(uuid string, case_id int64, result int, reason string, author string, resp string) error {
+func InsertResult(uuid string, case_id int64, isInspection int, result int, reason string, author string, resp string) error {
 	now := time.Now().Format(constants.TimeFormat)
 	ar := AutoResult{}
 	//id := GetId("result")
@@ -56,6 +57,7 @@ func InsertResult(uuid string, case_id int64, result int, reason string, author 
 	ar.Id = id
 	ar.RunId = uuid
 	ar.CaseId = case_id
+	ar.IsInspection = isInspection
 	ar.Result = result
 	ar.Reason = reason
 	ar.Author = author
@@ -72,7 +74,7 @@ func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	query := bson.M{"run_id": id}
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"case_id": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
+	err = db.Find(query).Select(bson.M{"case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error(1024, err)

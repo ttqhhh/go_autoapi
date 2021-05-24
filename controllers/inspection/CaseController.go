@@ -51,8 +51,8 @@ func (c *CaseController) Post() {
 	//	c.updateCaseByID()
 	case "add_one_case":
 		c.AddOneCase()
-	//case "del_one_case":
-	//	c.DelCaseByID()
+	case "del_one_inspection_case":
+		c.DelCaseByID()
 	//case "get_service_by_business":
 	//	c.GetServiceByBusiness()
 	//case "get_caseId_by_service":
@@ -159,4 +159,24 @@ func (c *CaseController) AddOneCase() {
 	testCaseMongo := models.TestCaseMongo{}
 	testCaseMongo.SetInspection(acm.TestCaseId, models.INSPECTION)
 	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+}
+
+func (c *CaseController) DelCaseByID() {
+	caseID := c.GetString("id")
+	ac := models.InspectionCaseMongo{}
+	caseIDInt, err := strconv.ParseInt(caseID, 10, 64)
+	if err != nil {
+		logs.Error("在删除用例的时候类型转换失败")
+	}
+	ac.DelCase(caseIDInt)
+	id, err := strconv.Atoi(caseID)
+	if err != nil {
+		logs.Error("请求参数类型转换报错， err:", err)
+		c.ErrorJson(-1, "请求参数转换异常", nil)
+	}
+	inspectionCaseMongo := ac.GetOneCase(int64(id))
+	testCaseId := inspectionCaseMongo.TestCaseId
+	testCaseMongo := models.TestCaseMongo{}
+	testCaseMongo.SetInspection(testCaseId, models.NOT_INSPECTION)
+	c.SuccessJson(nil)
 }

@@ -114,7 +114,7 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, runBy string) {
+func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -129,7 +129,7 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 	//redis? 不知道干嘛的
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
-	req, err := http.NewRequest("POST", domain + url, postData)
+	req, err := http.NewRequest("POST", domain+url, postData)
 	if err != nil {
 		logs.Error("构建请求失败, err:", err)
 		return
@@ -154,7 +154,7 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	doVerifyV2(respStatus, uuid, string(body), verify, caseId, runBy)
+	doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
 }
 
 //func DoRequest(url string, method string, uuid string, data string, verify string, caseId int64) {
@@ -184,13 +184,13 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 //}
 
 // 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, runBy string) {
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) {
 	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
-		saveTestResult(uuid, caseId, result, reason, runBy, response)
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -200,14 +200,14 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
 			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
 			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
-			saveTestResult(uuid, caseId, result, reason, runBy, response)
+			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
 			return
 		}
 		if len(verifyO) == 0 {
 			logs.Error("the verify key is not exist in the response", k)
 			reason = "json路径: 【" + k + "】, 未配置有效的校验规则"
 			//saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
-			saveTestResult(uuid, caseId, result, reason, runBy, response)
+			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
 			return
 		}
 	}
@@ -293,11 +293,11 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason = string(resultDescRune[1:])
 		}
 	}
-	saveTestResult(uuid, caseId, result, reason, runBy, response)
+	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
 }
 
-func saveTestResult(uuid string, caseId int64, result int, reason string, author string, resp string) {
-	err := models.InsertResult(uuid, caseId, result, reason, author, resp)
+func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string) {
+	err := models.InsertResult(uuid, caseId, isInspection, result, reason, author, resp)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)
 	}
