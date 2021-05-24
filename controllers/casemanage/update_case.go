@@ -10,8 +10,17 @@ import (
 
 func (c *CaseManageController) updateCaseByID() {
 	acm := models.TestCaseMongo{}
+	dom := models.Domain{}
 	if err := c.ParseForm(&acm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
+	}
+	// 获取域名并确认是否执行
+	dom.Author = acm.Author
+	intBus, _ := strconv.Atoi(acm.BusinessCode)
+	dom.Business = int8(intBus)
+	dom.DomainName = acm.Domain
+	if err := dom.DomainInsert(dom); err != nil{
+		logs.Error("添加case的时候 domain 插入失败")
 	}
 	// todo service_id 和 service_name 在一起,需要分割后赋值
 	arr := strings.Split(acm.ServiceName, ";")
