@@ -164,11 +164,7 @@ func (c *CaseController) AddOneCase() {
 func (c *CaseController) DelCaseByID() {
 	caseID := c.GetString("id")
 	ac := models.InspectionCaseMongo{}
-	caseIDInt, err := strconv.ParseInt(caseID, 10, 64)
-	if err != nil {
-		logs.Error("在删除用例的时候类型转换失败")
-	}
-	ac.DelCase(caseIDInt)
+	// 先将Case表中的关联关系干掉
 	id, err := strconv.Atoi(caseID)
 	if err != nil {
 		logs.Error("请求参数类型转换报错， err:", err)
@@ -178,5 +174,11 @@ func (c *CaseController) DelCaseByID() {
 	testCaseId := inspectionCaseMongo.TestCaseId
 	testCaseMongo := models.TestCaseMongo{}
 	testCaseMongo.SetInspection(testCaseId, models.NOT_INSPECTION)
+	// 删除巡检表中的数据
+	caseIDInt, err := strconv.ParseInt(caseID, 10, 64)
+	if err != nil {
+		logs.Error("在删除用例的时候类型转换失败")
+	}
+	ac.DelCase(caseIDInt)
 	c.SuccessJson(nil)
 }
