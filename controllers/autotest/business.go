@@ -52,6 +52,11 @@ var businessCodeNameMap = map[int]string{
 	haiwaius:   haiwaius_name,
 }
 
+func GetBusinessNameByCode(code int) string {
+	businessName := businessCodeNameMap[code]
+	return businessName
+}
+
 func (c *BusinessController) getUserBusinesses() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 
@@ -74,6 +79,35 @@ func GetBusinesses(username string) []map[string]interface{} {
 		temp["code"] = v
 		temp["name"] = businessCodeNameMap[v]
 
+		businessResp = append(businessResp, temp)
+	}
+	// 对resp中的值进行排序
+	for i := 0; i < len(businessResp)-1; i++ {
+		for j := 0; j < len(businessResp)-i-1; j++ {
+			jv := businessResp[j]["code"]
+			j1v := businessResp[j+1]["code"]
+			if jv.(int) > j1v.(int) {
+				swap := businessResp[j]
+				businessResp[j] = businessResp[j+1]
+				businessResp[j+1] = swap
+			}
+		}
+	}
+	return businessResp
+}
+
+// 返回所有业务线（没有任何条件限制）
+func GetAllBusinesses() []map[string]interface{} {
+	businessResp := [](map[string]interface{}){}
+	//businesses, ok := userBusinessMap[username]
+	//if !ok {
+	// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
+	//businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
+	//}
+	for k, v := range businessCodeNameMap {
+		temp := make(map[string]interface{})
+		temp["code"] = k
+		temp["name"] = v
 		businessResp = append(businessResp, temp)
 	}
 	// 对resp中的值进行排序

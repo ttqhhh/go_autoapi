@@ -114,6 +114,7 @@ func (c *ReportController) runReportDetail() {
 	runId := runReport.RunId
 	autoResultList, _ = models.GetResultByRunId(runId)
 	testResultList := []TestResult{}
+	inspectionCaseMongo := models.InspectionCaseMongo{}
 	testCaseMongo := models.TestCaseMongo{}
 	for _, autoResult := range autoResultList {
 		result := "成功"
@@ -124,18 +125,30 @@ func (c *ReportController) runReportDetail() {
 		if autoResult.Reason != "" {
 			reasons = strings.Split(autoResult.Reason, ";")
 		}
-		testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
-
-		testResult := &TestResult{
-			BusinessName: testCaseMongo.BusinessName,
-			ServiceName:  testCaseMongo.ServiceName,
-			CaseName:     testCaseMongo.CaseName,
-			CaseUrl:      testCaseMongo.ApiUrl,
-			SpendTime:    "-",
-			Status:       result,
-			Log:          reasons,
+		var testResult *TestResult
+		if autoResult.IsInspection == models.INSPECTION {
+			inspectionCaseMongo = inspectionCaseMongo.GetOneCase(autoResult.CaseId)
+			testResult = &TestResult{
+				BusinessName: inspectionCaseMongo.BusinessName,
+				ServiceName:  inspectionCaseMongo.ServiceName,
+				CaseName:     inspectionCaseMongo.CaseName,
+				CaseUrl:      inspectionCaseMongo.ApiUrl,
+				SpendTime:    "-",
+				Status:       result,
+				Log:          reasons,
+			}
+		} else {
+			testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
+			testResult = &TestResult{
+				BusinessName: testCaseMongo.BusinessName,
+				ServiceName:  testCaseMongo.ServiceName,
+				CaseName:     testCaseMongo.CaseName,
+				CaseUrl:      testCaseMongo.ApiUrl,
+				SpendTime:    "-",
+				Status:       result,
+				Log:          reasons,
+			}
 		}
-
 		testResultList = append(testResultList, *testResult)
 	}
 

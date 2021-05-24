@@ -12,6 +12,7 @@ require (
 	github.com/go-ldap/ldap/v3 v3.3.0
 	github.com/go-redis/redis v6.14.2+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
+	github.com/prometheus/common v0.10.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/siddontang/go v0.0.0-20170517070808-cb568a3e5cc0

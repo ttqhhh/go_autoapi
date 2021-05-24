@@ -6,6 +6,7 @@ import (
 	"go_autoapi/controllers"
 	auto "go_autoapi/controllers/autotest"
 	casemanage "go_autoapi/controllers/casemanage"
+	"go_autoapi/controllers/inspection"
 	"go_autoapi/controllers/report"
 )
 
@@ -18,4 +19,5 @@ func init() {
 	beego.Router("/service/*", &auto.ServiceController{})
 	beego.Router("/business/*", &auto.BusinessController{})
 	beego.Router("/report/*", &report.ReportController{})
+	beego.Router("/inspection/*", &inspection.CaseController{})
 }

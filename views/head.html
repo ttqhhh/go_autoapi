@@ -49,6 +49,34 @@
             })
         });
     });
+    layui.use(['element', 'jquery',"layer"], function(){
+        var element = layui.element;
+        var $ =layui.$;
+        var layer = layui.layer;
+        element.on('nav(demo)', function(elem){
+            layer.msg(elem.text());
+        });
+        $(function () {
+            var url_id = window.location.pathname + window.location.search
+            $(document.getElementById(url_id)).addClass("layui-this");
+            $.ajax({
+                type: 'GET',
+                dataType:"json",
+                url: "/business/get_user_businesses",
+                async:false,
+                timeout : 500000,
+                success:function (data){
+                    var date = data.data.businesses
+                    var author = data.data.username
+                    $.each(date, function (n, val){
+                        var option1 = '<dd><a href="/inspection/show_cases?business='+val["code"]+'" >'+val["name"]+'</a></dd>'
+                        $("#inspection_business_list").append(option1);
+                        $(".author").text(author)
+                    })
+                }
+            })
+        });
+    });
 </script>
 
 <ul class="layui-nav" style="background-color: #3081FF;">
@@ -59,7 +87,11 @@
         <dl class="layui-nav-child" id="business_list">
         </dl>
     </li>
-
+    <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
+        <a href="javascript:;">巡检用例管理</a>
+        <dl class="layui-nav-child" id="inspection_business_list">
+        </dl>
+    </li>
 <!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
 <!--{{/*    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>*/}}-->
     <li class="layui-nav-item" id="/report/show_run_record"><a href="/report/show_run_record">报告管理</a></li>

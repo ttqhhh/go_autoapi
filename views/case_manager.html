@@ -36,7 +36,6 @@
     <button class="layui-btn layui-bg-blue"  data-type="getCheckData">运行选中测试用例</button>
 </div>
 
-
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
@@ -46,7 +45,50 @@
 
 <script src="/static/layui/layui.js" charset="utf-8"></script>
 <script src="/static/js/public.js" charset="utf-8"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script>
+    // function inspection(obj, id) {
+    //     var newStatus = 1   // 操作的预期状态，默认为打开巡检，1
+    //     $(obj).each(function () {
+    //         var text = $(this).text()
+    //         if (text == "否") {
+    //             newStatus = 0 // 当前状态为是时，操作的预期状态为否，0
+    //         }
+    //     });
+    //     var param = {id: id, is_inspection: newStatus}
+    //     $.ajax({
+    //         url: '/case/set_inspection',
+    //         type: "POST",
+    //         data: JSON.stringify(param),
+    //         contentType: 'application/json;charset=utf-8',
+    //         // dataType: "json",
+    //         success: function (data) {
+    //             var code = data.code
+    //             if (code != 200) {
+    //                 layer.msg(data.msg);
+    //             } else {
+    //                 // layer.msg("操作成功")
+    //                 if (newStatus == 1) {
+    //                     layer.msg("该接口已设为巡检状态")
+    //                 } else {
+    //                     layer.msg("该接口已解除巡检状态")
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
+
+    function inspection(obj, id, target) {
+        if (target == 1) { // 操作的预期状态，1-打开；0-关闭
+            // 弹出配置巡检Case的窗口
+            window.location.href = "/case/show_inspection_case?id=" + id + "&business={{.business}}";
+        } else {
+            // 直接更改巡检Case状态和测试Case关联的巡检Case字段
+            layer.msg("请去「巡检用例管理」页面删除该巡检Case")
+            $(obj).html('<input type="checkbox" lay-skin="switch" lay-text="是|否" lay-filter="ifNullDemo" checked="" disabled=""><div class="layui-unselect layui-form-switch layui-form-onswitch layui-checkbox-disbaled layui-disabled" lay-skin="_switch"><em>是</em><i></i></div>')
+        }
+    }
+
     layui.use(['table','laytpl','form'], function(){
         const table = layui.table;
         var form = layui.form;
@@ -88,6 +130,23 @@
                         return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
                     }},
                 {title: '请求方式', field:'request_method',width:100},
+                {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
+                        // if (d.is_inspection == 1) {
+                        //     return "<div class='layui-input-block'><input type='checkbox' name='switch' lay-skin='switch'></div>"
+                        // } else {
+                        //
+                        // }
+                        // return "<div class='layui-input-block'><input type='checkbox' lay-skin='switch'></div>"
+                        var checked = "";
+                        if (d.is_inspection == 1) {
+                            // checked = "checked";
+                            // return "<div onclick='inspection(this, " + d.id + ")'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
+                            return "<div onclick='inspection(this, " + d.id + ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
+                        } else {
+                            return "<div onclick='inspection(this, " + d.id + ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
+                        }
+                        // return "<input type='checkbox' onclick='inspection()' value=" + d.is_inspection + " lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " />";
+                    }},
                 {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
             ]]
         })
