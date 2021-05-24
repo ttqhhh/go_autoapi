@@ -10,22 +10,23 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
-	"gopkg.in/mgo.v2/bson"
+	"io/ioutil"
 	"sync"
 	"time"
 )
 
 const ONLINE_INSPECTION_EXPRESSION = "0 40 15 * * *"
 
-//const ONLINE_INSPECTION_EXPRESSION = "* */2 * * * *"
-const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=257ff4003ced45fa2e18f230ca72a0f18bee77824f5b1a73981c25e417f19ea6"
+//const ONLINE_INSPECTION_EXPRESSION = "0 */2 * * * *"
+// 「测试效率团队」群web_hook-用来测试
+const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
 func OnlineInspection() error {
 	logs.Info("启动定时任务：Online Inspection")
 	//msgList := make([]string, 5)
 	msgChannel := make(chan string)
 	var msgList []string
-	// todo 起一个协程用于承接msg
+	// 起一个协程用于承接msg
 	go func() {
 		for true {
 			msg := <-msgChannel
@@ -49,14 +50,15 @@ func OnlineInspection() error {
 		}
 
 	}
-	// todo 一次巡检任务，对外发送一次失败消息；以巡检任务维度对外发送，而非服务Case维度
-	dingMsg := "【 线上巡检 】报错啦, 快去排查一下。"
+	// dingMsg中的「线上巡检」为消息关键字，不可变更
+	dingMsg := "小钻风线上巡检发现异样, 快去排查一下吧。\n"
 	for _, msg := range msgList {
 		dingMsg += msg
 	}
 	if len(msgList) > 0 {
 		logs.Info("打印钉钉消息日志：\n" + dingMsg)
-		// todo 只有msgList大于1的时候，才去发送钉钉消息
+		// todo 将此处的发送消息放开
+		//dingSend(dingMsg)
 	}
 	return nil
 }
@@ -144,7 +146,7 @@ func performInspection(businessId int8, serviceId int64, msgChannel chan string)
 				/** 获取对应的业务线名称和服务名称 */
 				//serviceName := serviceMongo.ServiceName
 				//businessName := controllers.GetBusinessNameByCode(int(businessId))
-				msg := fmt.Sprintf("业务线: %s, 服务: %s。 报告链接: http://localhost:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
+				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://localhost:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				//logs.Info(msg)
 				//dingSend(msg)
 				// 将报告错误消息写进channel
@@ -162,7 +164,7 @@ func performInspection(businessId int8, serviceId int64, msgChannel chan string)
 }
 
 type ReqBody struct {
-	at      interface{}
+	//at      interface{}
 	text    interface{}
 	msgtype string
 }
@@ -171,15 +173,27 @@ func dingSend(content string) {
 	req := httplib.Post(XIAO_NENG_QUN).Debug(true)
 	req.Header("Content-Type", "application/json;charset=utf-8")
 	//body := bson.M{"msgtype": "text","text": {"content":"我就是我, 是不一样的烟火"}}
-	body := ReqBody{
-		at:      nil,
-		text:    bson.M{"content": content},
-		msgtype: "text",
-	}
-	req.Body(body)
+	//body := ReqBody{
+	//	at:      nil,
+	//text:    bson.M{"content": content},
+	//msgtype: "text",
+	//}
+	//paramBytes, err := json.Marshal(body)
+	//if err != nil {
+	//    logs.Error("发送钉钉消息接口对参数编码时报错， err: ", err)
+	//	return
+	//}
+	//req.Body(string(paramBytes))
+	//param := "{\"msgtype\": \"text\",\"text\": {\"content\":\"我就是我, 是不一样的烟火\"}}"
+	param := "{\"at\":{\"atMobiles\":[],\"atUserIds\":[],\"isAtAll\":false},\"text\":{\"content\":\"" + content + "\"},\"msgtype\":\"text\"}"
+	req.Body(param)
 	resp, err := req.Response()
 	if err != nil {
 		logs.Error("巡检任务失败时，发送钉钉消息报错，err: ", err)
 	}
-	logs.Info("调用钉钉发送通知接口返回: ", resp)
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logs.Error("读取钉钉响应结果报错， err:", err)
+	}
+	logs.Info("调用钉钉发送通知接口返回: res:", string(res))
 }
