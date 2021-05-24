@@ -15,7 +15,8 @@ import (
 	"time"
 )
 
-const ONLINE_INSPECTION_EXPRESSION = "0 40 15 * * *"
+// 临时性设置每小时跑一次
+const ONLINE_INSPECTION_EXPRESSION = "0 0 * * * *"
 
 //const ONLINE_INSPECTION_EXPRESSION = "0 */2 * * * *"
 // 「测试效率团队」群web_hook-用来测试
