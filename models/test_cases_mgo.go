@@ -171,7 +171,6 @@ func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 // 通过id修改case（全更新）
 
 func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
-	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()

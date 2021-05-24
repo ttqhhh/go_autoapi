@@ -59,6 +59,9 @@ func (c *CaseManageController) updateCaseByID() {
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	acm.Parameter = string(paramByte)
+	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
+	testCaseMongo := acm.GetOneCase(caseId)
+	acm.IsInspection = testCaseMongo.IsInspection
 	acm, err = acm.UpdateCase(caseId, acm)
 	if err != nil {
 		logs.Error("更新Case报错，err: ", err)
