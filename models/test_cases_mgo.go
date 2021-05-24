@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"strconv"
+	"time"
 )
 
 const (
@@ -14,17 +14,24 @@ const (
 	del_   = 1
 )
 
+const (
+	NOT_INSPECTION = iota // 非线上巡检接口
+	INSPECTION            // 线上巡检接口
+)
+
 type TestCaseMongo struct {
-	Id          int64  `form:"id" json:"id" bson:"_id"`
-	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
-	Description string `form:"description" json:"description" bson:"description"`
-	Method      string `form:"method" json:"method" bson:"method"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	Id           int64  `form:"id" json:"id" bson:"_id"`
+	ApiName      string `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName     string `form:"case_name" json:"case_name" bson:"case_name"`
+	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
+	Description  string `form:"description" json:"description" bson:"description"`
+	Method       string `form:"method" json:"method" bson:"method"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
 	//zen
 	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceId     int64  `form:"service_id" json:"service_id" bson:"service_id"`
@@ -62,18 +69,18 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error
 
 //通过id list 获取用例
 
-func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
-	var caseList []TestCaseMongo
-	for _, i := range ids {
-		id64, err := strconv.ParseInt(i, 10, 64)
-		if err != nil {
-			logs.Error("类型转换失败")
-		}
-		acm := t.GetOneCase(id64)
-		caseList = append(caseList, acm)
-	}
-	return caseList
-}
+//func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
+//	var caseList []TestCaseMongo
+//	for _, i := range ids {
+//		id64, err := strconv.ParseInt(i, 10, 64)
+//		if err != nil {
+//			logs.Error("类型转换失败")
+//		}
+//		acm := t.GetOneCase(id64)
+//		caseList = append(caseList, acm)
+//	}
+//	return caseList
+//}
 
 func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string)(result []TestCaseMongo, totalCount int64, err error){
 	ms, c := db_proxy.Connect("auto_api", "case")
@@ -177,6 +184,25 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 	return acm, err
 }
 
+//
+func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	data := bson.M{
+		"$set": bson.M{
+			"is_inspection": is_inspection,
+			"updated_at":    time.Now().Format(Time_format),
+		},
+	}
+	changeInfo, err := db.UpsertId(id, data)
+	if err != nil {
+		logs.Error("设置巡检状态错误: err: ", err)
+	}
+	logs.Info("upsert函数返回的响应为：%v", changeInfo)
+	return err
+}
+
 // 修改status
 
 func (t *TestCaseMongo) DelCase(id int64) {
@@ -225,6 +251,21 @@ func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*
 	err = c.Find(query).All(&result)
 	if err != nil {
 		logs.Error("查询指定服务集合下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
+// 获取指定服务集合下所有Case
+func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
 		return nil, err
 	}
 	return

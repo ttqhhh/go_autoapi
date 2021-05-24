@@ -52,6 +52,20 @@
                 <option value="GET">GET</option>
             </select>
         </div>
+
+<!--        position:absolute 在这里是让input和select在同一位置。-->
+<!--        z-index:2 是为了让input在select上面。-->
+<!--        width:80% 是为了不盖住select后面的小三角符号，select还可以点击。-->
+<!--        autocomplete=“off” 为了不自动填充input框，免得压盖select选项-->
+
+        <div class="layui-input-inline">
+            <input type="text" name="domain" id="HandoverCompany" placeholder="请输入或选择域名" class="layui-input" style="position:absolute;z-index:2;width:83%;" lay-verify="required" value="" onkeyup="search()" autocomplete="off">
+            <select type="text" id="hc_select" lay-filter="hc_select" autocomplete="off" placeholder="移交单位全称" lay-verify="required" class="layui-select" lay-search>
+<!--                <option value="http://api.izuiyou.com/">http://api.izuiyou.com/</option>-->
+<!--                <option value="http://test.izuiyou.com/">http://test.izuiyou.com/</option>-->
+            </select>
+        </div>
+
         <div class="layui-input-inline" style="width: 45%">
             <input type="text" id="api_url" name="api_url" lay-verify="required"
                    placeholder="例:http://api.izuiyou.com/index/recommend" autocomplete="off" class="layui-input">
@@ -61,25 +75,6 @@
 
     </div>
 
-
-<!--    <div class="layui-form-item">-->
-<!--        <label class="layui-form-label">测试环境</label>-->
-<!--        <div class="layui-input-block">-->
-<!--            <input type="radio" name="test_env" value="env1" title="ENV1" checked="">-->
-<!--            <input type="radio" name="test_env" value="env2" title="ENV2">-->
-<!--            <input type="radio" name="mock" value="禁" title="禁用" disabled="">-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <div class="layui-form-item">-->
-<!--        <label class="layui-form-label">mock</label>-->
-<!--        <div class="layui-input-block">-->
-<!--            <input type="radio" name="mock" value="mock1" title="MOCK1" checked="">-->
-<!--            <input type="radio" name="mock" value="mock2" title="MOCK2">-->
-<!--            <input type="radio" name="mock" value="禁" title="禁用" disabled="">-->
-<!--        </div>-->
-<!--    </div>-->
-
     <div class="layui-form-item layui-form-text">
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">请求参数</label>
@@ -88,6 +83,7 @@
                       name="parameter" id="request_param" lay-verify="required"></textarea>
             </div>
         </div>
+
         <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
             <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
         </div>
@@ -178,6 +174,22 @@
             }
         }
 
+        function get_domain_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/case/get_domains?business='+bus,
+                success: function (data) {
+                    $("#hc_select").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["domain_name"]).text(val["domain_name"]);
+                        $("#hc_select").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
         /** 默认加载任务：获取用户下的业务线和其关联的服务； */
         let first_business
         $(function (){
@@ -197,14 +209,26 @@
                     })
                 }
             });
+            /** 默认加载一列服务 **/
             get_service_by_business(first_business)
+            /** 默认加载一列域名 **/
+            get_domain_by_business(first_business)
+
         })
 
-        /** 监听业务select,联动改变service select */
+        /** form 监听事件 */
         form.on('select(business)', function(data) {
             get_service_by_business(data.value)
+            get_domain_by_business(data.value)
+            form.render()
         });
-        form.render()
+
+        form.on('select(hc_select)', function (data) {   //选择移交单位 赋值给input框
+            var select_text = data.elem[data.elem.selectedIndex].text;
+            $("#HandoverCompany").val(select_text );
+            $("#hc_select").next().find("dl").css({ "display": "none" });
+            form.render();
+        });
 
         /** 监听事件 */
 
@@ -212,10 +236,12 @@
         $(document).on('click', '#test', function () {
             const request_param = $("#request_param").val()
             const request_url = $("#api_url").val()
-            if(request_param === "" || request_url === ""){
-                layer.msg("请求地址和请求参数不能为空")
+            var domain = $('#HandoverCompany').val()
+            if(request_param === "" || request_url === "" || domain === ""){
+                layer.msg("请求地址,参数,域名不能为空")
                 return
             }
+            console.log(domain+request_url)
             $.ajax({
                 type: 'POST',
                 contentType: "application/x-www-form-urlencoded",
@@ -224,7 +250,7 @@
                 async: false,
                 timeout: 500000,
                 data: {
-                    "api_url":request_url,
+                    "api_url":domain + request_url,
                     "parameter":request_param
                 },
                 success:function (data){
@@ -370,6 +396,25 @@
             $(this).parent().parent().remove()
             form.render()
         });
+
+        $('#HandoverCompany').bind('input propertychange', function () {
+            var value = $("#HandoverCompany").val();
+            $("#hc_select").val(value);
+            form.render();
+            $("#hc_select").next().find("dl").css({ "display": "block" });
+            var dl = $("#hc_select").next().find("dl").children();
+            var j = -1;
+            for (var i = 0; i < dl.length; i++) {
+                if (dl[i].innerHTML.indexOf(value) <= -1) {
+                    dl[i].style.display = "none";
+                    j++;
+                }
+                if (j == dl.length-1) {
+                    $("#hc_select").next().find("dl").css({ "display": "none" });
+                }
+            }
+        });
+
     });
 </script>
 

@@ -1,0 +1,309 @@
+{{template "head.html" .}}
+
+
+<form class="layui-form" action="" id="test_service" style="display: none">
+    <div class="layui-form-item" id="test_service_list">
+<!--        <div class="layui-input-inline"><input type="checkbox" name="" title="写作" checked></div>-->
+    </div>
+</form>
+
+<div style="margin:1%">
+<div style="text-align:right">
+    <button class="layui-btn open_service_list" >按服务执行用例</button>
+    <button class="layui-btn run_all_case_by_business" >执行当前业务下全部用例</button>
+</div>
+
+<table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+<div class="layui-btn-group demoTable" style="margin-left:47%">
+    <button class="layui-btn layui-bg-blue"  data-type="getCheckData">运行选中测试用例</button>
+</div>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
+{{/*    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script src="/static/layui/layui.js" charset="utf-8"></script>
+<script src="/static/js/public.js" charset="utf-8"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script>
+    // function inspection(obj, id) {
+    //     var newStatus = 1   // 操作的预期状态，默认为打开巡检，1
+    //     $(obj).each(function () {
+    //         var text = $(this).text()
+    //         if (text == "否") {
+    //             newStatus = 0 // 当前状态为是时，操作的预期状态为否，0
+    //         }
+    //     });
+    //     var param = {id: id, is_inspection: newStatus}
+    //     $.ajax({
+    //         url: '/case/set_inspection',
+    //         type: "POST",
+    //         data: JSON.stringify(param),
+    //         contentType: 'application/json;charset=utf-8',
+    //         // dataType: "json",
+    //         success: function (data) {
+    //             var code = data.code
+    //             if (code != 200) {
+    //                 layer.msg(data.msg);
+    //             } else {
+    //                 // layer.msg("操作成功")
+    //                 if (newStatus == 1) {
+    //                     layer.msg("该接口已设为巡检状态")
+    //                 } else {
+    //                     layer.msg("该接口已解除巡检状态")
+    //                 }
+    //             }
+    //         }
+    //     })
+    // }
+
+    layui.use(['table','laytpl','form'], function(){
+        const table = layui.table;
+        var form = layui.form;
+        $ = layui.jquery
+        // 获取service的方法
+        $(function () {
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business={{.business}}',
+                success: function (data) {
+                    var date = data.data
+                    var html = ""
+                    $.each(date, function (n, val) {
+                        const option1 = '<div class="layui-input-inline">' +
+                            '<input type="checkbox" name="service" value='+val["id"]+' title='+val["service_name"]+'></div>';
+                        html = html + option1
+                    })
+                    $("#test_service_list").append(html);
+                    form.render();
+                }
+            })
+        })
+
+        //表格渲染
+        table.render({
+            elem:'#idTest'
+            ,url:'/inspection/get_all_cases?business={{.business}}'
+            ,page:true
+            ,cols:[[
+                {type:"checkbox",fixed:'left'},
+                {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                {title: '业务线', field:'business_name', width:100},
+                {title: '服务名称', field:'service_name', width:150},
+                {title: '用例名称', field:'case_name', width:200},
+                {title: '用例描述', field:'description'},
+                {title: '添加人', field:'author', width:150},
+                {title: '接口数据', field:'api_url',templet:function (d){
+                        return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
+                    }},
+                {title: '请求方式', field:'request_method',width:100},
+                {title: '操作', fixed:"right",toolbar:'#barDemo', width:180},
+            ]]
+        })
+
+        //监听表格复选框选择
+        // table.on('rowDouble(demo)', function(obj){
+        //     var data = obj.data;
+        //     window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+        // });
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'detail'){
+                layer.msg('ID：'+ data.id + ' 的查看操作');
+            } else if(obj.event === 'del'){
+                layer.confirm('真的删除行么', function(index){
+                    // obj.del();
+                    $.ajax({
+                        type: 'POST',
+                        url: "/inspection/del_one_inspection_case",
+                        async:false,
+                        timeout : 500000,
+                        data: {
+                            "id": data.id,
+                        }
+                    });
+                    layer.close(index);
+                    window.location.reload()
+                });
+            } else if(obj.event === 'edit'){
+                window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+            }else if(obj.event === 'copy'){
+                window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+            } else if (obj.event === "run") {
+                var arr = new Array();
+                arr.push(data.id);
+                // alert(arr)
+                var needJump = true;
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json",
+                    dataType: "json",
+                    url: "/auto/perform_inspect_tests",
+                    async: false,
+                    timeout: 500000,
+                    data: JSON.stringify({
+                        "ids": arr,
+                        "type": 2,
+                        "business": parseInt('{{.business}}'),
+                    }),
+                    success: function (data) {
+                        respCode = data.code
+                        if (respCode == -1) {
+                            needJump = false
+                            layer.msg(data.msg)
+                        }
+                    }
+                });
+                if (needJump) {
+                    window.location.href = "/report/show_run_record";
+                }
+            }
+            layui.close(obj);
+        });
+        // 监听表格复选框选中状态，并且执行测试
+        var $ = layui.$, active = {
+            getCheckData: function(){ //获取选中数据
+                var checkStatus = table.checkStatus('idTest'),
+                    data = checkStatus.data,
+                    arr_id = new Array();
+                for(var i = 0;i<data.length;i++){
+                    arr_id.push(data[i].id)
+                }
+                // alert(arr_id)
+                // 提交列表形式的id
+                var needJump = true
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json",
+                    dataType:"json",
+                    url: "/auto/perform_inspect_tests",
+                    async:false,
+                    timeout : 500000,
+                    data: JSON.stringify({
+                        "ids": arr_id,
+                        "business":parseInt('{{.business}}'),
+                        "type":2
+                    }),
+                    success: function (data) {
+                        respCode = data.code
+                        if (respCode == -1) {
+                            needJump = false
+                            layer.msg(data.msg)
+                        }
+                    }
+                })
+                if (needJump) {
+                    window.location.href="/report/show_run_record";
+                }
+            }
+            ,getCheckLength: function(){ //获取选中数目
+                var checkStatus = table.checkStatus('idTest')
+                    ,data = checkStatus.data;
+                layer.msg('选中了：'+ data.length + ' 个');
+            }
+            ,isAll: function(){ //验证是否全选
+                var checkStatus = table.checkStatus('idTest');
+                layer.msg(checkStatus.isAll ? '全选': '未全选')
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        $(document).on("click",".add_case", function (){
+           window.location.href= "/case/show_add_case"
+        });
+
+        let needJump = true
+        $(document).on("click", ".open_service_list" , function (){
+            layer.open({
+                type: 1 //此处以iframe举例
+                ,title: '选择服务'
+                ,area: ['600px', '400px']
+                ,shade: 0
+                ,maxmin: true
+                ,offset: "rt"
+                ,content: $("#test_service")
+                ,btn: ['执行'] //只是为了演示
+                ,yes: function (){
+                    var arr_box = [];
+                    $('input[type=checkbox]:checked').each(function() {
+                        arr_box.push(parseInt($(this).val()));
+                    });
+                    $.ajax({
+                        type: 'POST',
+                        contentType: "application/json",
+                        dataType:"json",
+                        url: "/auto/perform_inspect_tests",
+                        async:false,
+                        timeout : 500000,
+                        data: JSON.stringify({
+                            "business":parseInt('{{.business}}'),
+                            "serviceIds":arr_box,
+                            "type":1
+                        }),
+                        success: function (data) {
+                            respCode = data.code
+                            if (respCode == -1) {
+                                needJump = false
+                                layer.msg(data.msg)
+                            }
+                        }
+                    });
+                    if (needJump) {
+                        window.location.href="/report/show_run_record";
+                    }
+                }
+                ,success: function(layero){
+                    layer.setTop(layero); //重点2
+                }
+            });
+        });
+
+        $(document).on("click", ".run_all_case_by_business", function (){
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json",
+                dataType:"json",
+                url: "/auto/perform_inspect_tests",
+                async:false,
+                timeout : 500000,
+                data: JSON.stringify({
+                    "business":parseInt('{{.business}}'),
+                    "type":0
+                }),
+                success: function (data) {
+                    respCode = data.code
+                    if (respCode == -1) {
+                        needJump = false
+                        layer.msg(data.msg)
+                    }
+                }
+            });
+            if (needJump) {
+                window.location.href="/report/show_run_record";
+            }
+        });
+
+        $(document).on("click", ".inspection_online", function (){
+            window.location.href = '/inspection/show_cases?business=?business={{.business}}';
+        });
+
+    });
+</script>
+</div>
+</body>
+</html>
+
+<style>
+    .layui-table-grid-down {
+        display: none;
+    }
+</style>
