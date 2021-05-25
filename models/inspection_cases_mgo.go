@@ -77,12 +77,21 @@ func (t *InspectionCaseMongo) GetCasesByQuery(query interface{}) (InspectionCase
 //}
 
 // 获取指定业务线下的指定页面case
-func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string) (result []InspectionCaseMongo, totalCount int64, err error) {
+func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string, serviceId int64, uri string, strategy int64) (result []InspectionCaseMongo, totalCount int64, err error) {
 	//acm := TestCaseMongo{}
 	//result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
+	if serviceId != 0 {
+		query["service_id"] = serviceId
+	}
+	if uri != "" {
+		query["api_url"] = bson.M{"$regex": uri}
+	}
+	if strategy != 0 {
+		query["strategy"] = strategy
+	}
 	// 获取指定业务线下全部case列表
 	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
 	//err := c.Find(bson.M{"api_name":"api_name"}).One(&acm)
