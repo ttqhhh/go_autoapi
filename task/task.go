@@ -6,8 +6,8 @@ import (
 	"go_autoapi/task/inspection_strategy"
 )
 
-// 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_INSPECTION_TASK = false
+// 是否开启线上巡检任务(线上环境开启、测试环境关闭)
+const IS_OPEN_INSPECTION_TASK = true
 
 func init() {
 	// new一个线上巡检的定时任务定时任务
