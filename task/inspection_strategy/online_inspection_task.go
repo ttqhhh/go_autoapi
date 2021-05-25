@@ -22,8 +22,8 @@ import (
 // 「测试效率团队」群web_hook-用来测试
 const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
-// todo 临时关闭状态，上线or正常使用时，需要设为true进行开启
-const IS_OPEN_SENDDING_MSG = false
+// todo 上线or正常使用时，需要设为true进行开启
+const IS_OPEN_SENDDING_MSG = true
 
 //func OnlineInspection() error {
 //	logs.Info("启动定时任务：Online Inspection")
