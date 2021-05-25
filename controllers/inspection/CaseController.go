@@ -139,7 +139,11 @@ func (c *CaseController) GetAllCases() {
 	business := c.GetString("business")
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
-	result, count, err := acm.GetAllCases(page, limit, business)
+	serviceId, _ := c.GetInt64("serviceId", 0)
+	uri := c.GetString("uri", "")
+	strategy, _ := c.GetInt64("strategy", 0)
+
+	result, count, err := acm.GetAllCases(page, limit, business, serviceId, uri, strategy)
 	if err != nil {
 		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
