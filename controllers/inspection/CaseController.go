@@ -17,6 +17,62 @@ type CaseController struct {
 	libs.BaseController
 }
 
+// 巡检策略常量集合，以分钟为基础单位
+const (
+	FIVE_MIN_CODE    = 5
+	TEN_MIN_CODE     = 10
+	ONE_QUARTER_CODE = 15
+	HALF_HOUR_CODE   = 30
+	ONE_HOUR_CODE    = 60
+	SIX_HOUR_CODE    = 360
+	HALF_DAY_CODE    = 720
+	ONE_DAY_CODE     = 1440
+)
+
+const (
+	FIVE_MIN    = "5分钟"
+	TEN_MIN     = "10分钟"
+	ONE_QUARTER = "15分钟"
+	HALF_HOUR   = "30分钟"
+	ONE_HOUR    = "1小时"
+	SIX_HOUR    = "6小时"
+	HALF_DAY    = "12小时"
+	ONE_DAY     = "24小时"
+)
+
+const (
+	FIVE_MIN_EXPRESSION    = "0 0/5 * * * *"
+	TEN_MIN_EXPRESSION     = "0 0/10 * * * *"
+	ONE_QUARTER_EXPRESSION = "0 0/15 * * * *"
+	HALF_HOUR_EXPRESSION   = "0 0/30 * * * *"
+	ONE_HOUR_EXPRESSION    = "0 0 * * * *"
+	SIX_HOUR_EXPRESSION    = "0 0 0/6 * * *"
+	HALF_DAY_EXPRESSION    = "0 0 0/12 * * *"
+	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
+)
+
+var StrategyCode2Name = map[int]string{
+	FIVE_MIN_CODE:    FIVE_MIN,
+	TEN_MIN_CODE:     TEN_MIN,
+	ONE_QUARTER_CODE: ONE_QUARTER,
+	HALF_HOUR_CODE:   HALF_HOUR,
+	ONE_HOUR_CODE:    ONE_HOUR,
+	SIX_HOUR_CODE:    SIX_HOUR,
+	HALF_DAY_CODE:    HALF_DAY,
+	ONE_DAY_CODE:     ONE_DAY,
+}
+
+var StrategyCode2Expression = map[int]string{
+	FIVE_MIN_CODE:    FIVE_MIN_EXPRESSION,
+	TEN_MIN_CODE:     TEN_MIN_EXPRESSION,
+	ONE_QUARTER_CODE: ONE_QUARTER_EXPRESSION,
+	HALF_HOUR_CODE:   HALF_HOUR_EXPRESSION,
+	ONE_HOUR_CODE:    ONE_HOUR_EXPRESSION,
+	SIX_HOUR_CODE:    SIX_HOUR_EXPRESSION,
+	HALF_DAY_CODE:    HALF_DAY_EXPRESSION,
+	ONE_DAY_CODE:     ONE_DAY_EXPRESSION,
+}
+
 func (c *CaseController) Get() {
 	do := c.GetMethodName()
 	switch do {
@@ -36,6 +92,8 @@ func (c *CaseController) Get() {
 	//	c.GetAllReport()
 	//case "get_domains":
 	//	c.GetDomains()
+	case "get_all_strategy":
+		c.GetAllStrategy()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -181,4 +239,26 @@ func (c *CaseController) DelCaseByID() {
 	}
 	ac.DelCase(caseIDInt)
 	c.SuccessJson(nil)
+}
+
+func (c *CaseController) GetAllStrategy() {
+	var result []map[string]interface{}
+	for key, val := range StrategyCode2Name {
+		temp := make(map[string]interface{})
+		temp["code"] = key
+		temp["name"] = val
+		result = append(result, temp)
+	}
+	for i := 0; i < len(result)-1; i++ {
+		for j := 0; j < len(result)-i-1; j++ {
+			mappingJ := result[j]
+			mappingJNext := result[j+1]
+			if mappingJ["code"].(int) > mappingJNext["code"].(int) {
+				temp := result[j]
+				result[j] = result[j+1]
+				result[j+1] = temp
+			}
+		}
+	}
+	c.SuccessJson(result)
 }

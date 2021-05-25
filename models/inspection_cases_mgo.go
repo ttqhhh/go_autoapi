@@ -21,11 +21,11 @@ const (
 //)
 
 type InspectionCaseMongo struct {
-	Id         int64  `form:"id" json:"id" bson:"_id"`
-	TestCaseId int64  `form:"test_case_id" json:"test_case_id" bson:"test_case_id"`
-	ApiName    string `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName   string `form:"case_name" json:"case_name" bson:"case_name"`
-	//IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
+	Id          int64  `form:"id" json:"id" bson:"_id"`
+	TestCaseId  int64  `form:"test_case_id" json:"test_case_id" bson:"test_case_id"`
+	ApiName     string `form:"api_name" json:"api_name" bson:"api_name"`
+	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
+	Strategy    int64  `form:"strategy" json:"strategy" bson:"strategy"`
 	Description string `form:"description" json:"description" bson:"description"`
 	Method      string `form:"method" json:"method" bson:"method"`
 	CreatedAt   string `json:"created_at"`
@@ -232,6 +232,22 @@ func (t *InspectionCaseMongo) GetAllInspectionCasesByService(serviceId int64) (r
 	}
 	return
 }
+
+// 获取指定服务集合下所有Case
+func (t *InspectionCaseMongo) GetAllInspectionCasesByServiceAndStrategy(serviceId int64, strategy int64) (result []*InspectionCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+
+	query := bson.M{"status": status, "service_id": serviceId, "strategy": strategy}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
 func GetCasesByIds(ids []int64) (acms []*InspectionCaseMongo, err error) {
 	ms, db := db_proxy.Connect(db, inspection_collection)
 	defer ms.Close()

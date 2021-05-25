@@ -1,4 +1,4 @@
-package task
+package inspection_strategy
 
 import (
 	"fmt"
@@ -16,56 +16,59 @@ import (
 )
 
 // 临时性设置每小时跑一次
-const ONLINE_INSPECTION_EXPRESSION = "0 0 * * * *"
+//const ONLINE_INSPECTION_EXPRESSION = "0 0 * * * *"
 
 //const ONLINE_INSPECTION_EXPRESSION = "0 */2 * * * *"
 // 「测试效率团队」群web_hook-用来测试
 const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
-func OnlineInspection() error {
-	logs.Info("启动定时任务：Online Inspection")
-	//msgList := make([]string, 5)
-	msgChannel := make(chan string)
-	var msgList []string
-	// 起一个协程用于承接msg
-	go func() {
-		for true {
-			msg := <-msgChannel
-			msgList = append(msgList, msg)
-		}
-	}()
-	// 获取所以业务线，并进行遍历所有的业务线
-	businesses := controllers.GetAllBusinesses()
-	for _, business := range businesses {
-		// 遍历业务线下的所有所有服务
-		serviceMongo := models.ServiceMongo{}
-		businessId := int8(business["code"].(int))
-		serviceMongos, err := serviceMongo.QueryByBusiness(businessId)
-		if err != nil {
-			logs.Error("执行线上巡检定时任务时，查询指定业务线下的服务时报错， err: ", err)
-			return err
-		}
-		// 遍历服务下边所有的巡检Case
-		for _, service := range serviceMongos {
-			performInspection(businessId, service.Id, msgChannel)
-		}
+// todo 临时关闭状态，上线or正常使用时，需要设为true进行开启
+const IS_OPEN_SENDDING_MSG = false
 
-	}
-	// dingMsg中的「线上巡检」为消息关键字，不可变更
-	dingMsg := "小钻风线上巡检发现异样, 快去排查一下吧。\n"
-	for _, msg := range msgList {
-		dingMsg += msg
-	}
-	if len(msgList) > 0 {
-		logs.Info("打印钉钉消息日志：\n" + dingMsg)
-		// todo 将此处的发送消息放开
-		//dingSend(dingMsg)
-	}
-	return nil
-}
+//func OnlineInspection() error {
+//	logs.Info("启动定时任务：Online Inspection")
+//	//msgList := make([]string, 5)
+//	msgChannel := make(chan string)
+//	var msgList []string
+//	// 起一个协程用于承接msg
+//	go func() {
+//		for true {
+//			msg := <-msgChannel
+//			msgList = append(msgList, msg)
+//		}
+//	}()
+//	// 获取所以业务线，并进行遍历所有的业务线
+//	businesses := controllers.GetAllBusinesses()
+//	for _, business := range businesses {
+//		// 遍历业务线下的所有所有服务
+//		serviceMongo := models.ServiceMongo{}
+//		businessId := int8(business["code"].(int))
+//		serviceMongos, err := serviceMongo.QueryByBusiness(businessId)
+//		if err != nil {
+//			logs.Error("执行线上巡检定时任务时，查询指定业务线下的服务时报错， err: ", err)
+//			return err
+//		}
+//		// 遍历服务下边所有的巡检Case
+//		for _, service := range serviceMongos {
+//			performInspection(businessId, service.Id, msgChannel)
+//		}
+//
+//	}
+//	// dingMsg中的「线上巡检」为消息关键字，不可变更
+//	dingMsg := "小钻风线上巡检发现异样, 快去排查一下吧。\n"
+//	for _, msg := range msgList {
+//		dingMsg += msg
+//	}
+//	if len(msgList) > 0 {
+//		logs.Info("打印钉钉消息日志：\n" + dingMsg)
+//		// todo 将此处的发送消息放开
+//		//dingSend(dingMsg)
+//	}
+//	return nil
+//}
 
 // 执行线上巡检Case
-func performInspection(businessId int8, serviceId int64, msgChannel chan string) (err error) {
+func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, strategy int64) (err error) {
 	userId := "线上巡检"
 	u2 := uuid.NewV4()
 	uuid := u2.String()
@@ -75,7 +78,7 @@ func performInspection(businessId int8, serviceId int64, msgChannel chan string)
 	caseList := []*models.InspectionCaseMongo{}
 
 	// 查询指定服务下所有的Case
-	caseList, err = mongo.GetAllInspectionCasesByService(serviceId)
+	caseList, err = mongo.GetAllInspectionCasesByServiceAndStrategy(serviceId, strategy)
 	if err != nil {
 		logs.Error("获取测试用例列表失败, err: ", err)
 		return
@@ -170,7 +173,7 @@ type ReqBody struct {
 	msgtype string
 }
 
-func dingSend(content string) {
+func DingSend(content string) {
 	req := httplib.Post(XIAO_NENG_QUN).Debug(true)
 	req.Header("Content-Type", "application/json;charset=utf-8")
 	//body := bson.M{"msgtype": "text","text": {"content":"我就是我, 是不一样的烟火"}}
