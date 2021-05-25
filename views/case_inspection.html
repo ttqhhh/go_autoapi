@@ -39,6 +39,14 @@
                            class="layui-input" value={{.a.Author}} >
                 </div>
         </div>
+        <!-- 巡检策略 -->
+        <div class="layui-inline">
+            <label class="layui-form-label">巡检策略</label>
+            <div class="layui-input-block">
+                <select name="strategy" lay-filter="strategy" id="strategy">
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="layui-form-item">
@@ -339,6 +347,29 @@
                             option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
                         }
                         $("#business").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
+            /** 初始化线上巡检策略 */
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/inspection/get_all_strategy",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var strategy = data.data
+                    $.each(strategy, function (n, val) {
+                        let option1;
+                        {{/*if(val["name"] === "{{.a.BusinessName}}"){*/}}
+                        {{/*    first_business = val["code"]*/}}
+                        {{/*    option1 = '<option selected value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}else{*/}}
+                        {{/*    option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}*/}}
+                        option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
+                        $("#strategy").append(option1);
                         form.render('select');
                     })
                 }
