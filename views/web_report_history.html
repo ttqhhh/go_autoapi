@@ -6,27 +6,51 @@
            lay-filter="demo">
         <thead>
         <tr>
-            <th lay-data="{type:'checkbox', fixed: 'left'}"></th>
-            <th lay-data="{field:'Id', width:80, sort: true, fixed: true}">ID</th>
-            <th lay-data="{field:'Name'}">项目名称</th>
-            <th lay-data="{field:'Describe'}">质量描述</th>
-            <th lay-data="{field:'Xmyl'}">遗留问题</th>
-            <th lay-data="{field:'Jszb'}">技术指标</th>
-            <th lay-data="{field:'Fx'}">发布风险及灰度计划</th>
-            <th lay-data="{field:'Zb'}">具体质量指标</th>
-            <th lay-data="{field:'Sm'}">其他说明</th>
+            <th lay-data="{field:'Id', width:250, align:'center', fixed: true}">ID</th>
+            <th lay-data="{field:'Name', align:'center'}">报告名称</th>
+            <th lay-data="{fixed: 'right', width:250, align:'center', toolbar: '#barDemo'}">操作</th>
+<!--            <th lay-data="{field:'Describe'}">质量说明</th>-->
+<!--            <th lay-data="{field:'Xmyl'}">项目遗留问题</th>-->
+<!--            <th lay-data="{field:'Jszb'}">技术指标</th>-->
+<!--            <th lay-data="{field:'Fx'}">发布风险及灰度计划</th>-->
+<!--            <th lay-data="{field:'Zb'}">具体质量指标</th>-->
+<!--            <th lay-data="{field:'Sm'}">其他说明</th>-->
         </tr>
         </thead>
     </table>
     <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="detail">详情</a>
+    </script>
     <script type="text/javascript">
         const  showreport = () => {
             // window.open('/web_report/queryAll1')
             window.location.href = '/web_report/show_web_report'
         }
+        layui.use('table', function () {
+            var table = layui.table;
 
-
+            //监听表格复选框选择
+            table.on('checkbox(demo)', function (obj) {
+                console.log(obj)
+            });
+            //监听工具条
+            table.on('tool(demo)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'detail') {
+                    // layer.msg('ID：'+ data.id + ' 的查看操作');
+                    layer.open({
+                        title: "详情",
+                        type: 2,
+                        // content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                        content: "/web_report/queryId?id=" + data.Id,
+                        area: ['1600px', '800px']
+                    });                }
+            });
+        })
     </script>
+
+
 </div>
 </body>
 </html>

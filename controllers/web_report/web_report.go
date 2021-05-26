@@ -18,14 +18,15 @@ type WebreportController struct {
 }
 
 type DataSt struct {
-	Id       string `form:"-"`
-	Name     string `form:"name"`
-	Describe string `form:"describe"`
-	Xmyl     string `form:"xmyl"`
-	Jszb     string `form:"jszb"`
-	Fx       string `form:"fx"`
-	Zb       string `form:"zb"`
-	Sm       string `form:"sm"`
+	Id        string `form:"-"`
+	Name      string `form:"name"`
+	Describe  string `form:"describe"`
+	Xmyl      string `form:"xmyl"`
+	Jszb      string `form:"jszb"`
+	Fx        string `form:"fx"`
+	Zb        string `form:"zb"`
+	Sm        string `form:"sm"`
+	Recipient string `form:"recipient"`
 }
 
 func (c *WebreportController) Get() {
@@ -37,6 +38,8 @@ func (c *WebreportController) Get() {
 		c.AllWebReport()
 	case "query":
 		c.Query()
+	case "queryId":
+		c.Queryid()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持呀", nil)
@@ -65,6 +68,28 @@ func (c *WebreportController) ShowWebReport() {
 
 func (c *WebreportController) AllWebReport() {
 	c.TplName = "web_report_history.html"
+}
+
+func (c *WebreportController) Queryid() {
+	db := GetLink()
+	defer db.Close()
+	id, _ := c.GetInt64("id")
+	println(id)
+	results, err := db.Query("select * from project where id = ?", id)
+	var ary []DataSt
+	for results.Next() {
+		var Project DataSt
+		err = results.Scan(&Project.Id, &Project.Name, &Project.Describe, &Project.Xmyl, &Project.Jszb, &Project.Sm, &Project.Fx, &Project.Zb)
+		//err = results.Scan(&Project)
+		if err != nil {
+			panic(err.Error())
+		}
+		ary = append(ary, Project)
+	}
+	//c.FormSuccessJson(1, ary)
+	c.TplName = "web_report_detail.html"
+	res := ary[0]
+	c.Data["data"] = res
 }
 
 func (c *WebreportController) Query() {
@@ -149,69 +174,57 @@ func SendEmail(n DataSt) {
 	user := "sunzhiying2014@xiaochuankeji.cn"
 	password := "Szy0204."
 	host := "smtp.exmail.qq.com:25"
-	//to := "1146779672@qq.com;mazhimin.sir@foxmail.com"
-	to := "fengmanlong2014@xiaochuankeji.cn;xueyibing2014@xiaochuankeji.cn;sunzhiying2014@xiaochuankeji.cn"
+	to := n.Recipient
+	//to := "fengmanlong2014@xiaochuankeji.cn;xueyibing2014@xiaochuankeji.cn;sunzhiying2014@xiaochuankeji.cn"
 
 	subject := "辛苦查收测试报告"
 
 	body := `
 		<html>
+		<head>
+			<style type="text/css">
+        	table {
+            	width: 50%;border-top: 0px solid #000;border-left: 0px solid #000;border-spacing: 0;
+       		 }
+        	table td {
+            	border-bottom: 0px solid #000; border-right: 0px solid #000;
+       		 }
+   		 </style>
+		</head>
 		<body>
-		<h3>
-		测试报告
-		</h3>
- <div style="margin:0 auto; margin-top: 50px;">
-        <div class="layui-form-item">
-            <label class="layui-form-label">项目名称</label>
-            <div class="layui-input-block">
-                <input  type="text" readonly autocomplete="off" value="` + n.Name + `" class="layui-input" style="width: 300px">
-            </div>
-        </div>
+			<h3>
+			测试报告
+			</h3>
+			<table border="1" >
+    			<tr>
+       			 	<td colspan="2" style="border-right:#000000 solid 0px;text-align: center">` + n.Name + `—测试报告</td>
+				</tr>
+				<tr>
+					 <td >质量说明</td>
+        			<td>` + n.Describe + `</td>
+				</tr>
+				<tr>
+        			<td >项目遗留问题</td>
+        		<td>` + n.Xmyl + `</td>
+    			</tr>
+    			<tr>
+        			<td >技术指标</td>
+        		<td>` + n.Jszb + `</td>
+    			</tr>
+    			<tr>
+        		<td >发布风险及灰度计划</td>
+        			<td>` + n.Fx + `</td>
+    			</tr>
+    			<tr>
+        			<td >具体质量指标</td>
+        			<td>` + n.Zb + `</td>
+    			</tr>
+    			<tr>
+        			<td>其他说明</td>
+        			<td>` + n.Sm + `</td>
+    			</tr>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">质量描述</label>
-            <div class="layui-input-block" style="width:70%">
-            	<textarea rows="6" cols="50" readonly type="text" id="describe" name="describe">"` + n.Describe + `"</textarea>
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">遗留问题</label>
-            <div class="layui-input-block" style="width: 70%">
-            	<textarea rows="6" cols="50" readonly  type="text" id="describe" name="describe" >"` + n.Xmyl + `"</textarea>
-			</div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">技术指标</label>
-            <div class="layui-input-block" style="width: 70%;">
-            	<textarea rows="6" cols="50" readonly  type="text" id="describe" name="describe" >"` + n.Jszb + `"</textarea>
-			</div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">发布风险及灰度计划</label>
-            <div class="layui-input-block" style="width: 70%">
-				<textarea rows="6" cols="50" readonly  type="text" id="describe" name="describe">"` + n.Fx + `"</textarea>
-
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">具体质量指标</label>
-            <div class="layui-input-block" style="width: 70%">
-            	<textarea rows="6" cols="50" readonly  type="text" id="describe" name="describe">"` + n.Zb + `" </textarea>
-            </div>
-        </div>
-
-        <div class="layui-form-item">
-            <label class="layui-form-label">其他说明</label>
-            <div class="layui-input-block" style="width: 70%">
-            	<textarea rows="6" cols="50" readonly  type="text" id="describe" name="describe">"` + n.Sm + `"</textarea>
-            </div>
-        </div>
-
-        </div>
+			</table>
 		</body>
 		</html>
 		`
@@ -236,7 +249,7 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
 	}
 
-	msg := []byte("To: " + to + "\r\nFrom: " + user + ">\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
+	msg := []byte("To: " + to + "\r\nFrom: " + "平台发送" + "\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
 	send_to := strings.Split(to, ";")
 	err := smtp.SendMail(host, auth, user, send_to, msg)
 	return err

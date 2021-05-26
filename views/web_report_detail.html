@@ -1,106 +1,112 @@
-{{template "head.html" .}}
-
 <!--<html lang="en">-->
 <head>
-    <meta charset="UTF-8">
-    <title>web_report</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="pragma" content="no-cache">
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="0">
-    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
-    <meta http-equiv="description" content="ajax方式">
-    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <meta charset="utf-8">
+    <title>测试平台</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon"
+          href="https://h5.izuiyou.com/favicon.ico"
+          type="image/x-icon"/>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <style>
+        /*html{*/
+        /*    background: url(//static.ixiaochuan.cn/planck/home_background.81871fe3ab.jpg) no-repeat;*/
+        /*    background-size: 100% 100%;*/
+        /*}*/
+    </style>
+    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
 <body>
 <form class="layui-form layui-form-pane"  style="padding: 1%">
-<div style="margin-left:20%; margin-top: 10px;">
-    <div class="layui-form-item "; style="width: 70%;">
-        <label class="layui-form-label"; style="width:110px";>报告名称</label>
-        <div class="layui-input-block">
-            <input  type="text"  id="name" lay-verify="required" autocomplete="off" placeholder="请输入项目名称" class="layui-input" style="width: 100%">
-        </div>
-    </div>
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">质量说明</label>
-            <div class="layui-input-block" >
-                <textarea placeholder="xx项目Vx.xx版本已于2021年x月y日测试完成，达到发版/上线要求。共发现缺陷x个，已修复y个，遗留x-y个。" style="height: 200px" class="layui-textarea"
-                          id="describe" lay-verify="required"></textarea>
+    <div style="margin-left:20%; margin-top: 10px;">
+        <div class="layui-form-item "; style="width: 70%;">
+            <label class="layui-form-label"; style="width:110px";>报告名称</label>
+            <div class="layui-input-block">
+                <input  type="text"  id="name" lay-verify="required" readonly autocomplete="off" value="{{ .data.Name }}" class="layui-input" style="width: 100%">
             </div>
         </div>
-    </div>
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">项目遗留问题</label>
-            <div class="layui-input-block">
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">质量说明</label>
+                <div class="layui-input-block" >
+                <textarea placeholder="xx项目Vx.xx版本已于2021年x月y日测试完成，达到发版/上线要求。共发现缺陷x个，已修复y个，遗留x-y个。" style="height: 200px" class="layui-textarea"
+                          id="describe" lay-verify="required"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">项目遗留问题</label>
+                <div class="layui-input-block">
                     <textarea placeholder="1.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。
 
 2.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。
 
 3.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。" style="height: 200px" class="layui-textarea"
                               id="xmyl" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">技术指标</label>
-            <div class="layui-input-block">
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">技术指标</label>
+                <div class="layui-input-block">
                         <textarea placeholder="crash率：，往期均值：。
 
 首屏展现时间：，往期均值：。
 
 其他技术指标" style="height: 200px" class="layui-textarea" id="jszb" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">发布风险及灰度计划</label>
-            <div class="layui-input-block" >
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">发布风险及灰度计划</label>
+                <div class="layui-input-block" >
                 <textarea placeholder="发布风险：由于xx问题，可能造成过审风险。灰度计划：ios过审后放量10%。 " style="height: 200px" class="layui-textarea"
                           id="fx" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">具体质量指标</label>
-            <div class="layui-input-block" >
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">具体质量指标</label>
+                <div class="layui-input-block" >
                 <textarea placeholder="业务需求：双端bug数，开发：xx，测试：xx " style="height: 200px" class="layui-textarea"
                           id="zb" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">其他说明</label>
-            <div class="layui-input-block" >
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">其他说明</label>
+                <div class="layui-input-block" >
                 <textarea placeholder="其他备注" style="height: 200px" class="layui-textarea"
                           id="sm" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">接收人</label>
-            <div class="layui-input-block" >
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">接收人</label>
+                <div class="layui-input-block" >
                 <textarea placeholder="格式：xxx2014@xiaochuankeji.cn注多个收件人用;隔开" style="height: 200px" class="layui-textarea"
                           id="recipient" lay-verify="required"></textarea>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </form>
-<div style="width: 100px; margin: 0 auto; padding-bottom: 50px">
-    <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>
-</div>
+<!--<div style="width: 100px; margin: 0 auto; padding-bottom: 50px">-->
+<!--    <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>-->
+<!--</div>-->
 <script type="text/javascript">
     function submit() {
         // 非空校验
