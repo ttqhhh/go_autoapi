@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/prometheus/common/log"
 	"go_autoapi/constants"
+	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
@@ -183,19 +184,22 @@ func (c *CaseController) AddOneCase() {
 	acm.UpdatedAt = now
 	acm.Status = 0
 	business := acm.BusinessCode
-	if business == "0" {
-		acm.BusinessName = "最右"
-	} else if business == "1" {
-		acm.BusinessName = "皮皮"
-	} else if business == "2" {
-		acm.BusinessName = "海外"
-	} else if business == "3" {
-		acm.BusinessName = "中东"
-	} else if business == "4" {
-		acm.BusinessName = "妈妈社区"
-	} else if business == "5" {
-		acm.BusinessName = "商业化"
-	}
+	//if business == "0" {
+	//	acm.BusinessName = "最右"
+	//} else if business == "1" {
+	//	acm.BusinessName = "皮皮"
+	//} else if business == "2" {
+	//	acm.BusinessName = "海外"
+	//} else if business == "3" {
+	//	acm.BusinessName = "中东"
+	//} else if business == "4" {
+	//	acm.BusinessName = "妈妈社区"
+	//} else if business == "5" {
+	//	acm.BusinessName = "商业化"
+	//}
+	businessCode, _ := strconv.Atoi(business)
+	businessName := controllers.GetBusinessNameByCode(businessCode)
+	acm.BusinessName = businessName
 	// 去除请求路径前后的空格
 	apiUrl := acm.ApiUrl
 	acm.ApiUrl = strings.TrimSpace(apiUrl)
