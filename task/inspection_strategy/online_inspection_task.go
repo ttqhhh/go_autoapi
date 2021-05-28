@@ -15,57 +15,11 @@ import (
 	"time"
 )
 
-// 临时性设置每小时跑一次
-//const ONLINE_INSPECTION_EXPRESSION = "0 0 * * * *"
-
-//const ONLINE_INSPECTION_EXPRESSION = "0 */2 * * * *"
 // 「测试效率团队」群web_hook-用来测试
 const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
 // todo 上线or正常使用时，需要设为true进行开启
 const IS_OPEN_SENDDING_MSG = true
-
-//func OnlineInspection() error {
-//	logs.Info("启动定时任务：Online Inspection")
-//	//msgList := make([]string, 5)
-//	msgChannel := make(chan string)
-//	var msgList []string
-//	// 起一个协程用于承接msg
-//	go func() {
-//		for true {
-//			msg := <-msgChannel
-//			msgList = append(msgList, msg)
-//		}
-//	}()
-//	// 获取所以业务线，并进行遍历所有的业务线
-//	businesses := controllers.GetAllBusinesses()
-//	for _, business := range businesses {
-//		// 遍历业务线下的所有所有服务
-//		serviceMongo := models.ServiceMongo{}
-//		businessId := int8(business["code"].(int))
-//		serviceMongos, err := serviceMongo.QueryByBusiness(businessId)
-//		if err != nil {
-//			logs.Error("执行线上巡检定时任务时，查询指定业务线下的服务时报错， err: ", err)
-//			return err
-//		}
-//		// 遍历服务下边所有的巡检Case
-//		for _, service := range serviceMongos {
-//			performInspection(businessId, service.Id, msgChannel)
-//		}
-//
-//	}
-//	// dingMsg中的「线上巡检」为消息关键字，不可变更
-//	dingMsg := "小钻风线上巡检发现异样, 快去排查一下吧。\n"
-//	for _, msg := range msgList {
-//		dingMsg += msg
-//	}
-//	if len(msgList) > 0 {
-//		logs.Info("打印钉钉消息日志：\n" + dingMsg)
-//		// todo 将此处的发送消息放开
-//		//dingSend(dingMsg)
-//	}
-//	return nil
-//}
 
 // 执行线上巡检Case
 func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, strategy int64) (err error) {
@@ -137,7 +91,6 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		}
 		wg.Wait()
 
-		//go func() {
 		autoResult, _ := models.GetResultByRunId(uuid)
 		var isPass int8 = models.SUCCESS
 		// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
@@ -147,12 +100,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
-				/** 获取对应的业务线名称和服务名称 */
-				//serviceName := serviceMongo.ServiceName
-				//businessName := controllers.GetBusinessNameByCode(int(businessId))
 				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://localhost:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
-				//logs.Info(msg)
-				//dingSend(msg)
 				// 将报告错误消息写进channel
 				msgChannel <- msg
 				break
@@ -163,7 +111,6 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		failCount, _ := autoResultMongo.GetFailCount(uuid)
 		runReport.UpdateIsPass(id, isPass, failCount, userId)
 	}()
-	//}()
 	return
 }
 
@@ -176,19 +123,6 @@ type ReqBody struct {
 func DingSend(content string) {
 	req := httplib.Post(XIAO_NENG_QUN).Debug(true)
 	req.Header("Content-Type", "application/json;charset=utf-8")
-	//body := bson.M{"msgtype": "text","text": {"content":"我就是我, 是不一样的烟火"}}
-	//body := ReqBody{
-	//	at:      nil,
-	//text:    bson.M{"content": content},
-	//msgtype: "text",
-	//}
-	//paramBytes, err := json.Marshal(body)
-	//if err != nil {
-	//    logs.Error("发送钉钉消息接口对参数编码时报错， err: ", err)
-	//	return
-	//}
-	//req.Body(string(paramBytes))
-	//param := "{\"msgtype\": \"text\",\"text\": {\"content\":\"我就是我, 是不一样的烟火\"}}"
 	param := "{\"at\":{\"atMobiles\":[],\"atUserIds\":[],\"isAtAll\":false},\"text\":{\"content\":\"" + content + "\"},\"msgtype\":\"text\"}"
 	req.Body(param)
 	resp, err := req.Response()
