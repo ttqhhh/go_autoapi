@@ -171,8 +171,8 @@ func (c *WebreportController) Insert() {
 }
 
 func SendEmail(n DataSt) {
-	user := "sunzhiying2014@xiaochuankeji.cn"
-	password := "Szy0204."
+	user := "noapply2014@xiaochuankeji.cn"
+	password := "X6uQ4R1u"
 	host := "smtp.exmail.qq.com:25"
 	to := n.Recipient
 	//to := "fengmanlong2014@xiaochuankeji.cn;xueyibing2014@xiaochuankeji.cn;sunzhiying2014@xiaochuankeji.cn"
@@ -185,7 +185,7 @@ func SendEmail(n DataSt) {
 <style type="text/css">
     table.gridtable {
         font-family: verdana,arial,sans-serif;
-        width: 50%;
+        width: 70%;
         margin: 0 auto;
         font-size:11px;
         color:#333333;
@@ -278,7 +278,7 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
 	}
 
-	msg := []byte("To: " + to + "\r\nFrom: " + "平台发送" + "\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
+	msg := []byte("To: " + to + "\r\nFrom: " + user + "\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
 	send_to := strings.Split(to, ";")
 	err := smtp.SendMail(host, auth, user, send_to, msg)
 	return err
