@@ -31,8 +31,8 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">质量说明</label>
                 <div class="layui-input-block" >
-                <textarea placeholder="xx项目Vx.xx版本已于2021年x月y日测试完成，达到发版/上线要求。共发现缺陷x个，已修复y个，遗留x-y个。" style="height: 200px" class="layui-textarea"
-                          id="describe" lay-verify="required"></textarea>
+                <textarea style="height: 200px" class="layui-textarea"
+                          id="describe" lay-verify="required">{{ .data.Describe }}</textarea>
                 </div>
             </div>
         </div>
@@ -40,12 +40,8 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">项目遗留问题</label>
                 <div class="layui-input-block">
-                    <textarea placeholder="1.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。
-
-2.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。
-
-3.问题现象：xxx。问题原因：yyyy。修复计划：zzzz。" style="height: 200px" class="layui-textarea"
-                              id="xmyl" lay-verify="required"></textarea>
+                    <textarea style="height: 200px" class="layui-textarea"
+                              id="xmyl" lay-verify="required">{{ .data.Xmyl }}</textarea>
                 </div>
             </div>
         </div>
@@ -54,11 +50,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">技术指标</label>
                 <div class="layui-input-block">
-                        <textarea placeholder="crash率：，往期均值：。
-
-首屏展现时间：，往期均值：。
-
-其他技术指标" style="height: 200px" class="layui-textarea" id="jszb" lay-verify="required"></textarea>
+                        <textarea style="height: 200px" class="layui-textarea" id="jszb" lay-verify="required">{{ .data.Jszb }}</textarea>
                 </div>
             </div>
         </div>
@@ -67,8 +59,8 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">发布风险及灰度计划</label>
                 <div class="layui-input-block" >
-                <textarea placeholder="发布风险：由于xx问题，可能造成过审风险。灰度计划：ios过审后放量10%。 " style="height: 200px" class="layui-textarea"
-                          id="fx" lay-verify="required"></textarea>
+                <textarea style="height: 200px" class="layui-textarea"
+                          id="fx" lay-verify="required">{{ .data.Fx }}</textarea>
                 </div>
             </div>
         </div>
@@ -77,8 +69,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">具体质量指标</label>
                 <div class="layui-input-block" >
-                <textarea placeholder="业务需求：双端bug数，开发：xx，测试：xx " style="height: 200px" class="layui-textarea"
-                          id="zb" lay-verify="required"></textarea>
+                <textarea  style="height: 200px" class="layui-textarea" id="zb" lay-verify="required">{{ .data.Zb }}</textarea>
                 </div>
             </div>
         </div>
@@ -87,8 +78,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">其他说明</label>
                 <div class="layui-input-block" >
-                <textarea placeholder="其他备注" style="height: 200px" class="layui-textarea"
-                          id="sm" lay-verify="required"></textarea>
+                <textarea  style="height: 200px" class="layui-textarea" id="sm" lay-verify="required">{{ .data.Sm }}</textarea>
                 </div>
             </div>
         </div>
@@ -97,8 +87,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">接收人</label>
                 <div class="layui-input-block" >
-                <textarea placeholder="格式：xxx2014@xiaochuankeji.cn注多个收件人用;隔开" style="height: 200px" class="layui-textarea"
-                          id="recipient" lay-verify="required"></textarea>
+                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required">{{ .data.Recipient }}</textarea>
                 </div>
             </div>
         </div>

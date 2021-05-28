@@ -79,7 +79,7 @@ func (c *WebreportController) Queryid() {
 	var ary []DataSt
 	for results.Next() {
 		var Project DataSt
-		err = results.Scan(&Project.Id, &Project.Name, &Project.Describe, &Project.Xmyl, &Project.Jszb, &Project.Sm, &Project.Fx, &Project.Zb)
+		err = results.Scan(&Project.Id, &Project.Name, &Project.Describe, &Project.Xmyl, &Project.Jszb, &Project.Sm, &Project.Fx, &Project.Zb, &Project.Recipient)
 		//err = results.Scan(&Project)
 		if err != nil {
 			panic(err.Error())
@@ -114,7 +114,7 @@ func (c *WebreportController) Query() {
 	var ary []DataSt
 	for results.Next() {
 		var Project DataSt
-		err = results.Scan(&Project.Id, &Project.Name, &Project.Describe, &Project.Xmyl, &Project.Jszb, &Project.Sm, &Project.Fx, &Project.Zb)
+		err = results.Scan(&Project.Id, &Project.Name, &Project.Describe, &Project.Xmyl, &Project.Jszb, &Project.Sm, &Project.Fx, &Project.Zb, &Project.Recipient)
 		//err = results.Scan(&Project)
 		if err != nil {
 			panic(err.Error())
@@ -136,10 +136,10 @@ func (c *WebreportController) Query() {
 }
 
 //插入语句
-func insert(name, desc, xmyl, jszb, fx, sm, zb string) error {
+func insert(name, desc, xmyl, jszb, fx, sm, zb, recipient string) error {
 	db := GetLink()
 	defer db.Close()
-	sql := "INSERT INTO `project`( `name`,`describe`,`xmyl`,`jszb`,`fx`,`sm`,`zb`) VALUES ('" + name + "', '" + desc + "','" + xmyl + "','" + jszb + "','" + fx + "','" + sm + "','" + zb + "');"
+	sql := "INSERT INTO `project`( `name`,`describe`,`xmyl`,`jszb`,`fx`,`sm`,`zb`,`recipient`) VALUES ('" + name + "', '" + desc + "','" + xmyl + "','" + jszb + "','" + fx + "','" + sm + "','" + zb + "','" + recipient + "');"
 	res, err := db.Exec(sql)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -158,7 +158,7 @@ func (c *WebreportController) Insert() {
 	}
 	if len(n.Describe) > 0 && len(n.Name) > 0 {
 		// 插入数据操作
-		insert(n.Name, n.Describe, n.Xmyl, n.Jszb, n.Fx, n.Sm, n.Zb)
+		insert(n.Name, n.Describe, n.Xmyl, n.Jszb, n.Fx, n.Sm, n.Zb, n.Recipient)
 		log.Println("插入成功")
 		// 发送邮件
 		SendEmail(n)
@@ -181,51 +181,80 @@ func SendEmail(n DataSt) {
 
 	body := `
 		<html>
-		<head>
-			<style type="text/css">
-        	table {
-            	width: 50%;border-top: 0px solid #000;border-left: 0px solid #000;border-spacing: 0;
-       		 }
-        	table td {
-            	border-bottom: 0px solid #000; border-right: 0px solid #000;
-       		 }
-   		 </style>
-		</head>
 		<body>
-			<h3>
-			测试报告
-			</h3>
-			<table border="1" >
-    			<tr>
-       			 	<td colspan="2" style="border-right:#000000 solid 0px;text-align: center">` + n.Name + `—测试报告</td>
-				</tr>
-				<tr>
-					 <td >质量说明</td>
-        			<td>` + n.Describe + `</td>
-				</tr>
-				<tr>
-        			<td >项目遗留问题</td>
-        		<td>` + n.Xmyl + `</td>
-    			</tr>
-    			<tr>
-        			<td >技术指标</td>
-        		<td>` + n.Jszb + `</td>
-    			</tr>
-    			<tr>
-        		<td >发布风险及灰度计划</td>
-        			<td>` + n.Fx + `</td>
-    			</tr>
-    			<tr>
-        			<td >具体质量指标</td>
-        			<td>` + n.Zb + `</td>
-    			</tr>
-    			<tr>
-        			<td>其他说明</td>
-        			<td>` + n.Sm + `</td>
-    			</tr>
+<style type="text/css">
+    table.gridtable {
+        font-family: verdana,arial,sans-serif;
+        width: 50%;
+        margin: 0 auto;
+        font-size:11px;
+        color:#333333;
+        border-width: 1px;
+        border-color: #666666;
+        border-collapse: collapse;
+        border-top: #CCCCCC solid 5px;
+        border-left: #CCCCCC solid 5px;
+        border-right: #CCCCCC solid 5px;
+        border-bottom: #CCCCCC solid 5px;
 
-			</table>
-		</body>
+    }
+    table.gridtable th {
+        width: 120px;
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #dedede;
+        border-top: #CCCCCC solid 5px;
+        border-left: #CCCCCC solid 5px;
+        /*border-right: #F3F3F3 solid 5px;*/
+        border-bottom: #CCCCCC solid 5px;
+    }
+    table.gridtable td {
+        border-width: 1px;
+        padding: 8px;
+        border-style: solid;
+        border-color: #666666;
+        background-color: #ffffff;
+        /*border-top: #CCCCCC solid 5px;*/
+        border-left: #CCCCCC solid 5px;
+        /*border-right: #CCCCCC solid 5px;*/
+        /*border-bottom: #F3F3F3 solid 5px;*/
+    }
+</style>
+<table class="gridtable" border="1px">
+    <tr>
+        <td colspan="2" style="border-right:#000000 solid 0px;text-align: center"><font color="red" size="5">` + n.Name + `—测试报告</font></td>
+    </tr>
+    <tr>
+        <th >质量说明</th>
+        <td>` + n.Describe + `</td>
+    </tr>
+    <tr>
+        <th >项目遗留问题</th>
+        <td>` + n.Xmyl + `</td>
+    </tr>
+    <tr>
+        <th >技术指标</th>
+        <td>` + n.Jszb + `</td>
+    </tr>
+    <tr>
+        <th >发布风险及灰度计划</th>
+        <td>` + n.Fx + `</td>
+    </tr>
+    <tr>
+        <th >具体质量指标</th>
+        <td>` + n.Zb + `</td>
+    </tr>
+    <tr>
+        <th>其他说明</th>
+        <td style="border-bottom: #CCCCCC solid 1px;">` + n.Sm + `</td>
+    </tr>
+	<tr>
+        <td colspan="2" style="border-right:#000000 solid 0px;text-align: center">注：本测试报告由测试平台自动发送，不尽事宜联系测试负责人。</td>
+    </tr>
+</table>
+</body>
 		</html>
 		`
 	fmt.Println("send email")
