@@ -288,7 +288,7 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 func GetLink() *sql.DB {
 	// sql.Open的第一个参数是driver名称，第二个参数是driver连接数据库的信息，各个driver可能不同。
 	// DB不是连接，并且只有当需要使用时才会创建连接，如果想立即验证连接，需要用Ping()方法
-	db, err := sql.Open("mysql", "root:@tcp(172.16.2.86:3306)/test")
+	db, err := sql.Open("mysql", "root:@tcp(172.16.2.86:3306)/go_autoapi")
 	if err != nil {
 		fmt.Println(err)
 	}
