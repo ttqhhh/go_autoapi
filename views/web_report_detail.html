@@ -24,15 +24,14 @@
         <div class="layui-form-item "; style="width: 70%;">
             <label class="layui-form-label"; style="width:110px";>报告名称</label>
             <div class="layui-input-block">
-                <input  type="text"  id="name" lay-verify="required" readonly autocomplete="off" value="{{ .data.Name }}" class="layui-input" style="width: 100%">
+                <input  type="text"  id="name" lay-verify="required" readonly autocomplete="off" value="{{ .data.Name }}" readonly class="layui-input" style="width: 100%">
             </div>
         </div>
         <div class="layui-form-item layui-form-text">
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">质量说明</label>
                 <div class="layui-input-block" >
-                <textarea style="height: 200px" class="layui-textarea"
-                          id="describe" lay-verify="required">{{ .data.Describe }}</textarea>
+                <textarea style="height: 200px" class="layui-textarea" id="describe" lay-verify="required" readonly>{{ .data.Describe }}</textarea>
                 </div>
             </div>
         </div>
@@ -40,8 +39,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">项目遗留问题</label>
                 <div class="layui-input-block">
-                    <textarea style="height: 200px" class="layui-textarea"
-                              id="xmyl" lay-verify="required">{{ .data.Xmyl }}</textarea>
+                    <textarea style="height: 200px" class="layui-textarea" id="xmyl" lay-verify="required" readonly>{{ .data.Xmyl }}</textarea>
                 </div>
             </div>
         </div>
@@ -50,7 +48,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">技术指标</label>
                 <div class="layui-input-block">
-                        <textarea style="height: 200px" class="layui-textarea" id="jszb" lay-verify="required">{{ .data.Jszb }}</textarea>
+                        <textarea style="height: 200px" class="layui-textarea" id="jszb" lay-verify="required" readonly>{{ .data.Jszb }}</textarea>
                 </div>
             </div>
         </div>
@@ -60,7 +58,7 @@
                 <label class="layui-form-label">发布风险及灰度计划</label>
                 <div class="layui-input-block" >
                 <textarea style="height: 200px" class="layui-textarea"
-                          id="fx" lay-verify="required">{{ .data.Fx }}</textarea>
+                          id="fx" lay-verify="required" readonly>{{ .data.Fx }}</textarea>
                 </div>
             </div>
         </div>
@@ -69,7 +67,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">具体质量指标</label>
                 <div class="layui-input-block" >
-                <textarea  style="height: 200px" class="layui-textarea" id="zb" lay-verify="required">{{ .data.Zb }}</textarea>
+                <textarea  style="height: 200px" class="layui-textarea" id="zb" lay-verify="required" readonly>{{ .data.Zb }}</textarea>
                 </div>
             </div>
         </div>
@@ -78,7 +76,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">其他说明</label>
                 <div class="layui-input-block" >
-                <textarea  style="height: 200px" class="layui-textarea" id="sm" lay-verify="required">{{ .data.Sm }}</textarea>
+                <textarea  style="height: 200px" class="layui-textarea" id="sm" lay-verify="required" readonly>{{ .data.Sm }}</textarea>
                 </div>
             </div>
         </div>
@@ -87,7 +85,7 @@
             <div class="layui-inline" style="width: 70%;">
                 <label class="layui-form-label">接收人</label>
                 <div class="layui-input-block" >
-                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required">{{ .data.Recipient }}</textarea>
+                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required" readonly>{{ .data.Recipient }}</textarea>
                 </div>
             </div>
         </div>
