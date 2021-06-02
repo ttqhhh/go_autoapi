@@ -160,6 +160,13 @@ func (c *WebreportController) Insert() {
 		// 插入数据操作
 		insert(n.Name, n.Describe, n.Xmyl, n.Jszb, n.Fx, n.Sm, n.Zb, n.Recipient)
 		log.Println("插入成功")
+		n.Describe = strings.Replace(n.Describe, "\n", "</br>", -1)
+		n.Xmyl = strings.Replace(n.Xmyl, "\n", "</br>", -1)
+		n.Jszb = strings.Replace(n.Jszb, "\n", "</br>", -1)
+		n.Fx = strings.Replace(n.Fx, "\n", "</br>", -1)
+		n.Zb = strings.Replace(n.Zb, "\n", "</br>", -1)
+		n.Sm = strings.Replace(n.Sm, "\n", "</br>", -1)
+		n.Recipient = strings.Replace(n.Recipient, "\n", "</br>", -1)
 		// 发送邮件
 		SendEmail(n)
 		//c.Ctx.WriteString(n.Name + ",插入成功！")
@@ -251,7 +258,7 @@ func SendEmail(n DataSt) {
         <td style="border-bottom: #CCCCCC solid 1px;">` + n.Sm + `</td>
     </tr>
 	<tr>
-        <td colspan="2" style="border-right:#000000 solid 0px;text-align: center">注：本测试报告由测试平台自动发送，不尽事宜联系测试负责人。</td>
+        <td colspan="2" style="border-right:#000000 solid 0px;text-align: center;color:#FF0000">注：本测试报告由测试平台自动发送，不尽事宜联系测试负责人。</td>
     </tr>
 </table>
 </body>
@@ -289,6 +296,7 @@ func GetLink() *sql.DB {
 	// sql.Open的第一个参数是driver名称，第二个参数是driver连接数据库的信息，各个driver可能不同。
 	// DB不是连接，并且只有当需要使用时才会创建连接，如果想立即验证连接，需要用Ping()方法
 	db, err := sql.Open("mysql", "root:@tcp(172.16.2.86:3306)/test")
+	//db, err := sql.Open("mysql", "root:12345678@tcp(127.0.0.1:3306)/test")
 	if err != nil {
 		fmt.Println(err)
 	}
