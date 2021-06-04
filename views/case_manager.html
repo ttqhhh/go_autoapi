@@ -131,21 +131,11 @@
                     }},
                 {title: '请求方式', field:'request_method',width:100},
                 {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
-                        // if (d.is_inspection == 1) {
-                        //     return "<div class='layui-input-block'><input type='checkbox' name='switch' lay-skin='switch'></div>"
-                        // } else {
-                        //
-                        // }
-                        // return "<div class='layui-input-block'><input type='checkbox' lay-skin='switch'></div>"
-                        var checked = "";
                         if (d.is_inspection == 1) {
-                            // checked = "checked";
-                            // return "<div onclick='inspection(this, " + d.id + ")'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
                             return "<div onclick='inspection(this, " + d.id + ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
                         } else {
                             return "<div onclick='inspection(this, " + d.id + ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
                         }
-                        // return "<input type='checkbox' onclick='inspection()' value=" + d.is_inspection + " lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' " + checked + " />";
                     }},
                 {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
             ]]
@@ -338,10 +328,6 @@
             let service = $("#search_service option:selected").val()
             if(url === undefined){url = ""}
             if(service === undefined){service = ""}
-            if(url === "" && service  === ""){
-                layer.msg("url或service至少一个不能为空")
-                return
-            }
             table.render({
                 elem:'#idTest'
                 ,url:'/case/search_case?business={{.business}}&url='+url +'&service='+service
@@ -358,6 +344,13 @@
                             return '<div><span title="'+d.api_url+'">'+d.api_url+'</span></div>'
                         }},
                     {title: '请求方式', field:'request_method',width:100},
+                    {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
+                            if (d.is_inspection == 1) {
+                                return "<div onclick='inspection(this, " + d.id + ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked disabled/></div>";
+                            } else {
+                                return "<div onclick='inspection(this, " + d.id + ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
+                            }
+                        }},
                     {title: '操作', fixed:"right",toolbar:'#barDemo', width:250},
                 ]]
             })
