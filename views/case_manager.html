@@ -328,10 +328,6 @@
             let service = $("#search_service option:selected").val()
             if(url === undefined){url = ""}
             if(service === undefined){service = ""}
-            if(url === "" && service  === ""){
-                layer.msg("url或service至少一个不能为空")
-                return
-            }
             table.render({
                 elem:'#idTest'
                 ,url:'/case/search_case?business={{.business}}&url='+url +'&service='+service

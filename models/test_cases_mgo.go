@@ -82,21 +82,23 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error
 //	return caseList
 //}
 
-func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string)(result []TestCaseMongo, totalCount int64, err error){
+func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	var query = bson.M{}
-	if service == "" && url != ""{
+	if service == "" && url != "" {
 		query = bson.M{"status": status,
-					   "business_code": business,
-					   "api_url": bson.M{"$regex": bson.RegEx{Pattern:url, Options: "im"}}}
-	}else if service != "" && url == ""{
-		query = bson.M{"status": status, "business_code": business, "service_name":service}
-	}else if service != "" && url != ""{
+			"business_code": business,
+			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
+	} else if service != "" && url == "" {
+		query = bson.M{"status": status, "business_code": business, "service_name": service}
+	} else if service != "" && url != "" {
 		query = bson.M{"status": status,
-						"business_code": business,
-						"service_name":service,
-						"api_url": bson.M{"$regex": bson.RegEx{Pattern:url, Options: "im"}}}
+			"business_code": business,
+			"service_name":  service,
+			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
+	} else {
+		query = bson.M{"status": status, "business_code": business}
 	}
 	// 获取指定业务线下全部case列表
 	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
