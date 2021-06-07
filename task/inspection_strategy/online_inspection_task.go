@@ -102,7 +102,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
-				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.20.20.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
+				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				// 将报告错误消息写进channel
 				msgChannel <- msg
 				break
