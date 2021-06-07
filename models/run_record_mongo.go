@@ -125,6 +125,8 @@ func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, p
 	if serviceName != "" {
 		query["service_name"] = bson.M{"$regex": serviceName}
 	}
+	// 过滤掉成功的数据
+	query["is_pass"] = FAIL
 	runReportList := []RunReportMongo{}
 	skip := (pageNo - 1) * pageSize
 	err := db.Find(query).Sort("-_id").Skip(skip).Limit(pageSize).All(&runReportList)
