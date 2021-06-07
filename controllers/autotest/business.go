@@ -57,6 +57,10 @@ func GetBusinessNameByCode(code int) string {
 	return businessName
 }
 
+func GetUserBusinessesList(username string) []int {
+	return userBusinessMap[username]
+}
+
 func (c *BusinessController) getUserBusinesses() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 
