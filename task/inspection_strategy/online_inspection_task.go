@@ -71,9 +71,11 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		return
 	}
 
+	wgOuter := sync.WaitGroup{}
+	wgOuter.Add(1)
 	go func() {
-		wg := sync.WaitGroup{}
-		wg.Add(len(caseList))
+		wgInner := sync.WaitGroup{}
+		wgInner.Add(len(caseList))
 		for _, val := range caseList {
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
@@ -86,10 +88,10 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
-				wg.Done()
+				wgInner.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
-		wg.Wait()
+		wgInner.Wait()
 
 		autoResult, _ := models.GetResultByRunId(uuid)
 		var isPass int8 = models.SUCCESS
@@ -100,7 +102,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
-				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://localhost:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
+				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.20.20.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				// 将报告错误消息写进channel
 				msgChannel <- msg
 				break
@@ -110,7 +112,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		autoResultMongo := &models.AutoResult{}
 		failCount, _ := autoResultMongo.GetFailCount(uuid)
 		runReport.UpdateIsPass(id, isPass, failCount, userId)
+		wgOuter.Done()
 	}()
+	wgOuter.Wait()
 	return
 }
 
