@@ -67,12 +67,15 @@ func (c *ServiceController) index() {
 
 // 分页查询
 func (c *ServiceController) page() {
+	// 只能看到自己有权限的服务
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	serviceName := c.GetString("service_name")
-	business, err := c.GetInt8("business", -1)
-	if err != nil {
-		logs.Warn("/service/page接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
+	//business, err := c.GetInt8("business", -1)
+	//if err != nil {
+	//	logs.Warn("/service/page接口 参数异常, err: %v", err)
+	//	c.ErrorJson(-1, "参数异常", nil)
+	//}
+	businessCodeList := GetUserBusinessesList(userId)
 	pageNo, err := c.GetInt("page", 1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
@@ -83,9 +86,9 @@ func (c *ServiceController) page() {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
 		c.ErrorJson(-1, "参数异常", nil)
 	}
-	logs.Info("请求参数: service_name=%v, business=%v, page_no=%v, page_size=%v", serviceName, business, pageNo, pageSize)
+	logs.Info("请求参数: service_name=%v, business=%v, page_no=%v, page_size=%v", serviceName, pageNo, pageSize)
 	serviceMongo := models.ServiceMongo{}
-	services, total, err := serviceMongo.QueryByPage(business, serviceName, pageNo, pageSize)
+	services, total, err := serviceMongo.QueryByPage(businessCodeList, serviceName, pageNo, pageSize)
 	if err != nil {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
