@@ -26,7 +26,7 @@ var userBusinessMap = map[string][]int{
 	"fengmanlong": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
 	"xueyibing":   {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
 	//"liuweiqiang": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"wangzhen": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
+	"wangzhen01": {zuiyou},
 	// 普通用户
 	"wangjun":       {haiwai, zhongdong, mama, haiwaius},
 	"sunzhiying":    {haiwai},
@@ -75,6 +75,9 @@ func GetBusinesses(username string) []map[string]interface{} {
 	businesses, ok := userBusinessMap[username]
 	if !ok {
 		// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
+		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
+	}else{
+		// todo 0609 测试同学现在没有限制了
 		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
 	}
 	for _, v := range businesses {
