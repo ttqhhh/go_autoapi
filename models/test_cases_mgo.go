@@ -164,7 +164,7 @@ func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"api_url":acm.ApiUrl,"domain":acm.Domain,"parameter":acm.Parameter}
+	query := bson.M{"api_url":acm.ApiUrl,"domain":acm.Domain,"parameter":acm.Parameter,"status":0}
 	err := db.Find(query).One(&acm)
 	if err == nil{
 		return errors.New("用例已经存在")
