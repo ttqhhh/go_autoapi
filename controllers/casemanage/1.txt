@@ -1,0 +1,1 @@
+req_body_other: "{"type":"object","title":"empty object","properties":{"pid":{"type":"number","description":"帖子ID","mock":{"mock":"123"}},"folder":{"type":"string","description":"收藏夹名称；为空表示不放入任何收藏夹；不为空，表示放入到收藏夹中，若帖子已在其它收藏夹中，则更新收藏夹。"}}
