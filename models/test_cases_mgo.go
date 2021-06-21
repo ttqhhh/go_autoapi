@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
 	_ "github.com/go-sql-driver/mysql"
@@ -163,7 +164,12 @@ func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	err := db.Insert(acm)
+	query := bson.M{"api_url":acm.ApiUrl,"domain":acm.Domain,"parameter":acm.Parameter}
+	err := db.Find(query).One(&acm)
+	if err == nil{
+		return errors.New("用例已经存在")
+	}
+	err = db.Insert(acm)
 	if err != nil {
 		logs.Error(1024, err)
 	}

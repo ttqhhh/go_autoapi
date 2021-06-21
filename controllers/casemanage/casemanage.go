@@ -62,6 +62,8 @@ func (c *CaseManageController) Post() {
 		c.AddOneDomain()
 	case "set_inspection":
 		c.SetInspection()
+	case "pp_auto_add_one_case":
+		c.PPAutoAddOneCase()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)

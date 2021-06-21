@@ -16,7 +16,7 @@ func (c *CaseManageController) AddOneCase() {
 	now := time.Now().Format(constants.TimeFormat)
 	acm := models.TestCaseMongo{}
 	dom := models.Domain{}
-	if err := c.ParseForm(&acm); err != nil { //传入user指针
+	if err := c.ParseForm(&acm); err != nil { // 传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
 	// 获取域名并确认是否执行
