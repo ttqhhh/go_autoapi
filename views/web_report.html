@@ -13,8 +13,19 @@
     <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
 </head>
 <body>
+<div style="padding-top: 50px; padding-left: 200px; padding-right: 300px">
+    <div style="margin-bottom: 80px">
+        <div style="float: left; margin-left: 50px">
+            <label>收件人：</label>
+            <select id="list_email" class="layui-select layui-btn-lg" lay-verify="required">
+                <option value="">请选择收件人</option>
+            </select>
+        </div>
+    </div>
+</div>
 <form class="layui-form layui-form-pane"  style="padding: 1%">
 <div style="margin-left:20%; margin-top: 10px;">
+
     <div class="layui-form-item "; style="width: 70%;">
         <label class="layui-form-label"; style="width:110px";>报告名称</label>
         <div class="layui-input-block">
@@ -77,15 +88,6 @@
         </div>
     </div>
 
-    <div class="layui-form-item layui-form-text">
-        <div class="layui-inline" style="width: 70%;">
-            <label class="layui-form-label">接收人</label>
-            <div class="layui-input-block" >
-                <textarea placeholder="格式：xxx2014@xiaochuankeji.cn注多个收件人用;隔开" style="height: 200px" class="layui-textarea"
-                          id="recipient" lay-verify="required"></textarea>
-            </div>
-        </div>
-    </div>
     <div style="size:5px;color: #cc0000">
         * 请到自己邮箱查看发送结果~*
     </div>
@@ -95,18 +97,45 @@
     <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>
 </div>
 <script type="text/javascript">
+    emailnameMap = {}
+
+    // 请求真实business下拉框数据
+    function selectInit(domId) {
+        $.ajax({
+            url: "/web_report/queryemail",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                $.each(data.data, function (index, value) {
+                    var option = "<option value='" + value.email_recipient + "'>" + value.email_name + "</option>";
+                    // console.log(option, $("#" + domId))
+                    console.log(value.email_recipient)
+                    // 对列表筛选框select进行option元素追加
+                    $("#" + domId).append(option);
+                    emailnameMap[value.email_recipient] = value.email_name
+                })
+            }
+        })
+    }
+
+    selectInit("list_email");
+
+    //提交时的操作
     function submit() {
+        console.log('?????',$('#list_email')[0].value)
+        // return;
+
         // 非空校验
         if(!$("#name").val()){
-            alert("请输入项目名称");
+            alert("请输入报告名称");
             return;
         }
         if(!$("#describe").val()){
-            alert("请输入项目描述");
+            alert("请输入质量说明");
             return;
         }
         if($("#xmyl").val()==""){
-            alert("请输入遗留问题");
+            alert("请输入项目遗留问题");
             return;
         }
         if($("#jszb").val()==""){
@@ -132,7 +161,8 @@
             fx : $("#fx").val(),
             zb:$("#zb").val(),
             sm:$("#sm").val(),
-            recipient:$("#recipient").val()
+            // recipient:$("#recipient").val()
+            recipient:$('#list_email')[0].value
         }
         $.ajax({
             type: "POST",//方法类型
@@ -145,7 +175,7 @@
                 if (result.code == 0) {
                     alert("SUCCESS");
                 }
-                window.location.href = '/web_report/queryAll'
+                window.location.href = '/web_report/allwebreport'
             },
             error : function() {
                 alert("异常！");

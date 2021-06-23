@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	constant "go_autoapi/constants"
+	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
+	"go_autoapi/models"
 	"log"
 	"net/smtp"
 	"strconv"
@@ -34,12 +37,21 @@ func (c *WebreportController) Get() {
 	switch do {
 	case "show_web_report":
 		c.ShowWebReport()
-	case "queryAll":
+	case "allwebreport":
 		c.AllWebReport()
 	case "query":
 		c.Query()
 	case "queryId":
 		c.Queryid()
+	case "show_email":
+		c.ShowEmail()
+	case "allemail":
+		c.AllEmail()
+	case "queryemail":
+		c.QueryEmail()
+	case "getById":
+		c.getById()
+
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持呀", nil)
@@ -51,10 +63,14 @@ func (c *WebreportController) Post() {
 	switch do {
 	case "submit":
 		c.Insert()
-	case "queryAll":
+	case "queryReport":
 		c.Query()
 	case "query":
 		c.AllWebReport()
+	case "insert_email":
+		c.InsertEmail()
+	case "queryEmail":
+		c.QueryEmail()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -70,6 +86,84 @@ func (c *WebreportController) AllWebReport() {
 	c.TplName = "web_report_history.html"
 }
 
+func (c *WebreportController) AllEmail() {
+	c.TplName = "web_email_history.html"
+}
+
+func (c *WebreportController) ShowEmail() {
+	c.TplName = "web_report_email.html"
+}
+
+//添加邮箱组
+func (c *WebreportController) InsertEmail() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	email := &models.EmailMongo{}
+	err := c.ParseForm(email)
+	if err != nil {
+		logs.Warn("/service/save接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
+	logs.Info("请求参数：%v", email)
+
+	if string(email.Id) == "" || email.Id == -1 || email.Id == 0 {
+		email.CreateBy = userId
+		err = email.Insert(*email)
+		if err != nil {
+			c.ErrorJson(-1, "服务添加数据异常", nil)
+		}
+	} else {
+		email.UpdateBy = userId
+		err = email.Update(*email)
+		if err != nil {
+			c.ErrorJson(-1, "服务更新数据异常", nil)
+		}
+	}
+	c.SuccessJson(nil)
+}
+
+//根据id查询邮箱组
+func (c *WebreportController) getById() {
+	id, err := c.GetInt64("id")
+	if err != nil {
+		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
+	logs.Info("请求参数: id=%v", id)
+	emailMongo := models.EmailMongo{}
+	email, err := emailMongo.QueryById(id)
+	if err != nil {
+		c.ErrorJson(-1, "服务查询数据异常", nil)
+	}
+	c.Data["data"] = email
+	//c.Data["a"] = &email
+	c.TplName = "web_email_detail.html"
+
+	//c.SuccessJson(email)
+}
+
+//查询所有邮箱组信息
+func (c *WebreportController) QueryEmail() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	businessList := []int{}
+	businessMap := controllers.GetBusinesses(userId)
+	for _, business := range businessMap {
+		for k, v := range business {
+			if k == "code" {
+				businessList = append(businessList, v.(int))
+			}
+		}
+	}
+	var rp = models.EmailMongo{}
+	page, _ := strconv.Atoi(c.GetString("page"))
+	limit, _ := strconv.Atoi(c.GetString("limit"))
+	result, count, err := rp.QueryAll(nil, "", page, limit)
+	if err != nil {
+		c.FormErrorJson(-1, "获取报告列表数据失败")
+	}
+	c.FormSuccessJson(count, result)
+}
+
+//根据id查询报告详细信息
 func (c *WebreportController) Queryid() {
 	db := GetLink()
 	defer db.Close()
@@ -92,6 +186,7 @@ func (c *WebreportController) Queryid() {
 	c.Data["data"] = res
 }
 
+//分页查询所有报告
 func (c *WebreportController) Query() {
 	db := GetLink()
 	defer db.Close()
@@ -151,6 +246,7 @@ func insert(name, desc, xmyl, jszb, fx, sm, zb, recipient string) error {
 	return nil
 }
 
+//添加测试报告
 func (c *WebreportController) Insert() {
 	n := DataSt{}
 	if err := c.ParseForm(&n); err != nil { //传入user指针
@@ -160,6 +256,7 @@ func (c *WebreportController) Insert() {
 		// 插入数据操作
 		insert(n.Name, n.Describe, n.Xmyl, n.Jszb, n.Fx, n.Sm, n.Zb, n.Recipient)
 		log.Println("插入成功")
+		//插入成功后把\n换成<br>方便前端发送邮件解析
 		n.Describe = strings.Replace(n.Describe, "\n", "</br>", -1)
 		n.Xmyl = strings.Replace(n.Xmyl, "\n", "</br>", -1)
 		n.Jszb = strings.Replace(n.Jszb, "\n", "</br>", -1)
