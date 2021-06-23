@@ -234,11 +234,12 @@
 
         let obj
         $(document).on('click', '#test', function () {
+            const business = $("#business option:selected").val()
             const request_param = $("#request_param").val()
             const request_url = $("#api_url").val()
             var domain = $('#HandoverCompany').val()
-            if(request_param === "" || request_url === "" || domain === ""){
-                layer.msg("请求地址,参数,域名不能为空")
+            if(business === "" || request_param === "" || request_url === "" || domain === ""){
+                layer.msg("业务线、请求地址、参数、域名不能为空")
                 return
             }
             console.log(domain+request_url)
@@ -250,6 +251,7 @@
                 async: false,
                 timeout: 500000,
                 data: {
+                    "business":business,
                     "api_url":domain + request_url,
                     "parameter":request_param
                 },

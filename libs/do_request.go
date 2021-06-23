@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
+	constant "go_autoapi/constants"
 	"go_autoapi/db_proxy"
 	"go_autoapi/models"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -54,7 +56,7 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap string, method 
 	return resp.StatusCode, string(body), cookieStr
 }
 
-func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []byte, err error) {
+func DoRequestWithNoneVerify(business int, url string, param string) (respStatus int, body []byte, err error) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -66,7 +68,11 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 		"Accept-Encoding": "gzip",
 		"Connection":      "keep-alive",
 		"Accept-Charset":  "utf-8"}
-	//redis? 不知道干嘛的
+	// 当Case所属业务线为麻团时，增加debug请求头
+	if business == constant.Matuan {
+		headers["debug"] = "1"
+	}
+
 	client := &http.Client{}
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
 	v := make(map[string]interface{})
@@ -126,7 +132,15 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		"Accept-Encoding": "gzip",
 		"Connection":      "keep-alive",
 		"Accept-Charset":  "utf-8"}
-	//redis? 不知道干嘛的
+	// 当Case所属业务线为麻团时，增加debug请求头
+	testCaseMongo := models.TestCaseMongo{}
+	testCaseMongo = testCaseMongo.GetOneCase(caseId)
+	businessCode := testCaseMongo.BusinessCode
+	business, _ := strconv.Atoi(businessCode)
+	if business == constant.Matuan {
+		headers["debug"] = "1"
+	}
+
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
 	// 对domain和url进行兼容性拼接
