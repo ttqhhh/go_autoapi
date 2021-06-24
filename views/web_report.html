@@ -80,7 +80,7 @@
     <div style="margin-bottom: 80px">
         <div style="float: left">
             <label>收件人：</label>
-            <select id="list_email" class="layui-select layui-btn-lg" lay-verify="required">
+            <select id="list_email" class="layui-select layui-btn-lg" lay-filter="list_email" lay-verify="required">
                 <option value="">请选择收件人</option>
             </select>
         </div>
@@ -102,19 +102,11 @@
     <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>
 </div>
 <script type="text/javascript">
-
-    function getEmailGroup(){
-        // onsole.log('?????',$('#list_email')[0].value)
-        alert(111111111)
-    }
-
-
     emailnameMap = {}
 
     $(document).ready(function () {
         layui.use('form', function () {
             var form = layui.form;
-            // window.initEmailGroup = function () {
             var domId = "list_email"
             $.ajax({
                 url: "/web_report/queryemail",
@@ -132,17 +124,13 @@
                     })
                 }
             });
-            form.on('select(list_email)', function(data) {
-               alert(111111)
+            // 邮箱组下拉框绑定事件
+            form.on('select(list_email)', function() {
+                var emailGroupContent = $("#list_email").val()
                 form.render()
             });
         });
-
-        // $("#list_email").change(function (){
-        //     alert(111111)
-        // })
     })
-
 
     //提交时的操作
     function submit() {
