@@ -85,6 +85,14 @@
             </select>
         </div>
     </div>
+    <div class="layui-form-item layui-form-text">
+        <div class="layui-inline" style="width: 70%;">
+            <label class="layui-form-label">接收人</label>
+            <div class="layui-input-block" >
+                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required"></textarea>
+            </div>
+        </div>
+    </div>
     <div style="size:5px;color: #cc0000">
         * 请到自己邮箱查看发送结果~*
     </div>
@@ -118,7 +126,10 @@
             });
             // 邮箱组下拉框绑定事件
             form.on('select(list_email)', function() {
-                var emailGroupContent = $("#list_email").val()
+                console.log('?????',$('#list_email')[0].value)
+                var data=$('#list_email')[0].value
+                $('#recipient').val(data)
+                // var options=$(“#test option:selected”); //获取选中的项
                 form.render()
             });
         });
@@ -150,8 +161,8 @@
             alert("请输入发布风险及灰度计划");
             return;
         }
-        if($("#zb").val()==""){
-            alert("请输入具体质量指标");
+        if($("#list_email").val()==""){
+            alert("请选择接收邮箱组");
             return;
         }
 
