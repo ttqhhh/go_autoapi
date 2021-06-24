@@ -1,0 +1,33 @@
+<head>
+    <meta charset="utf-8">
+    <title>测试平台</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon"
+          href="https://h5.izuiyou.com/favicon.ico"
+          type="image/x-icon"/>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+</head>
+<body>
+<form class="layui-form layui-form-pane"  style="padding: 1%; margin: auto">
+    <div style="margin-left: 30%; margin-top: 10px; width: 70%">
+        <div class="layui-form-item "; style="width: 70%;">
+            <label class="layui-form-label"; style="width:110px";>邮箱组名称</label>
+            <div class="layui-input-block">
+                <input  type="text"  id="name" lay-verify="required" readonly autocomplete="off" value="{{ .data.EmailName }}" readonly class="layui-input" style="width: 100%">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">邮箱组成员</label>
+                <div class="layui-input-block" >
+                    <textarea style="height: 200px" class="layui-textarea" id="describe" lay-verify="required" readonly>{{ .data.Emailrecipient }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+</body>
+</html>

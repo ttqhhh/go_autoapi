@@ -10,13 +10,6 @@
           type="image/x-icon"/>
     <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
     <script src="/static/layui/layui.js" charset="utf-8"></script>
-    <style>
-        /*html{*/
-        /*    background: url(//static.ixiaochuan.cn/planck/home_background.81871fe3ab.jpg) no-repeat;*/
-        /*    background-size: 100% 100%;*/
-        /*}*/
-    </style>
-    <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
 <body>
 <form class="layui-form layui-form-pane"  style="padding: 1%">
@@ -91,75 +84,5 @@
         </div>
     </div>
 </form>
-<!--<div style="width: 100px; margin: 0 auto; padding-bottom: 50px">-->
-<!--    <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>-->
-<!--</div>-->
-<script type="text/javascript">
-    function submit() {
-        // 非空校验
-        if(!$("#name").val()){
-            alert("请输入项目名称");
-            return;
-        }
-        if(!$("#describe").val()){
-            alert("请输入项目描述");
-            return;
-        }
-        if($("#xmyl").val()==""){
-            alert("请输入遗留问题");
-            return;
-        }
-        if($("#jszb").val()==""){
-            alert("请输入技术指标");
-            return;
-        }
-        if($("#fx").val()==""){
-            alert("请输入发布风险及灰度计划");
-            return;
-        }
-        if($("#zb").val()==""){
-            alert("请输入具体质量指标");
-            return;
-        }
-
-
-        // 提交输入内容
-        const submitData = {
-            name:$("#name").val(),
-            describe:$("#describe").val(),
-            xmyl:$("#xmyl").val(),
-            jszb:$("#jszb").val(),
-            fx : $("#fx").val(),
-            zb:$("#zb").val(),
-            sm:$("#sm").val(),
-            recipient:$("#recipient").val()
-        }
-        $.ajax({
-            type: "POST",//方法类型
-            dataType: "json",//预期服务器返回的数据类型
-            url: "/web_report/submit" ,//url
-            // data: $('#form1').serialize(),
-            data:submitData,
-            success: function (result) {
-                console.log(result);//打印服务端返回的数据(调试用)
-                if (result.code == 0) {
-                    alert("SUCCESS");
-                }
-                window.location.href = '/web_report/queryAll'
-            },
-            error : function() {
-                alert("异常！");
-            }
-        });
-
-    }
-    //定义跳转历史报告页面
-    const  query = () => {
-        // window.open('/web_report/queryAll1')
-        window.location.href = '/web_report/queryAll'
-    }
-</script>
-
-
 </body>
 </html>
