@@ -40,14 +40,36 @@ xxx2014@xiaochuankeji.cn;" style="height: 200px" class="layui-textarea"
     <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">保存</button>
 </div>
 <script type="text/javascript">
+    function verifyEmail(emailStr) {
+        emailStr = emailStr.replace(/\r\n/g,'').replace(/\n/g,'').replace(/\s/g,'');
+        const emails = emailStr.split(';');
+        console.log('????email',emails);
+        var success = true
+        emails.map((email,index) => {
+            const reg = /[a-zA-Z0-9]{1,100}2014\@xiaochuankeji\.cn/g;
+            if(email && !reg.test(email)) {
+                success = false
+                alert(`你输入的第${index+1}个邮箱格式不对`)
+                return;
+            }
+        })
+        console.log('邮箱校验结果',success?'success':'fail')
+        return success
+    }
     function submit() {
         // 非空校验
         if(!$("#email_name").val()){
             alert("请输入邮箱组名称");
             return;
         }
+
         if($("#email_recipient").val()==""){
+
             alert("邮箱格式错误，请检查！");
+            return;
+        }
+        //校验邮箱格式
+        if(!verifyEmail($("#email_recipient").val())) {
             return;
         }
 

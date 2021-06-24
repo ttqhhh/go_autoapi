@@ -85,6 +85,14 @@
             </select>
         </div>
     </div>
+    <div class="layui-form-item layui-form-text">
+        <div class="layui-inline" style="width: 70%;">
+            <label class="layui-form-label">接收人</label>
+            <div class="layui-input-block" >
+                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required"></textarea>
+            </div>
+        </div>
+    </div>
     <div style="size:5px;color: #cc0000">
         * 请到自己邮箱查看发送结果~*
     </div>
@@ -94,6 +102,13 @@
     <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>
 </div>
 <script type="text/javascript">
+
+    function getEmailGroup(){
+        // onsole.log('?????',$('#list_email')[0].value)
+        alert(111111111)
+    }
+
+
     emailnameMap = {}
 
     $(document).ready(function () {
@@ -116,9 +131,18 @@
                         form.render();
                     })
                 }
-            })
+            });
+            form.on('select(list_email)', function(data) {
+               alert(111111)
+                form.render()
+            });
         });
+
+        // $("#list_email").change(function (){
+        //     alert(111111)
+        // })
     })
+
 
     //提交时的操作
     function submit() {
@@ -146,8 +170,8 @@
             alert("请输入发布风险及灰度计划");
             return;
         }
-        if($("#zb").val()==""){
-            alert("请输入具体质量指标");
+        if($("#list_email").val()==""){
+            alert("请选择接收邮箱组");
             return;
         }
 

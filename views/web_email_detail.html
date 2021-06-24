@@ -11,23 +11,64 @@
     <script src="/static/layui/layui.js" charset="utf-8"></script>
 </head>
 <body>
-<form class="layui-form layui-form-pane"  style="padding: 1%; margin: auto">
-    <div style="margin-left: 30%; margin-top: 10px; width: 70%">
-        <div class="layui-form-item "; style="width: 70%;">
+<form class="layui-form layui-form-pane"  style="padding: 1%; margin: 0 auto;width:400px;">
+    <div style="margin: 0 auto; margin-top: 10px; ">
+        <div class="layui-form-item "; style="width: 100%;">
             <label class="layui-form-label"; style="width:110px";>邮箱组名称</label>
             <div class="layui-input-block">
-                <input  type="text"  id="name" lay-verify="required" readonly autocomplete="off" value="{{ .data.EmailName }}" readonly class="layui-input" style="width: 100%">
+                <input  type="text"  id="name" lay-verify="required" autocomplete="off" value="{{ .data.EmailName }}"class="layui-input" style="width: 100%">
             </div>
         </div>
         <div class="layui-form-item layui-form-text">
-            <div class="layui-inline" style="width: 70%;">
+            <div class="layui-inline" style="width: 100%;">
                 <label class="layui-form-label">邮箱组成员</label>
                 <div class="layui-input-block" >
-                    <textarea style="height: 200px" class="layui-textarea" id="describe" lay-verify="required" readonly>{{ .data.Emailrecipient }}</textarea>
+                    <textarea style="height: 200px" class="layui-textarea" id="describe" lay-verify="required" >{{ .data.Emailrecipient }}</textarea>
                 </div>
+                <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="save()">保存</button>
             </div>
         </div>
     </div>
 </form>
+
+<script type="text/javascript">
+    function save(){
+        // 非空校验
+        // if(!$("#email_name").val()){
+        //     alert("请输入邮箱组名称");
+        //     return;
+        // }
+        // if($("#email_recipient").val()==""){
+        //     alert("邮箱格式错误，请检查！");
+        //     return;
+        // }
+
+        // 提交输入内容
+        const submitData = {
+            email_name:$("#email_name").val(),
+            email_recipient:$("#email_recipient").val()
+        }
+        $.ajax({
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "/web_report/insert_email" ,//url
+            // data: $('#form1').serialize(),
+            data:submitData,
+            success: function (result) {
+                console.log(result);//打印服务端返回的数据(调试用)
+                if (result.code == 0) {
+                    alert("SUCCESS");
+                }
+                // window.location.href = '/web_report/allemail'
+            },
+            yes:() => {
+                console.log('save~')
+            },
+            error : function() {
+                alert("异常！");
+            }
+        });
+    }
+</script>
 </body>
 </html>
