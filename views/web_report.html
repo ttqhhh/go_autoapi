@@ -126,7 +126,10 @@
             });
             // 邮箱组下拉框绑定事件
             form.on('select(list_email)', function() {
-                var emailGroupContent = $("#list_email").val()
+                console.log('?????',$('#list_email')[0].value)
+                var data=$('#list_email')[0].value
+                $('#recipient').val(data)
+                // var options=$(“#test option:selected”); //获取选中的项
                 form.render()
             });
         });
