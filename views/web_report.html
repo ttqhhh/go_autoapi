@@ -80,7 +80,7 @@
     <div style="margin-bottom: 80px">
         <div style="float: left">
             <label>收件人：</label>
-            <select id="list_email" class="layui-select layui-btn-lg" lay-verify="required">
+            <select id="list_email" class="layui-select layui-btn-lg" lay-filter="list_email" lay-verify="required">
                 <option value="">请选择收件人</option>
             </select>
         </div>
@@ -99,7 +99,6 @@
     $(document).ready(function () {
         layui.use('form', function () {
             var form = layui.form;
-            // window.initEmailGroup = function () {
             var domId = "list_email"
             $.ajax({
                 url: "/web_report/queryemail",
@@ -116,7 +115,12 @@
                         form.render();
                     })
                 }
-            })
+            });
+            // 邮箱组下拉框绑定事件
+            form.on('select(list_email)', function() {
+                var emailGroupContent = $("#list_email").val()
+                form.render()
+            });
         });
     })
 
