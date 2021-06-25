@@ -81,8 +81,8 @@ func (c *CaseController) Get() {
 		c.ShowCases()
 	//case "show_add_case":
 	//	c.ShowAddCase()
-	//case "show_edit_case":
-	//	c.ShowEditCase()
+	case "show_edit_case":
+		c.ShowEditCase()
 	//case "show_copy_case":
 	//	c.ShowCopyCase()
 	case "get_all_cases":
@@ -106,8 +106,8 @@ func (c *CaseController) Post() {
 	switch do {
 	//case "get_one_case":
 	//	c.GetCasesByQuery()
-	//case "update_one_case":
-	//	c.updateCaseByID()
+	case "update_one_case":
+		c.updateCaseByID()
 	case "add_one_case":
 		c.AddOneCase()
 	case "del_one_inspection_case":
@@ -126,6 +126,74 @@ func (c *CaseController) Post() {
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
 	}
+}
+func (c *CaseController) updateCaseByID() {
+	icm := models.InspectionCaseMongo{}
+	dom := models.Domain{}
+	if err := c.ParseForm(&icm); err != nil { //传入user指针
+		c.Ctx.WriteString("出错了！")
+	}
+	// 获取域名并确认是否执行
+	dom.Author = icm.Author
+	intBus, _ := strconv.Atoi(icm.BusinessCode)
+	dom.Business = int8(intBus)
+	dom.DomainName = icm.Domain
+	if err := dom.DomainInsert(dom); err != nil {
+		logs.Error("添加case的时候 domain 插入失败")
+	}
+	// todo service_id 和 service_name 在一起,需要分割后赋值
+	arr := strings.Split(icm.ServiceName, ";")
+	icm.ServiceName = arr[1]
+	id64, _ := strconv.ParseInt(arr[0], 10, 64)
+	icm.ServiceId = id64
+	caseId := icm.Id
+	business := icm.BusinessCode
+	//strategy := icm.Strategy
+	businessCode, _ := strconv.Atoi(business)
+	businessName := controllers.GetBusinessNameByCode(businessCode)
+	icm.BusinessName = businessName
+	// 去除请求路径前后的空格
+	apiUrl := icm.ApiUrl
+	icm.ApiUrl = strings.TrimSpace(apiUrl)
+	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	param := icm.Parameter
+	v := make(map[string]interface{})
+	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	if err != nil {
+		logs.Error("发送冒烟请求前，解码json报错，err：", err)
+		return
+	}
+	paramByte, err := json.Marshal(v)
+	if err != nil {
+		logs.Error("更新Case时，处理请求json报错， err:", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	icm.Parameter = string(paramByte)
+	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
+	//InspectionCaseMongo := icm.GetOneCase(caseId)
+	//icm.IsInspection = InspectionCaseMongo.IsInspection
+	icm, err = icm.UpdateCase(caseId, icm)
+	if err != nil {
+		logs.Error("更新Case报错，err: ", err)
+		c.ErrorJson(-1, "请求错误", nil)
+	}
+	//c.SuccessJson("更新成功")
+	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+}
+
+func (c *CaseController) ShowEditCase() {
+	id := c.GetString("id")
+	//business := c.GetString("business")
+	//services := GetServiceList(business)
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		logs.Error("转换类型错误")
+	}
+	acm := models.InspectionCaseMongo{}
+	res := acm.GetOneCase(idInt)
+	c.Data["a"] = &res
+	//c.Data["services"] = services
+	c.TplName = "inspection_case_edit.html"
 }
 
 /** 跳转到巡检Case列表页 */
