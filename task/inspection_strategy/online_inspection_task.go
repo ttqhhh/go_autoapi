@@ -2,15 +2,14 @@ package inspection_strategy
 
 import (
 	"fmt"
-	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/blinkbean/dingtalk"
 	uuid "github.com/satori/go.uuid"
 	constant "go_autoapi/constants"
 	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
-	"io/ioutil"
 	"sync"
 	"time"
 )
@@ -86,7 +85,16 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+				// 当巡检用例执行失败时，再进行2次补偿重试
+				retryTimes := 0
+				isContinue := true
+				for isContinue {
+					isOk := libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+					if retryTimes >= 2 || isOk {
+						isContinue = false
+					}
+					retryTimes++
+				}
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
@@ -97,19 +105,57 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 
 		autoResult, _ := models.GetResultByRunId(uuid)
 		var isPass int8 = models.SUCCESS
+		//用来盛放同一个Case多次执行的结果
+		case2ResultMap := make(map[int64][]*models.AutoResult)
 		// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
 		for _, result := range autoResult {
 			if result.Result == models.AUTO_RESULT_FAIL {
+				caseId := result.CaseId
+				autoResultList := case2ResultMap[caseId]
+				if autoResultList == nil || len(autoResultList) == 0 {
+					autoResultList = []*models.AutoResult{}
+				}
+				autoResultList = append(autoResultList, result)
+				case2ResultMap[caseId] = autoResultList
+
 				isPass = models.FAIL
-				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
-				// todo 发送钉钉消息时，注意频次，预防被封群
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
-				msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
+				//msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.20.20.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				// 将报告错误消息写进channel
-				msgChannel <- msg
-				break
+				//msgChannel <- msg
+				//break
 			}
 		}
+		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
+		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
+		msg := ""
+		for caseId, autoResultList := range case2ResultMap {
+			if len(autoResultList) > 2 {
+				//todo 此时该条巡检Case有问题，进行对外通知
+				//testCaseMongo := models.TestCaseMongo{}
+				//testCaseMongo = testCaseMongo.GetOneCase(caseId)
+				icm := models.InspectionCaseMongo{}
+				icm = icm.GetOneCase(caseId)
+				caseName := icm.CaseName
+				uri := icm.ApiUrl
+
+				autoResult := autoResultList[2]
+				resp := autoResult.Response
+				//resp := "{\"ret\":1,\"data\":{\"banner\":[{\"name\":\"gaokaozhiyuan\",\"img\":\"file.izuiyou.com/img/png/id/1567506494\",\"url\":\"zuiyou://eventactivity?eventActivityId=330334\"},{\"name\":\"fangyandugongyue\",\"img\":\"https://file.izuiyou.com/img/png/id/1568965881\",\"url\":\"zuiyou://postdetail?id=233156321\"},{\"name\":\"MCNzhaomu\",\"img\":\"https://file.izuiyou.com/img/png/id/1564965136\",\"url\":\"https://h5.izuiyou.com/hybrid/template/smartH5?\\u0026id=329839\"},{\"name\":\"shenhezhuanqu\",\"img\":\"https://file.izuiyou.com/img/png/id/1568973427\",\"url\":\"https://h5.izuiyou.com/hybrid/censor/entry\"},{\"name\":\"maishoudian\",\"img\":\"https://file.izuiyou.com/img/png/id/1561594314\",\"url\":\"zuiyou://postdetail?id=232312632\"},{\"name\":\"wanyouxi\",\"img\":\"https://file.izuiyou.com/img/png/id/1567612281\",\"url\":\"http://www.shandw.com/auth\"}]}}"
+				reason := autoResult.Reason
+
+				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
+				// todo 发送钉钉消息时，注意频次，预防被封群
+				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, reason, resp)
+				//msg = fmt.Sprintf("%s【Case名称: %s; 接口路径: %s; 失败原因: %s; 】\n", msg, caseName, uri, reason)
+				// 将报告错误消息写进channel
+				//msgChannel <- msg
+				//break
+			}
+		}
+		totalMsg := baseMsg + msg
+		msgChannel <- totalMsg
+
 		// 更新失败个数和本次执行记录状态
 		autoResultMongo := &models.AutoResult{}
 		failCount, _ := autoResultMongo.GetFailCount(uuid)
@@ -127,17 +173,23 @@ type ReqBody struct {
 }
 
 func DingSend(content string) {
-	req := httplib.Post(XIAO_NENG_QUN).Debug(true)
-	req.Header("Content-Type", "application/json;charset=utf-8")
-	param := "{\"at\":{\"atMobiles\":[],\"atUserIds\":[],\"isAtAll\":false},\"text\":{\"content\":\"" + content + "\"},\"msgtype\":\"text\"}"
-	req.Body(param)
-	resp, err := req.Response()
-	if err != nil {
-		logs.Error("巡检任务失败时，发送钉钉消息报错，err: ", err)
-	}
-	res, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logs.Error("读取钉钉响应结果报错， err:", err)
-	}
-	logs.Info("调用钉钉发送通知接口返回: res:", string(res))
+	var dingToken = []string{"6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
 }
+
+//func DingSend(content string) {
+//	req := httplib.Post(XIAO_NENG_QUN).Debug(true)
+//	req.Header("Content-Type", "application/json;charset=utf-8")
+//	param := "{\"at\":{\"atMobiles\":[],\"atUserIds\":[],\"isAtAll\":false},\"text\":{\"content\":\"" + content + "\"},\"msgtype\":\"text\"}"
+//	req.Body(param)
+//	resp, err := req.Response()
+//	if err != nil {
+//		logs.Error("巡检任务失败时，发送钉钉消息报错，err: ", err)
+//	}
+//	res, err := ioutil.ReadAll(resp.Body)
+//	if err != nil {
+//		logs.Error("读取钉钉响应结果报错， err:", err)
+//	}
+//	logs.Info("调用钉钉发送通知接口返回: res:", string(res))
+//}
