@@ -79,23 +79,12 @@ func (c *CaseController) Get() {
 	switch do {
 	case "show_cases":
 		c.ShowCases()
-	//case "show_add_case":
-	//	c.ShowAddCase()
 	case "show_edit_case":
 		c.ShowEditCase()
 	case "show_case_detail":
 		c.ShowCaseDeatil()
-
-	//case "show_copy_case":
-	//	c.ShowCopyCase()
 	case "get_all_cases":
 		c.GetAllCases()
-	//case "show_report":
-	//	c.ShowReport()
-	//case "get_all_report":
-	//	c.GetAllReport()
-	//case "get_domains":
-	//	c.GetDomains()
 	case "get_all_strategy":
 		c.GetAllStrategy()
 	default:
@@ -107,24 +96,12 @@ func (c *CaseController) Get() {
 func (c *CaseController) Post() {
 	do := c.GetMethodName()
 	switch do {
-	//case "get_one_case":
-	//	c.GetCasesByQuery()
 	case "update_one_case":
 		c.updateCaseByID()
 	case "add_one_case":
 		c.AddOneCase()
 	case "del_one_inspection_case":
 		c.DelCaseByID()
-	//case "get_service_by_business":
-	//	c.GetServiceByBusiness()
-	//case "get_caseId_by_service":
-	//	c.GetCaseIdByService()
-	//case "do_test":
-	//	c.performTests()
-	//case "add_one_domain":
-	//	c.AddOneDomain()
-	//case "set_inspection":
-	//	c.SetInspection()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
