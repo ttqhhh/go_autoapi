@@ -83,6 +83,9 @@ func (c *CaseController) Get() {
 	//	c.ShowAddCase()
 	case "show_edit_case":
 		c.ShowEditCase()
+	case "show_case_detail":
+		c.ShowCaseDeatil()
+
 	//case "show_copy_case":
 	//	c.ShowCopyCase()
 	case "get_all_cases":
@@ -181,6 +184,20 @@ func (c *CaseController) updateCaseByID() {
 	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
 }
 
+func (c *CaseController) ShowCaseDeatil() {
+	id := c.GetString("id")
+	//business := c.GetString("business")
+	//services := GetServiceList(business)
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		logs.Error("转换类型错误")
+	}
+	acm := models.InspectionCaseMongo{}
+	res := acm.GetOneCase(idInt)
+	c.Data["a"] = &res
+	//c.Data["services"] = services
+	c.TplName = "inspection_case_detail.html"
+}
 func (c *CaseController) ShowEditCase() {
 	id := c.GetString("id")
 	//business := c.GetString("business")
