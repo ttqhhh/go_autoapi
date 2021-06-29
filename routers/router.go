@@ -7,8 +7,8 @@ import (
 	auto "go_autoapi/controllers/autotest"
 	casemanage "go_autoapi/controllers/casemanage"
 	"go_autoapi/controllers/inspection"
-	"go_autoapi/controllers/loadtest"
 	"go_autoapi/controllers/report"
+	"go_autoapi/controllers/tuijian"
 	"go_autoapi/controllers/web_report"
 	_ "go_autoapi/controllers/web_report"
 )
@@ -24,5 +24,5 @@ func init() {
 	beego.Router("/report/*", &report.ReportController{})
 	beego.Router("/inspection/*", &inspection.CaseController{})
 	beego.Router("/web_report/*", &web_report.WebreportController{})
-	beego.Router("/load_test/*", &loadtest.LoadTestController{})
+	beego.Router("/load_test/*", &tuijian.FlowReplayController{})
 }
