@@ -24,5 +24,5 @@ func init() {
 	beego.Router("/report/*", &report.ReportController{})
 	beego.Router("/inspection/*", &inspection.CaseController{})
 	beego.Router("/web_report/*", &web_report.WebreportController{})
-	beego.Router("/load_test/*", &tuijian.FlowReplayController{})
+	beego.Router("/flowreplay/*", &tuijian.FlowReplayController{})
 }
