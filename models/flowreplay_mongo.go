@@ -38,7 +38,7 @@ func (mongo *FlowReplayMongo) Insert(flowreplay FlowReplayMongo) error {
 
 	// id自增
 	r := utils.GetRedis()
-	id, err := r.Incr(constants.INSPECTION_CASE_PRIMARY_KEY).Result()
+	id, err := r.Incr(constants.Flow_Replay_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		return err
