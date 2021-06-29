@@ -23,33 +23,32 @@ func (c *BusinessController) Get() {
 
 var userBusinessMap = map[string][]int{
 	// 4个超级管理员
-	"fengmanlong": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
-	"xueyibing":   {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius},
-	//"liuweiqiang": {zuiyou, pipi, haiwai, zhongdong, mama, shangyehua},
-	"wangzhen01": {zuiyou},
+	"fengmanlong": {constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS},
+	"xueyibing":   {constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS},
+	"wangzhen01":  {constant.ZuiyYou},
 	// 普通用户
-	"wangjun":       {haiwai, zhongdong, mama, haiwaius},
-	"sunzhiying":    {haiwai},
-	"zhangjuan":     {shangyehua, zuiyou},
-	"liuyinan":      {pipi},
-	"sunmingyao":    {pipi},
-	"zhangdanbing":  {pipi},
-	"xufei":         {haiwai, zhongdong, haiwaius},
-	"suhuimin":      {zhongdong},
-	"wanglanjin":    {zhongdong, mama},
-	"yangjingfang":  {shangyehua, zuiyou},
-	"chengxiaojing": {zuiyou},
-	"zhaoxiaodong":  {shangyehua},
+	"wangjun":       {constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.HaiWaiUS},
+	"sunzhiying":    {constant.HaiWai},
+	"zhangjuan":     {constant.ShangYeHua, constant.ZuiyYou},
+	"liuyinan":      {constant.PiPi},
+	"sunmingyao":    {constant.PiPi},
+	"zhangdanbing":  {constant.PiPi},
+	"xufei":         {constant.HaiWai, constant.ZhongDong, constant.HaiWaiUS},
+	"suhuimin":      {constant.ZhongDong},
+	"wanglanjin":    {constant.ZhongDong, constant.Matuan},
+	"yangjingfang":  {constant.ShangYeHua, constant.ZuiyYou},
+	"chengxiaojing": {constant.ZuiyYou},
+	"zhaoxiaodong":  {constant.ShangYeHua},
 }
 
 var businessCodeNameMap = map[int]string{
-	zuiyou:     zuiyou_name,
-	pipi:       pipi_name,
-	haiwai:     haiwai_name,
-	zhongdong:  zhongdong_name,
-	mama:       mama_name,
-	shangyehua: shangyehua_name,
-	haiwaius:   haiwaius_name,
+	constant.ZuiyYou:    zuiyou_name,
+	constant.PiPi:       pipi_name,
+	constant.HaiWai:     haiwai_name,
+	constant.ZhongDong:  zhongdong_name,
+	constant.Matuan:     mama_name,
+	constant.ShangYeHua: shangyehua_name,
+	constant.HaiWaiUS:   haiwaius_name,
 }
 
 func GetBusinessNameByCode(code int) string {
@@ -75,10 +74,10 @@ func GetBusinesses(username string) []map[string]interface{} {
 	businesses, ok := userBusinessMap[username]
 	if !ok {
 		// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
-		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
-	}else{
+		businesses = []int{constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS}
+	} else {
 		// todo 0609 测试同学现在没有限制了
-		businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
+		businesses = []int{constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS}
 	}
 	for _, v := range businesses {
 		temp := make(map[string]interface{})
@@ -109,7 +108,7 @@ func GetAllBusinesses() []map[string]interface{} {
 	//businesses, ok := userBusinessMap[username]
 	//if !ok {
 	// todo 目前只对测试同学进行了限制，其他角色同学暂未进行处理
-	//businesses = []int{zuiyou, pipi, haiwai, zhongdong, mama, shangyehua, haiwaius}
+	//businesses = []int{ZuiyYou, PiPi, HaiWai, ZhongDong, Matuan, ShangYeHua, HaiWaiUS}
 	//}
 	for k, v := range businessCodeNameMap {
 		temp := make(map[string]interface{})
@@ -131,17 +130,6 @@ func GetAllBusinesses() []map[string]interface{} {
 	}
 	return businessResp
 }
-
-// 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化，6：海外-US
-const (
-	zuiyou = iota
-	pipi
-	haiwai
-	zhongdong
-	mama
-	shangyehua
-	haiwaius
-)
 
 const (
 	zuiyou_name     = "最右"

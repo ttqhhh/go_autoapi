@@ -37,6 +37,7 @@ type CheckOut struct {
 	Check map[string]map[string]interface{} `json:"check_point"`
 }
 type SmokeParam struct {
+	Business  string `form:"business" json:"business"`
 	ApiUrl    string `form:"api_url" json:"api_url"`
 	Parameter string `form:"parameter" json:"parameter"`
 }
@@ -51,8 +52,10 @@ func (c *AutoTestController) performSmoke() {
 	// todo 后续对参数进行校验
 	apiUrl := param.ApiUrl
 	parameter := param.Parameter
+	// 因麻团需设置额外请求头，所以此处需要拿到请求所属的业务线
+	business, _ := strconv.Atoi(param.Business)
 
-	httpStatus, body, err := libs.DoRequestWithNoneVerify(apiUrl, parameter)
+	httpStatus, body, err := libs.DoRequestWithNoneVerify(business, apiUrl, parameter)
 	if err != nil {
 		c.ErrorJson(-1, "冒烟请求内部报错", nil)
 	}

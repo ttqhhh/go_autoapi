@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
+	constant "go_autoapi/constants"
 	"go_autoapi/db_proxy"
 	"go_autoapi/models"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -54,7 +56,7 @@ func HttpPost(postUrl string, headers map[string]string, jsonMap string, method 
 	return resp.StatusCode, string(body), cookieStr
 }
 
-func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []byte, err error) {
+func DoRequestWithNoneVerify(business int, url string, param string) (respStatus int, body []byte, err error) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -66,7 +68,11 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 		"Accept-Encoding": "gzip",
 		"Connection":      "keep-alive",
 		"Accept-Charset":  "utf-8"}
-	//redis? 不知道干嘛的
+	// 当Case所属业务线为麻团时，增加debug请求头
+	if business == constant.Matuan {
+		headers["debug"] = "1"
+	}
+
 	client := &http.Client{}
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
 	v := make(map[string]interface{})
@@ -114,7 +120,8 @@ func DoRequestWithNoneVerify(url string, param string) (respStatus int, body []b
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) {
+func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
+	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
 		"X-Xc-Agent":      "av=5.7.1.001,dt=0",
@@ -126,7 +133,22 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		"Accept-Encoding": "gzip",
 		"Connection":      "keep-alive",
 		"Accept-Charset":  "utf-8"}
-	//redis? 不知道干嘛的
+	// 当Case所属业务线为麻团时，增加debug请求头
+	var businessCode string
+	if isInspection == models.INSPECTION {
+		icm := models.InspectionCaseMongo{}
+		icm = icm.GetOneCase(caseId)
+		businessCode = icm.BusinessCode
+	} else {
+		testCaseMongo := models.TestCaseMongo{}
+		testCaseMongo = testCaseMongo.GetOneCase(caseId)
+		businessCode = testCaseMongo.BusinessCode
+	}
+	business, _ := strconv.Atoi(businessCode)
+	if business == constant.Matuan {
+		headers["debug"] = "1"
+	}
+
 	client := &http.Client{}
 	postData := bytes.NewReader([]byte(m))
 	// 对domain和url进行兼容性拼接
@@ -171,7 +193,8 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
+	isPass = doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
+	return
 }
 
 //func DoRequest(url string, method string, uuid string, data string, verify string, caseId int64) {
@@ -201,13 +224,15 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 //}
 
 // 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) {
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
+	isPass = true
 	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
 		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+		isPass = false
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
@@ -218,6 +243,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
 			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
 			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+			isPass = false
 			return
 		}
 		if len(verifyO) == 0 {
@@ -225,6 +251,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason = "json路径: 【" + k + "】, 未配置有效的校验规则"
 			//saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
 			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+			isPass = false
 			return
 		}
 	}
@@ -309,8 +336,10 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			resultDescRune := []rune(reason)
 			reason = string(resultDescRune[1:])
 		}
+		isPass = false
 	}
 	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+	return
 }
 
 func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string) {

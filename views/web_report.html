@@ -15,6 +15,7 @@
 <body>
 <form class="layui-form layui-form-pane"  style="padding: 1%">
 <div style="margin-left:20%; margin-top: 10px;">
+
     <div class="layui-form-item "; style="width: 70%;">
         <label class="layui-form-label"; style="width:110px";>报告名称</label>
         <div class="layui-input-block">
@@ -76,15 +77,24 @@
             </div>
         </div>
     </div>
-
+    <div style="margin-bottom: 80px">
+        <div style="float: left">
+            <label>收件人：</label>
+            <select id="list_email" class="layui-select layui-btn-lg" lay-filter="list_email" lay-verify="required">
+                <option value="">请选择收件人</option>
+            </select>
+        </div>
+    </div>
     <div class="layui-form-item layui-form-text">
         <div class="layui-inline" style="width: 70%;">
             <label class="layui-form-label">接收人</label>
             <div class="layui-input-block" >
-                <textarea placeholder="格式：xxx2014@xiaochuankeji.cn注多个收件人用;隔开" style="height: 200px" class="layui-textarea"
-                          id="recipient" lay-verify="required"></textarea>
+                <textarea style="height: 200px" class="layui-textarea" id="recipient" lay-verify="required"></textarea>
             </div>
         </div>
+    </div>
+    <div style="size:5px;color: #cc0000">
+        * 请到自己邮箱查看发送结果~*
     </div>
 </div>
 </form>
@@ -92,18 +102,55 @@
     <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">提交</button>
 </div>
 <script type="text/javascript">
+    emailnameMap = {}
+
+    $(document).ready(function () {
+        layui.use('form', function () {
+            var form = layui.form;
+            var domId = "list_email"
+            $.ajax({
+                url: "/web_report/queryemail",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $.each(data.data, function (index, value) {
+                        var option = "<option value='" + value.email_recipient + "'>" + value.email_name + "</option>";
+                        // console.log(option, $("#" + domId))
+                        console.log(value.email_recipient)
+                        // 对列表筛选框select进行option元素追加
+                        $("#" + domId).append(option);
+                        emailnameMap[value.email_recipient] = value.email_name
+                        form.render();
+                    })
+                }
+            });
+            // 邮箱组下拉框绑定事件
+            form.on('select(list_email)', function() {
+                console.log('?????',$('#list_email')[0].value)
+                var data=$('#list_email')[0].value
+                $('#recipient').val(data)
+                // var options=$(“#test option:selected”); //获取选中的项
+                form.render()
+            });
+        });
+    })
+
+    //提交时的操作
     function submit() {
+        console.log('?????',$('#list_email')[0].value)
+        // return;
+
         // 非空校验
         if(!$("#name").val()){
-            alert("请输入项目名称");
+            alert("请输入报告名称");
             return;
         }
         if(!$("#describe").val()){
-            alert("请输入项目描述");
+            alert("请输入质量说明");
             return;
         }
         if($("#xmyl").val()==""){
-            alert("请输入遗留问题");
+            alert("请输入项目遗留问题");
             return;
         }
         if($("#jszb").val()==""){
@@ -114,8 +161,8 @@
             alert("请输入发布风险及灰度计划");
             return;
         }
-        if($("#zb").val()==""){
-            alert("请输入具体质量指标");
+        if($("#list_email").val()==""){
+            alert("请选择接收邮箱组");
             return;
         }
 
@@ -129,7 +176,8 @@
             fx : $("#fx").val(),
             zb:$("#zb").val(),
             sm:$("#sm").val(),
-            recipient:$("#recipient").val()
+            // recipient:$("#recipient").val()
+            recipient:$('#list_email')[0].value
         }
         $.ajax({
             type: "POST",//方法类型
@@ -142,7 +190,7 @@
                 if (result.code == 0) {
                     alert("SUCCESS");
                 }
-                window.location.href = '/web_report/queryAll'
+                window.location.href = '/web_report/allwebreport'
             },
             error : function() {
                 alert("异常！");

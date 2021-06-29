@@ -1,0 +1,105 @@
+{{template "head.html" .}}
+<head>
+    <meta charset="UTF-8">
+    <title>web_report</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+    <meta http-equiv="description" content="ajax方式">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<form class="layui-form layui-form-pane"  style="padding: 1%">
+    <div class="layui-form-item "; style="width: 70%;">
+        <label class="layui-form-label"; style="width:110px";>邮箱组名称</label>
+        <div class="layui-input-block">
+            <input  type="text"  id="email_name" lay-verify="required" autocomplete="off" class="layui-input" style="width: 100%">
+        </div>
+    </div>
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-inline" style="width: 70%;">
+                <label class="layui-form-label">邮箱组成员</label>
+                <div class="layui-input-block" >
+                <textarea placeholder="格式：xxx2014@xiaochuankeji.cn注多个收件人用;隔开添加时可以换行，方便查看
+
+xxx2014@xiaochuankeji.cn;
+xxx2014@xiaochuankeji.cn;
+xxx2014@xiaochuankeji.cn;" style="height: 200px" class="layui-textarea"
+                          id="email_recipient" lay-verify="required"></textarea>
+                </div>
+            </div>
+        </div>
+        <div style="size:5px;color: #cc0000">
+            * 邮箱组可用于发送报告时的收件人 邮箱组别忘记添加自己哦~*
+        </div>
+    </div>
+</form>
+<div style="width: 100px; margin: 0 auto; padding-bottom: 50px">
+    <button id="submit" type="submit" class="layui-btn layui-btn-normal" style="width: 100%;" onclick="submit()">保存</button>
+</div>
+<script type="text/javascript">
+    function verifyEmail(emailStr) {
+        emailStr = emailStr.replace(/\r\n/g,'').replace(/\n/g,'').replace(/\s/g,'');
+        const emails = emailStr.split(';');
+        console.log('????email',emails);
+        var success = true
+        emails.map((email,index) => {
+            const reg = /[a-zA-Z0-9]{1,100}2014\@xiaochuankeji\.cn/g;
+            if(email && !reg.test(email)) {
+                success = false
+                alert(`你输入的第${index+1}个邮箱格式不对`)
+                return;
+            }
+        })
+        console.log('邮箱校验结果',success?'success':'fail')
+        return success
+    }
+    function submit() {
+        // 非空校验
+        if(!$("#email_name").val()){
+            alert("请输入邮箱组名称");
+            return;
+        }
+
+        if($("#email_recipient").val()==""){
+
+            alert("邮箱格式错误，请检查！");
+            return;
+        }
+        //校验邮箱格式
+        if(!verifyEmail($("#email_recipient").val())) {
+            return;
+        }
+
+
+        // 提交输入内容
+        const submitData = {
+            email_name:$("#email_name").val(),
+            email_recipient:$("#email_recipient").val()
+        }
+        $.ajax({
+            type: "POST",//方法类型
+            dataType: "json",//预期服务器返回的数据类型
+            url: "/web_report/insert_email" ,//url
+            // data: $('#form1').serialize(),
+            data:submitData,
+            success: function (result) {
+                console.log(result);//打印服务端返回的数据(调试用)
+                if (result.code == 0) {
+                    alert("SUCCESS");
+                }
+                window.location.href = '/web_report/allemail'
+            },
+            error : function() {
+                alert("异常！");
+            }
+        });
+
+
+    }
+</script>
+
+</body>
+</html>

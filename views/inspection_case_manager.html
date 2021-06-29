@@ -41,7 +41,8 @@
 
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
-{{/*    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="detail">查看</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
@@ -166,7 +167,7 @@
                         }
                     },
                     {title: '请求方式', field: 'request_method', width: 100},
-                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 120},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
                 ]]
             });
         }
@@ -183,7 +184,7 @@
         table.on('tool(demo)', function(obj){
             var data = obj.data;
             if(obj.event === 'detail'){
-                layer.msg('ID：'+ data.id + ' 的查看操作');
+                window.location.href="/inspection/show_case_detail?id="+data.id+"&business={{.business}}"
             } else if(obj.event === 'del'){
                 layer.confirm('真的删除行么', function(index){
                     // obj.del();
@@ -200,10 +201,11 @@
                     window.location.reload()
                 });
             } else if(obj.event === 'edit'){
-                window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+                window.location.href="/inspection/show_edit_case?id="+data.id+"&business={{.business}}"
             }else if(obj.event === 'copy'){
                 window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
-            } else if (obj.event === "run") {
+            }
+            else if (obj.event === "run") {
                 var arr = new Array();
                 arr.push(data.id);
                 // alert(arr)

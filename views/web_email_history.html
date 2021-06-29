@@ -1,13 +1,14 @@
 {{template "head.html" .}}
 
 <div style="margin:1%" xmlns:page="http://www.w3.org/1999/xhtml">
-    <button id="web_report_all" type="submit" class="layui-btn layui-btn-normal" onclick="showreport()" >添加测试报告</button>
-    <table class="layui-table" lay-data="{url:'/web_report/query', page:true, limit:10}"
+    <button id="web_report_all" type="submit" class="layui-btn layui-btn-normal" onclick="showreport()" >添加邮箱组</button>
+    <table class="layui-table" lay-data="{url:'/web_report/queryemail', page:true, limit:10}"
            lay-filter="demo">
         <thead>
         <tr>
-            <th lay-data="{field:'Id', width:250, align:'center', fixed: true}">ID</th>
-            <th lay-data="{field:'Name', align:'center'}">报告名称</th>
+            <th lay-data="{field:'id', width:250, align:'center', fixed: true}">ID</th>
+            <th lay-data="{field:'email_name', align:'center'}">邮箱组名</th>
+            <th lay-data="{field:'email_recipient', align:'center'}">邮箱组成员</th>
             <th lay-data="{fixed: 'right', width:250, align:'center', toolbar: '#barDemo'}">操作</th>
         </tr>
         </thead>
@@ -15,10 +16,12 @@
     <script src="/static/layui/layui.js" charset="utf-8"></script>
     <script type="text/html" id="barDemo">
         <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="detail">详情</a>
+<!--        <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">编辑</a>-->
     </script>
     <script type="text/javascript">
         const  showreport = () => {
-            window.location.href = '/web_report/show_web_report'
+            // window.open('/web_report/queryAll1')
+            window.location.href = '/web_report/show_email'
         }
         layui.use('table', function () {
             var table = layui.table;
@@ -35,8 +38,19 @@
                     layer.open({
                         title: "详情",
                         type: 2,
-                        content: "/web_report/queryId?id=" + data.Id,
-                        area: ['1600px', '800px']
+                        content: "/web_report/getById?id=" + data.id,
+                        area: ['600px', '400px']
+                    });
+                }
+                if (obj.event === 'edit') {
+                    // layer.msg('ID：'+ data.id + ' 的查看操作');
+                    layer.open({
+                        title: "编辑",
+                        type: 2,
+                        // content: "/web_report/getById?id=" + data.id,
+                        btn: ['保存', '取消'],
+                        area: ['600px', '450px'],
+
                     });
                 }
             });
