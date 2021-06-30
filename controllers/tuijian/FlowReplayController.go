@@ -23,6 +23,21 @@ func (c *FlowReplayController) Get() {
 	switch do {
 	case "index":
 		c.index()
+	case "list":
+		c.list()
+
+	default:
+		logs.Warn("action: %s, not implemented", do)
+		c.ErrorJson(-1, "不支持", nil)
+	}
+}
+
+func (c *FlowReplayController) Post() {
+	do := c.GetMethodName()
+	switch do {
+	case "save":
+		c.add()
+
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -30,7 +45,7 @@ func (c *FlowReplayController) Get() {
 }
 
 func (c *FlowReplayController) index() {
-	c.TplName = "service.html"
+	c.TplName = "replay.html"
 }
 
 func (c *FlowReplayController) list() {
@@ -91,7 +106,7 @@ func (c *FlowReplayController) add() {
 		return
 	}
 	//创建目录
-	uploadDir := "~/upload/" + time.Now().Format("2006/01/02/")
+	uploadDir := "~/upload/"
 	err := os.MkdirAll(uploadDir, 777)
 	if err != nil {
 		c.Ctx.WriteString(fmt.Sprintf("%v", err))
