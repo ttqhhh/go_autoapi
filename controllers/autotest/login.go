@@ -92,7 +92,7 @@ func (c *AutoTestController) login() {
 	code := business["code"]
 	codeInt := code.(int)
 	redirectUrl := "/case/show_cases?business=" + strconv.Itoa(codeInt)
-	//redirectUrl := "/case/show_cases?business=zuiyou"
+	//redirectUrl := "/case/show_cases?business=ZuiyYou"
 	c.SuccessJson(redirectUrl)
 }
 
