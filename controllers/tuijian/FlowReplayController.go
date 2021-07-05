@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+const uploadDir = "~/upload"
+
 type FlowReplayController struct {
 	libs.BaseController
 }
@@ -253,5 +255,43 @@ func (c *FlowReplayController) remove() {
 	if err != nil {
 		c.ErrorJson(-1, "服务删除数据异常", nil)
 	}
+	c.SuccessJson(nil)
+}
+
+// 流量回放
+type ReplayParam struct {
+	Id          int64   `form:"id" json:"id"`
+	ReplayTimes float64 `form:"replay_times" json:"replay_times"`
+	TargetHost  string  `form:"target_host" json:"target_host"`
+}
+func (c *FlowReplayController) replay() {
+	param := &ReplayParam{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, param)
+	if err != nil {
+	    logs.Error("/flowreplay/replay接口 参数异常, err: %v", err)
+	    c.ErrorJson(-1, "参数异常", nil)
+	}
+	logs.Info("请求参数: id=%v", param)
+
+	flowreplayMongo := models.FlowReplayMongo{}
+	flowreplay, err := flowreplayMongo.QueryById(param.Id)
+	if err != nil {
+		logs.Error("执行流量回放时, 查询指定回放报错")
+		c.ErrorJson(-1, "查询指定回放报错", nil)
+	}
+	// todo 回放文件名称
+	flowFileName := flowreplay.FlowFile
+	
+	// 回放频率
+	replayTimes := param.ReplayTimes
+	if replayTimes == 0 {
+		replayTimes = flowreplay.ReplayTimes
+	}
+	// 回放目标机器
+	targetHost := param.TargetHost
+	if targetHost == "" {
+		targetHost = flowreplay.FlowTargetHost
+	}
+
 	c.SuccessJson(nil)
 }
