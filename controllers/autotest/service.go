@@ -68,14 +68,15 @@ func (c *ServiceController) index() {
 // 分页查询
 func (c *ServiceController) page() {
 	// 只能看到自己有权限的服务
-	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	//userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	serviceName := c.GetString("service_name")
 	//business, err := c.GetInt8("business", -1)
 	//if err != nil {
 	//	logs.Warn("/service/page接口 参数异常, err: %v", err)
 	//	c.ErrorJson(-1, "参数异常", nil)
 	//}
-	businessCodeList := GetUserBusinessesList(userId)
+	//businessCodeList := GetUserBusinessesList(userId)
+	businessCodeList := []int{constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS}
 	pageNo, err := c.GetInt("page", 1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
