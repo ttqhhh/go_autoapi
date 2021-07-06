@@ -25,6 +25,8 @@ func (c *FlowReplayController) Get() {
 		c.index()
 	case "list":
 		c.list()
+	case "getById":
+		c.getById()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -37,6 +39,12 @@ func (c *FlowReplayController) Post() {
 	switch do {
 	case "save":
 		c.add()
+	case "update":
+		c.update()
+	case "remove":
+		c.remove()
+	case "run":
+		//c.run()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -92,67 +100,78 @@ func (c *FlowReplayController) list() {
 
 func (c *FlowReplayController) add() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	id, err1 := c.GetInt64("id")
+	logs.Info("请求参数: id=%v", id)
+	if err1 != nil {
+		//获取上传的文件
+		f, h, _ := c.GetFile("flow_file")
+		fileName := h.Filename
+		ext := path.Ext(fileName)
+		//验证后缀名是否符合要求
+		var AllowExtMap map[string]bool = map[string]bool{
+			".gor": true,
+		}
+		if _, ok := AllowExtMap[ext]; !ok {
+			c.Ctx.WriteString("流量文件后缀名不符合要求")
+			return
+		}
+		//创建目录
+		uploadDir := "/Users/sunzhiying/upload"
+		err := os.MkdirAll(uploadDir, 777)
+		if err != nil {
+			c.Ctx.WriteString(fmt.Sprintf("%v", err))
+			return
+		}
+		//构造文件名称
+		rand.Seed(time.Now().UnixNano())
+		randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
+		hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
 
-	//获取上传的文件
-	f, h, _ := c.GetFile("flow_file")
-	fileName := h.Filename
-	ext := path.Ext(fileName)
-	//验证后缀名是否符合要求
-	var AllowExtMap map[string]bool = map[string]bool{
-		".gor": true,
-	}
-	if _, ok := AllowExtMap[ext]; !ok {
-		c.Ctx.WriteString("流量文件后缀名不符合要求")
-		return
-	}
-	//创建目录
-	uploadDir := "~/upload/"
-	err := os.MkdirAll(uploadDir, 777)
-	if err != nil {
-		c.Ctx.WriteString(fmt.Sprintf("%v", err))
-		return
-	}
-	//构造文件名称
-	rand.Seed(time.Now().UnixNano())
-	randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
-	hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
+		fileName = fmt.Sprintf("%x", hashName) + fileName
+		//this.Ctx.WriteString(  fileName )
+		//fpath := uploadDir + h.Filename
+		fpath := uploadDir + "/" + fileName
+		defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
 
-	fileName = fmt.Sprintf("%x", hashName) + fileName
-	//this.Ctx.WriteString(  fileName )
+		//c.SaveToFile("flow_file", fpath)
+		err = c.SaveToFile("flow_file", fpath)
+		if err != nil {
+			//c.Ctx.WriteString( fmt.Sprintf("%v",err) )
+			c.ErrorJson(-1, "保存文件失败", nil)
+		}
 
-	fpath := uploadDir + fileName
-	defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
-	err = c.SaveToFile("flow_file", fpath)
-	if err != nil {
-		//c.Ctx.WriteString( fmt.Sprintf("%v",err) )
-		c.ErrorJson(-1, "保存文件失败", nil)
-	}
+		flowreplay := &models.FlowReplayMongo{}
+		err = c.ParseForm(flowreplay)
+		if err != nil {
+			logs.Warn("/flowreplay/add接口 参数异常, err: %v", err)
+			c.ErrorJson(-1, "参数异常", nil)
+		}
+		logs.Info("请求参数：%v", flowreplay)
 
-	flowreplay := &models.FlowReplayMongo{}
-	err = c.ParseForm(flowreplay)
-	if err != nil {
-		logs.Warn("/flowreplay/add接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数：%v", flowreplay)
+		//验证服务名 唯一性
+		serviceName := flowreplay.ServiceName
+		temp, err := flowreplay.QueryByName(serviceName)
+		if err != nil {
+			logs.Error("流量回放添加时, 验证serviceName唯一性时报错")
+		}
+		if temp != nil {
+			c.ErrorJson(-1, "存在服务名相同的流量", nil)
+		}
 
-	//验证服务名 唯一性
-	serviceName := flowreplay.ServiceName
-	temp, err := flowreplay.QueryByName(serviceName)
-	if err != nil {
-		logs.Error("流量回放添加时, 验证serviceName唯一性时报错")
+		flowreplay.CreateBy = userId
+		flowreplay.FlowFile = fileName
+		err = flowreplay.Insert(*flowreplay)
+		if err != nil {
+			c.ErrorJson(-1, "服务添加数据异常", nil)
+		}
+		//c.SuccessJson(nil)
+		c.TplName = "replay.html"
+		//c.ErrorJson(-1, "参数异常", nil)
 	}
-	if temp != nil {
-		c.ErrorJson(-1, "存在服务名相同的流量", nil)
+	if err1 == nil {
+		c.update()
 	}
 
-	flowreplay.CreateBy = userId
-	flowreplay.FlowFile = fileName
-	err = flowreplay.Insert(*flowreplay)
-	if err != nil {
-		c.ErrorJson(-1, "服务添加数据异常", nil)
-	}
-	c.SuccessJson(nil)
 }
 
 func (c *FlowReplayController) getById() {
@@ -172,69 +191,120 @@ func (c *FlowReplayController) getById() {
 
 func (c *FlowReplayController) update() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
-
 	//获取上传的文件
 	f, h, _ := c.GetFile("flow_file")
-	fileName := h.Filename
-	ext := path.Ext(fileName)
-	//验证后缀名是否符合要求
-	var AllowExtMap map[string]bool = map[string]bool{
-		".gor": true,
-	}
-	if _, ok := AllowExtMap[ext]; !ok {
-		c.Ctx.WriteString("流量文件后缀名不符合要求")
-		return
-	}
-	//创建目录
-	uploadDir := "~/upload/" + time.Now().Format("2006/01/02/")
-	err := os.MkdirAll(uploadDir, 777)
-	if err != nil {
-		c.Ctx.WriteString(fmt.Sprintf("%v", err))
-		return
-	}
-	//构造文件名称
-	rand.Seed(time.Now().UnixNano())
-	randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
-	hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
+	if f == nil {
+		flowreplay := &models.FlowReplayMongo{}
+		err := c.ParseForm(flowreplay)
+		if err != nil {
+			logs.Warn("/flowreplay/update接口 参数异常, err: %v", err)
+			c.ErrorJson(-1, "参数异常", nil)
+		}
+		logs.Info("请求参数：%v", flowreplay)
 
-	fileName = fmt.Sprintf("%x", hashName) + fileName
-	//this.Ctx.WriteString(  fileName )
+		//验证服务名 唯一性
+		//serviceName := flowreplay.ServiceName
+		//flowreplay.FlowFile = fileName
+		//temp, err := flowreplay.QueryByName(serviceName)
+		//if err != nil {
+		//	logs.Error("流量回放编辑时, 验证serviceName唯一性时报错")
+		//}
+		//if temp != nil {
+		//	c.ErrorJson(-1, "存在服务名相同的流量", nil)
+		//}
 
-	fpath := uploadDir + fileName
-	defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
-	err = c.SaveToFile("flow_file", fpath)
-	if err != nil {
-		//c.Ctx.WriteString( fmt.Sprintf("%v",err) )
-		c.ErrorJson(-1, "保存文件失败", nil)
+		flowreplay.UpdateBy = userId
+		err = flowreplay.Update(*flowreplay)
+		if err != nil {
+			c.ErrorJson(-1, "服务更新数据异常", nil)
+		}
+		//c.SuccessJson(nil)
+		c.TplName = "replay.html"
 	}
+	if f != nil {
+		fileName := h.Filename
+		ext := path.Ext(fileName)
+		//验证后缀名是否符合要求
+		var AllowExtMap map[string]bool = map[string]bool{
+			".gor": true,
+		}
+		if _, ok := AllowExtMap[ext]; !ok {
+			c.Ctx.WriteString("流量文件后缀名不符合要求")
+			return
+		}
+		//创建目录
+		uploadDir := "/Users/sunzhiying/upload"
+		//uploadDir := "~/upload/" + time.Now().Format("2006/01/02/")
+		err := os.MkdirAll(uploadDir, 777)
+		if err != nil {
+			c.Ctx.WriteString(fmt.Sprintf("%v", err))
+			return
+		}
+		//构造文件名称
+		rand.Seed(time.Now().UnixNano())
+		randNum := fmt.Sprintf("%d", rand.Intn(9999)+1000)
+		hashName := md5.Sum([]byte(time.Now().Format("2006_01_02_15_04_05_") + randNum))
 
-	flowreplay := &models.FlowReplayMongo{}
-	err = c.ParseForm(flowreplay)
-	if err != nil {
-		logs.Warn("/flowreplay/update接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数：%v", flowreplay)
+		fileName = fmt.Sprintf("%x", hashName) + fileName
+		//this.Ctx.WriteString(  fileName )
 
-	//验证服务名 唯一性
-	serviceName := flowreplay.ServiceName
-	flowreplay.FlowFile = fileName
-	temp, err := flowreplay.QueryByName(serviceName)
-	if err != nil {
-		logs.Error("流量回放编辑时, 验证serviceName唯一性时报错")
-	}
-	if temp != nil {
-		c.ErrorJson(-1, "存在服务名相同的流量", nil)
-	}
+		fpath := uploadDir + "/" + fileName
+		defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
+		err = c.SaveToFile("flow_file", fpath)
+		if err != nil {
+			//c.Ctx.WriteString( fmt.Sprintf("%v",err) )
+			c.ErrorJson(-1, "保存文件失败", nil)
+		}
 
-	flowreplay.UpdateBy = userId
-	err = flowreplay.Update(*flowreplay)
-	if err != nil {
-		c.ErrorJson(-1, "服务更新数据异常", nil)
+		flowreplay := &models.FlowReplayMongo{}
+		err = c.ParseForm(flowreplay)
+		if err != nil {
+			logs.Warn("/flowreplay/update接口 参数异常, err: %v", err)
+			c.ErrorJson(-1, "参数异常", nil)
+		}
+		logs.Info("请求参数：%v", flowreplay)
+
+		//验证服务名 唯一性
+		//serviceName := flowreplay.ServiceName
+		flowreplay.FlowFile = fileName
+		//temp, err := flowreplay.QueryByName(serviceName)
+		if err != nil {
+			logs.Error("流量回放编辑时, 验证serviceName唯一性时报错")
+		}
+		//if temp != nil {
+		//	c.ErrorJson(-1, "存在服务名相同的流量", nil)
+		//}
+
+		flowreplay.UpdateBy = userId
+		err = flowreplay.Update(*flowreplay)
+		if err != nil {
+			c.ErrorJson(-1, "服务更新数据异常", nil)
+		}
+		c.SuccessJson(nil)
+		c.TplName = "replay.html"
 	}
-	c.SuccessJson(nil)
 }
 
+//func (c *FlowReplayController) run() {
+//	id, err := c.GetInt64("id")
+//	if err != nil {
+//		logs.Warn("/flowreplay/getById接口 参数异常, err: %v", err)
+//		c.ErrorJson(-1, "参数异常", nil)
+//	}
+//	logs.Info("请求参数: id=%v", id)
+//	flowReplayMongo := models.FlowReplayMongo{}
+//	flowReplay, err := flowReplayMongo.QueryById(id)
+//	if err != nil {
+//		c.ErrorJson(-1, "服务查询数据异常", nil)
+//	}
+//	fmt.Println(flowReplay)
+//	flowfile :=flowReplay.FlowFile
+//	fth := flowReplay.FlowTargetHost
+//	rt := flowReplay.ReplayTimes
+//	fmt.Println(flowfile,fth,rt)
+//
+//	c.SuccessJson(flowReplay)
+//}
 type RemoveParam struct {
 	Id int64 `form:"id" json:"id"`
 }

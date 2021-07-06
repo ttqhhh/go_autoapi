@@ -98,17 +98,32 @@ func (mongo *FlowReplayMongo) Update(flowReplay FlowReplayMongo) error {
 
 	// 处理更新时间字段
 	flowReplay.UpdatedAt = time.Now().Format(Time_format)
-	data := bson.M{
-		"$set": bson.M{
-			"service_name":     flowReplay.ServiceName,
-			"flow_file":        flowReplay.FlowFile,
-			"flow_target_host": flowReplay.FlowTargetHost,
-			"replay_times":     flowReplay.ReplayTimes,
-			"replay_uri":       flowReplay.ReplayUri,
-			"updated_at":       flowReplay.UpdatedAt,
-			"update_by":        flowReplay.UpdateBy,
-		},
+	data := bson.M{}
+	if flowReplay.FlowFile == "" {
+		data = bson.M{
+			"$set": bson.M{
+				"service_name":     flowReplay.ServiceName,
+				"flow_target_host": flowReplay.FlowTargetHost,
+				"replay_times":     flowReplay.ReplayTimes,
+				"replay_uri":       flowReplay.ReplayUri,
+				"updated_at":       flowReplay.UpdatedAt,
+				"update_by":        flowReplay.UpdateBy,
+			},
+		}
+	} else {
+		data = bson.M{
+			"$set": bson.M{
+				"service_name":     flowReplay.ServiceName,
+				"flow_file":        flowReplay.FlowFile,
+				"flow_target_host": flowReplay.FlowTargetHost,
+				"replay_times":     flowReplay.ReplayTimes,
+				"replay_uri":       flowReplay.ReplayUri,
+				"updated_at":       flowReplay.UpdatedAt,
+				"update_by":        flowReplay.UpdateBy,
+			},
+		}
 	}
+
 	changeInfo, err := db.UpsertId(flowReplay.Id, data)
 	if err != nil {
 		logs.Error("Update 错误: %v", err)
