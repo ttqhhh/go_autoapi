@@ -77,7 +77,7 @@ func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	query := bson.M{"run_id": id}
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
+	err = db.Find(query).Select(bson.M{"status_code":1, "case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error(1024, err)

@@ -104,7 +104,6 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
 		wgInner.Wait()
-
 		autoResult, _ := models.GetResultByRunId(uuid)
 		var isPass int8 = models.SUCCESS
 		//用来盛放同一个Case多次执行的结果
@@ -149,7 +148,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
-				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %s;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, statusCode, reason, resp)
+				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %d;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, statusCode, reason, resp)
 				//msg = fmt.Sprintf("%s【Case名称: %s; 接口路径: %s; 失败原因: %s; 】\n", msg, caseName, uri, reason)
 				// 将报告错误消息写进channel
 				//msgChannel <- msg
