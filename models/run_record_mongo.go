@@ -14,6 +14,7 @@ const (
 	RUNNING = iota // 执行中
 	SUCCESS        // 成功
 	FAIL           // 失败
+	ALL
 )
 
 const (
@@ -107,7 +108,7 @@ func (mongo *RunReportMongo) UpdateIsPass(id int64, isPass int8, totalFailCase i
 
 // todo 根据服务名模糊查询待实现
 // 分页查询
-func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, pageNo int, pageSize int) ([]RunReportMongo, int64, error) {
+func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, pageNo int, pageSize int, runReportStatus int, isInspection int) ([]RunReportMongo, int64, error) {
 	ms, db := db_proxy.Connect(db, run_record_collection)
 	defer ms.Close()
 
@@ -125,8 +126,19 @@ func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, p
 	if serviceName != "" {
 		query["service_name"] = bson.M{"$regex": serviceName}
 	}
-	// 过滤掉成功的数据
-	query["is_pass"] = FAIL
+	// 根据是否成功进行数据过滤掉
+	if runReportStatus == FAIL {
+		query["is_pass"] = FAIL
+	} else if runReportStatus == SUCCESS {
+		query["is_pass"] = SUCCESS
+	}
+	// 线上巡检case筛选
+	if isInspection == INSPECTION {
+		query["create_by"] = "线上巡检"
+	} else {
+		//  限制非【线上巡检】数据
+		query["create_by"] = bson.M{"$ne": "线上巡检"}
+	}
 	runReportList := []RunReportMongo{}
 	skip := (pageNo - 1) * pageSize
 	err := db.Find(query).Sort("-_id").Skip(skip).Limit(pageSize).All(&runReportList)

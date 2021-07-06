@@ -23,6 +23,10 @@ func (c *ReportController) Get() {
 		c.ShowRunReport()
 	case "run_record_list":
 		c.runRecordList()
+	case "show_run_record_inspection":
+		c.ShowRunReportInspection()
+	case "run_record_list_inspection":
+		c.runRecordListInspection()
 	case "run_report_detail":
 		c.runReportDetail()
 	default:
@@ -33,6 +37,10 @@ func (c *ReportController) Get() {
 
 func (c *ReportController) ShowRunReport() {
 	c.TplName = "run_report.html"
+}
+
+func (c *ReportController) ShowRunReportInspection() {
+	c.TplName = "run_report_inspection.html"
 }
 
 /**
@@ -59,7 +67,35 @@ func (c *ReportController) runRecordList() {
 
 	//count := ids.GetCollectionLength("result")
 	// 默认暂不支持business和serviceName条件查询
-	result, count, err := rp.QueryByPage(businessList, "", page, limit)
+	result, count, err := rp.QueryByPage(businessList, "", page, limit, models.ALL, models.NOT_INSPECTION)
+	if err != nil {
+		c.FormErrorJson(-1, "获取报告列表数据失败")
+	}
+	c.FormSuccessJson(count, result)
+}
+
+func (c *ReportController) runRecordListInspection() {
+	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	businessList := []int{}
+	businessMap := controllers.GetBusinesses(userId)
+	for _, business := range businessMap {
+		for k, v := range business {
+			if k == "code" {
+				businessList = append(businessList, v.(int))
+			}
+		}
+	}
+
+	var rp = models.RunReportMongo{}
+	//var ids = models.Ids{}
+	page, _ := strconv.Atoi(c.GetString("page"))
+	limit, _ := strconv.Atoi(c.GetString("limit"))
+	//c.GetString("business")
+	//c.GetString("service_name")
+
+	//count := ids.GetCollectionLength("result")
+	// 默认暂不支持business和serviceName条件查询
+	result, count, err := rp.QueryByPage(businessList, "", page, limit, models.FAIL, models.INSPECTION)
 	if err != nil {
 		c.FormErrorJson(-1, "获取报告列表数据失败")
 	}
