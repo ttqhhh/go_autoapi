@@ -145,10 +145,11 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				resp := autoResult.Response
 				//resp := "{\"ret\":1,\"data\":{\"banner\":[{\"name\":\"gaokaozhiyuan\",\"img\":\"file.izuiyou.com/img/png/id/1567506494\",\"url\":\"zuiyou://eventactivity?eventActivityId=330334\"},{\"name\":\"fangyandugongyue\",\"img\":\"https://file.izuiyou.com/img/png/id/1568965881\",\"url\":\"zuiyou://postdetail?id=233156321\"},{\"name\":\"MCNzhaomu\",\"img\":\"https://file.izuiyou.com/img/png/id/1564965136\",\"url\":\"https://h5.izuiyou.com/hybrid/template/smartH5?\\u0026id=329839\"},{\"name\":\"shenhezhuanqu\",\"img\":\"https://file.izuiyou.com/img/png/id/1568973427\",\"url\":\"https://h5.izuiyou.com/hybrid/censor/entry\"},{\"name\":\"maishoudian\",\"img\":\"https://file.izuiyou.com/img/png/id/1561594314\",\"url\":\"zuiyou://postdetail?id=232312632\"},{\"name\":\"wanyouxi\",\"img\":\"https://file.izuiyou.com/img/png/id/1567612281\",\"url\":\"http://www.shandw.com/auth\"}]}}"
 				reason := autoResult.Reason
+				statusCode := autoResult.StatusCode
 
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
-				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, reason, resp)
+				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %s;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, statusCode, reason, resp)
 				//msg = fmt.Sprintf("%s【Case名称: %s; 接口路径: %s; 失败原因: %s; 】\n", msg, caseName, uri, reason)
 				// 将报告错误消息写进channel
 				//msgChannel <- msg
