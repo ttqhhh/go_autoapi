@@ -30,6 +30,8 @@ type AutoResult struct {
 	Reason       string `json:"reason" bson:"reason"`
 	Author       string `json:"author" bson:"author"`
 	Response     string `json:"response,omitempty" bson:"response"`
+	// 0705新增codeStatus
+	StatusCode   int 	`json:"status_code" bson:"status_code"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -44,7 +46,7 @@ func (a *AutoResult) TableName() string {
 	return "auto_result"
 }
 
-func InsertResult(uuid string, case_id int64, isInspection int, result int, reason string, author string, resp string) error {
+func InsertResult(uuid string, case_id int64, isInspection int, result int, reason string, author string, resp string, statusCode int) error {
 	now := time.Now().Format(constants.TimeFormat)
 	ar := AutoResult{}
 	//id := GetId("result")
@@ -62,6 +64,7 @@ func InsertResult(uuid string, case_id int64, isInspection int, result int, reas
 	ar.Reason = reason
 	ar.Author = author
 	ar.Response = resp
+	ar.StatusCode = statusCode
 	ar.CreatedAt = now
 	ar.UpdatedAt = now
 	ms, db := db_proxy.Connect(db, result_collection)
@@ -74,7 +77,7 @@ func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	query := bson.M{"run_id": id}
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
+	err = db.Find(query).Select(bson.M{"status_code":1, "case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error(1024, err)
