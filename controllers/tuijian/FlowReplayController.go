@@ -1,7 +1,6 @@
 package tuijian
 
 import (
-	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -372,19 +371,19 @@ func (c *FlowReplayController) Replay() {
 	//execCommand := "./gor --input-file \"./rankingmm.gor|1000%\" --output-http=\"http://172.16.1.22:8766\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
 	//execCommand := "./gor --input-file \"./"+filePath+"|"+strconv.Itoa(int(replayTimes*100))+"%\" --output-http=\"http://"+targetHost+"\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
 	//execCommand := "   "
-	cmd := exec.Command("/bin/bash", "-c", "gor --input-file '/Users/xueyibing/Desktop/小川文件夹/rankingmm.gor|100%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
+	cmd := exec.Command("/bin/bash", "-c", "gor --input-file '/Users/xueyibing/rankingmm.gor|1%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
+	//var out bytes.Buffer
+	//var stderr bytes.Buffer
+	//cmd.Stdout = &out
+	//cmd.Stderr = &stderr
 	go func() {
 		//cmd := exec.Command("gor", "--input-file", "'/Users/xueyibing/Desktop/小川文件夹/rankingmm.gor|100%'", "--output-http=http://172.16.1.22:8766", "--stats", "--output-http-stats", "--output-http-timeout", "1s", "--output-http-workers", "1000")
-		err := cmd.Run()
+		body, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("打印错误: %s, 错误详情为: %s", err.Error(), stderr.String())
+			fmt.Printf("打印错误: %s", err.Error())
 			os.Exit(1)
 		} else {
-			fmt.Printf("shell执行结果为: %s", out.String())
+			fmt.Printf("shell执行结果为~~~~~~~~/n: %s", string(body))
 		}
 	}()
 	c.SuccessJson(nil)
