@@ -286,7 +286,8 @@ func (c *CaseController) AddOneCase() {
 	// 保存成功后，将该条线上巡检Case关联的测试Case巡检状态切换为开启
 	testCaseMongo := models.TestCaseMongo{}
 	testCaseMongo.SetInspection(acm.TestCaseId, models.INSPECTION)
-	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 func (c *CaseController) DelCaseByID() {

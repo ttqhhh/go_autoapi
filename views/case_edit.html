@@ -2,7 +2,7 @@
 
 
 
-<form class="layui-form layui-form-pane" action="/case/update_one_case/" method="post" style="padding: 1%">
+<form class="layui-form layui-form-pane" action="/case/update_one_case/" method="post" style="padding: 1%" >
 
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
@@ -113,7 +113,7 @@
 
     <div class="layui-form-item">
         <div class="layui-input-block">
-            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" id="sub_save">提交修改</button>
 <!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
         </div>
     </div>
@@ -379,6 +379,12 @@
             $("#hc_select").next().find("dl").css({ "display": "none" });
             form.render();
         });
+
+
+        // $(document).on('click', "#sub_save", function (){
+        //     window.close()
+        // });
+
 
         $(document).on('click', '#test', function () {
             var request_param = $("#request_param").val()
