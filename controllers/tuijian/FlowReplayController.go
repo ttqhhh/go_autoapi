@@ -1,6 +1,7 @@
 package tuijian
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"go_autoapi/models"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 	"time"
 )
@@ -39,6 +41,8 @@ func (c *FlowReplayController) Post() {
 	switch do {
 	case "save":
 		c.add()
+	case "replay":
+		c.Replay()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -264,34 +268,54 @@ type ReplayParam struct {
 	ReplayTimes float64 `form:"replay_times" json:"replay_times"`
 	TargetHost  string  `form:"target_host" json:"target_host"`
 }
-func (c *FlowReplayController) replay() {
+
+func (c *FlowReplayController) Replay() {
 	param := &ReplayParam{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, param)
 	if err != nil {
-	    logs.Error("/flowreplay/replay接口 参数异常, err: %v", err)
-	    c.ErrorJson(-1, "参数异常", nil)
+		logs.Error("/flowreplay/replay接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
 	}
 	logs.Info("请求参数: id=%v", param)
 
-	flowreplayMongo := models.FlowReplayMongo{}
-	flowreplay, err := flowreplayMongo.QueryById(param.Id)
-	if err != nil {
-		logs.Error("执行流量回放时, 查询指定回放报错")
-		c.ErrorJson(-1, "查询指定回放报错", nil)
-	}
+	//flowreplayMongo := models.FlowReplayMongo{}
+	//flowreplay, err := flowreplayMongo.QueryById(param.Id)
+	//if err != nil {
+	//	logs.Error("执行流量回放时, 查询指定回放报错")
+	//	c.ErrorJson(-1, "查询指定回放报错", nil)
+	//}
 	// todo 回放文件名称
-	flowFileName := flowreplay.FlowFile
-	
-	// 回放频率
-	replayTimes := param.ReplayTimes
-	if replayTimes == 0 {
-		replayTimes = flowreplay.ReplayTimes
-	}
-	// 回放目标机器
-	targetHost := param.TargetHost
-	if targetHost == "" {
-		targetHost = flowreplay.FlowTargetHost
-	}
+	//flowFileName := flowreplay.FlowFile
+	//filePath := uploadDir+ "/"+flowFileName
 
+	// 回放频率
+	//replayTimes := param.ReplayTimes
+	//if replayTimes == 0 {
+	//	replayTimes = flowreplay.ReplayTimes
+	//}
+	// 回放目标机器
+	//targetHost := param.TargetHost
+	//if targetHost == "" {
+	//	targetHost = flowreplay.FlowTargetHost
+	//}
+
+	//execCommand := "./gor --input-file \"./rankingmm.gor|1000%\" --output-http=\"http://172.16.1.22:8766\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
+	//execCommand := "./gor --input-file \"./"+filePath+"|"+strconv.Itoa(int(replayTimes*100))+"%\" --output-http=\"http://"+targetHost+"\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
+	//execCommand := "   "
+	cmd := exec.Command("/bin/bash", "-c", "gor --input-file '/Users/xueyibing/Desktop/小川文件夹/rankingmm.gor|100%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	go func() {
+		//cmd := exec.Command("gor", "--input-file", "'/Users/xueyibing/Desktop/小川文件夹/rankingmm.gor|100%'", "--output-http=http://172.16.1.22:8766", "--stats", "--output-http-stats", "--output-http-timeout", "1s", "--output-http-workers", "1000")
+		err := cmd.Run()
+		if err != nil {
+			fmt.Printf("打印错误: %s, 错误详情为: %s", err.Error(), stderr.String())
+			os.Exit(1)
+		} else {
+			fmt.Printf("shell执行结果为: %s", out.String())
+		}
+	}()
 	c.SuccessJson(nil)
 }
