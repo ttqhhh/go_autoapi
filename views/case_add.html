@@ -272,7 +272,7 @@
             });
             /** 触发填充 **/
             $(".json-height").html("")
-            $(".json-height").append(pre)
+            $(".json-height").append(first_pre)
             // alert(res)
             $.each(analysisJson(obj).keys, function(i,v){
                 $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
