@@ -2,12 +2,6 @@
 
 <div style="padding-top: 50px; padding-left: 200px; padding-right: 300px">
     <div style="margin-bottom: 80px">
-<!--        <div style="float: left; margin-left: 50px">-->
-<!--            <label>业务线：</label>-->
-<!--            <select id="list_business" class="layui-select layui-btn-lg" lay-verify="required">-->
-<!--                <option value="">请选择业务线</option>-->
-<!--            </select>-->
-<!--        </div>-->
         <div style="float: left; margin-left: 50px">
             <label>服务名：</label>
             <input id="list_service_name" class="layui-select" type="text" placeholder="请输入服务名">
@@ -74,17 +68,17 @@
                 , page: true //开启分页
                 , limit: 10
                 , method: 'get'
-                , where: {business: business, service_name: service_name}
+                , where: {service_name: service_name}
                 , cols: [[ //表头
                     // {type: 'checkbox', fixed: 'left'},
                     {field: 'id', title: 'ID', fixed: 'left', fixed: true}
                     , {field: 'service_name', title: '服务名', fixed: true}
-                    , {field: 'business', title: '回放文件', fixed: true}
-                    , {field: 'business', title: '回放机器', fixed: true}
-                    , {field: 'business', title: '回放信率', fixed: true}
-                    , {field: 'business', title: '回放url', fixed: true}
+                    , {field: 'flow_file', title: '回放文件', fixed: true}
+                    , {field: 'flow_target_host', title: '回放机器', fixed: true}
+                    , {field: 'replay_times', title: '回放信率', fixed: true}
+                    , {field: 'replay_uri', title: '回放url', fixed: true}
                     , {field: 'create_by', title: '添加人', fixed: true}
-                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp'}
+                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 300}
                 ]]
                 , done: function (res, curr, count) {
                     var businessMap = {}
@@ -132,6 +126,8 @@
                 del(data.id)
             } else if (obj.event === 'edit') {
                 edit(data.id)
+            } else if (obj.event === 'run'){
+                run(data.id)
             }
         });
 
@@ -178,46 +174,13 @@
                     initSelect()
                 },
                 yes: function (index) {
-                    // 保存按钮的回调
-                    var id = $("#id").val()
-                    var service_name = $("#service_name").val()
-                    var flow_file = $("#flow_file").val()
-                    var flow_target_host = $("#flow_target_host").val()
-                    var replay_times = $("#replay_times").val()
-                    var replay_uri = $("#replay_uri").val()
-                    var data
-                    if (id == "") {
-                        data = {service_name: service_name, flow_file:flow_file, flow_target_host: flow_target_host, replay_times: replay_times, replay_uri: replay_uri}
-                        // data = {
-                        //     service_name:$("#service_name").val(),
-                        //     flow_file:$("#flow_file").val(),
-                        //     flow_target_host:$("#flow_target_host").val(),
-                        //     replay_times:$("#replay_times").val(),
-                        //     replay_uri : $("#replay_uri").val(),
-                        // }
-                        console.log('?????',data)
+                console.log('save~',$("#replay"));
+                // return;
+                    $("#replay").submit();
+                    const  query = () => {
+                        // window.open('/web_report/queryAll1')
+                        window.location.href = '/web_report/queryAll'
                     }
-                    else {
-                        data = {id: id, service_name: service_name,  flow_file: flow_file, flow_target_host: flow_target_host, replay_times: replay_times, replay_uri: replay_uri}
-                    }
-                    // return
-                    $.ajax({
-                        url: "/flowreplay/save",
-                        type: "POST",
-                        async: false,
-                        data: data,
-                        dataType: "json",
-                        success: function (data) {
-                            var code = data.code
-                            if (code != 200) {
-                                layer.msg(data.msg)
-                            } else {
-                                $("#add-main").css("display", "none")
-                                layer.close(index)
-                                window.parent.location.reload();
-                            }
-                        }
-                    });
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -237,62 +200,40 @@
                 type: 1,
                 content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
                 // content: url,
-                area: ['800px', '600px'],
+                area: ['800px', '500px'],
                 btn: ['保存', '取消'],
                 success: function () {
                     // 初始化下拉框
                     initSelect()
                     // 原始值初始化
                     $.ajax({
-                        url: "/service/getById?id=" + id,
+                        url: "/flowreplay/getById?id=" + id,
                         type: "GET",
                         dataType: "json",
                         success: function (data) {
                             var code = data.code
-                            var res = data.data
+                            const {id,service_name,flow_target_host,replay_times,replay_uri,flow_file} = data.data || {}
                             if (code != 200) {
                                 layer.msg(data.msg)
                             } else {
-                                $("#id").val(res.id)
-                                $("#service_name").val(res.service_name)
-                                var business = res.business
-                                $("#form_business").find("option[value=" + business + "]").prop("selected", true);
-                                form.render("select");
+                                $("#id").val(id)
+                                $("#service_name").val(service_name)
+                                $("#flow_target_host").val(flow_target_host)
+                                $("#replay_times").val(replay_times)
+                                $("#replay_uri").val(replay_uri)
+                                $('#flow_file_name').html(`当前文件名：${flow_file || 'file-name'}`)
+                                // $('#flow_file_name').html(`${flow_file || 'file-name'}`)
                             }
                         }
                     });
                 },
                 yes: function (index) {
                     // 保存按钮的回调
-                    var id = $("#id").val()
-                    var service_name = $("#service_name").val()
-                    var flow_file = $("#flow_file").val()
-                    var flow_target_host = $("#flow_target_host").val()
-                    var replay_times = $("#replay_times").val()
-                    var replay_uri = $("#replay_uri").val()
-                    var data
-                    if (id == "") {
-                        data = {service_name: service_name, flow_file: flow_file, flow_target_host: flow_target_host, replay_times: replay_times, replay_uri: replay_uri}
-                    } else {
-                        data = {id: id, service_name: service_name,  flow_file: flow_file, flow_target_host: flow_target_host, replay_times: replay_times, replay_uri: replay_uri}
-                    }
-                    $.ajax({
-                        url: "/flowreplay/save",
-                        type: "POST",
-                        async: false,
-                        data: data,
-                        dataType: "json",
-                        success: function (data) {
-                            var code = data.code
-                            if (code != 200) {
-                                layer.msg(data.msg)
-                            } else {
-                                $("#add-main").css("display", "none")
-                                layer.close(index)
-                                window.parent.location.reload();
-                            }
-                        }
-                    });
+                    // console.log($("#replay"))
+                    $("#replay").submit();
+                    // layer.close(index)
+
+
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -311,7 +252,7 @@
                 //do something
                 var data = {"id": id};
                 $.ajax({
-                    url: "/service/remove",
+                    url: "/flowreplay/remove",
                     type: "POST",
                     dataType: "json",
                     contentType: 'application/json;charset=UTF-8',
@@ -326,12 +267,33 @@
                 // layer.close(index);
             });
         }
+        window.run = function (id){
+            layer.confirm('确认执行?', {icon: 3, title: '提示'}, function (index) {
+                //do something
+                var data = {"id": id};
+                $.ajax({
+                    url: "/flowreplay/run",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        layer.msg("执行成功");
+                        // tableInit();
+                        layer.close(index);
+                        window.location.reload()
+                    }
+                })
+                // layer.close(index);
+            });
+        }
     });
 </script>
 <div style="margin:1%">
     <table id="service" lay-filter="serviceTest"></table>
 
     <script type="text/html" id="serviceOp">
+        <button type='button' class='layui-btn layui-btn-warm' lay-event="run">执行</button>
         <button type='button' class='layui-btn layui-btn-normal' lay-event="edit">编辑</button>
         <button type='button' class='layui-btn layui-btn-danger' lay-event="del">删除</button>
     </script>
@@ -353,11 +315,17 @@
         </div>
         <div class="layui-form-item" style="width: 350px">
             <label class="layui-form-label">回放文件</label>
-            <div class="layui-input-block">
-                <input type="file"  id="flow_file" name="flow_file" required lay-verify="required"
-                       placeholder="请上传回放文件" autocomplete="off"  class="layui-input">
+            <div class="layui-input-block" style="position: relative">
+                <input type="file" id="flow_file" name="flow_file" class="layui-input">
+<!--                <span style="position: absolute;right: 0;" id="flow_file_name"></span>-->
             </div>
         </div>
+<!--        <div class="layui-form-item" style="width: 350px">-->
+            <label class="layui-form-label"></label>
+            <div class="layui-input-block" style="position: relative">
+                <span style="position: absolute;float:left; margin-top: 10px" id="flow_file_name"></span>
+            </div>
+<!--        </div>-->
         <div class="layui-form-item" style="width: 350px">
             <label class="layui-form-label">回放机器</label>
             <div class="layui-input-block">
@@ -379,15 +347,8 @@
                        placeholder="请输入回放url" autocomplete="off" class="layui-input">
             </div>
         </div>
-<!--        <div class="layui-form-item" style="width: 350px">-->
-<!--            <label class="layui-form-label">业务线</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                <select id="form_business" name="form_business" value="" required lay-verify="required">-->
-<!--                    <option value="">请选择业务线</option>-->
-<!--                </select>-->
-<!--            </div>-->
-<!--        </div>-->
     </form>
 </div>
+
 </body>
 </html>
