@@ -14,17 +14,17 @@ const (
 )
 
 type FlowReplayMongo struct {
-	Id             int64   `form:"id" json:"id" bson:"_id"`
-	ServiceName    string  `form:"service_name" json:"service_name" bson:"service_name"`             // 服务名，需唯一
-	FlowFile       string  `form:"flow_file" json:"flow_file" bson:"flow_file"`                      // 流量文件
-	FlowTargetHost string  `form:"flow_target_host" json:"flow_target_host" bson:"flow_target_host"` //回放目标机器
-	ReplayTimes    float64 `form:"replay_times" json:"replay_times" bson:"replay_times"`             // 回放倍率
-	ReplayUri      string  `form:"replay_uri" json:"replay_uri" bson:"replay_uri"`                   // 回放地址
-	Status         int8    `form:"status" json:"status"  bson:"status"`                              // 0：正常，1：删除
-	CreateBy       string  `form:"create_by" json:"create_by" bson:"create_by"`                      // 添加人
-	UpdateBy       string  `form:"update_by" json:"update_by" bson:"update_by"`                      // 修改人
-	CreatedAt      string  `form:"created_at" json:"created_at" bson:"created_at"`                   // omitempty 表示该字段为空时，不返回
-	UpdatedAt      string  `form:"updated_at" json:"updated_at" bson:"updated_at"`
+	Id             int64  `form:"id" json:"id" bson:"_id"`
+	ServiceName    string `form:"service_name" json:"service_name" bson:"service_name"`             // 服务名，需唯一
+	FlowFile       string `form:"flow_file" json:"flow_file" bson:"flow_file"`                      // 流量文件
+	FlowTargetHost string `form:"flow_target_host" json:"flow_target_host" bson:"flow_target_host"` //回放目标机器
+	ReplayTimes    string `form:"replay_times" json:"replay_times" bson:"replay_times"`             // 回放倍率
+	ReplayUri      string `form:"replay_uri" json:"replay_uri" bson:"replay_uri"`                   // 回放地址
+	Status         int8   `form:"status" json:"status"  bson:"status"`                              // 0：正常，1：删除
+	CreateBy       string `form:"create_by" json:"create_by" bson:"create_by"`                      // 添加人
+	UpdateBy       string `form:"update_by" json:"update_by" bson:"update_by"`                      // 修改人
+	CreatedAt      string `form:"created_at" json:"created_at" bson:"created_at"`                   // omitempty 表示该字段为空时，不返回
+	UpdatedAt      string `form:"updated_at" json:"updated_at" bson:"updated_at"`
 }
 
 func (mongo *FlowReplayMongo) TableName() string {

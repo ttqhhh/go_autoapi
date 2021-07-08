@@ -9,6 +9,7 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -169,8 +170,9 @@ func (c *FlowReplayController) add() {
 		if err != nil {
 			c.ErrorJson(-1, "服务添加数据异常", nil)
 		}
+		c.Redirect("/flowreplay/index", http.StatusFound)
 		//c.SuccessJson(nil)
-		c.TplName = "replay.html"
+		//c.TplName = "replay.html"
 		//c.ErrorJson(-1, "参数异常", nil)
 	}
 	if err1 == nil {
@@ -223,8 +225,9 @@ func (c *FlowReplayController) update() {
 		if err != nil {
 			c.ErrorJson(-1, "服务更新数据异常", nil)
 		}
+		c.Redirect("/flowreplay/index", http.StatusFound)
 		//c.SuccessJson(nil)
-		c.TplName = "replay.html"
+		//c.TplName = "replay.html"
 	}
 	if f != nil {
 		fileName := h.Filename
@@ -285,8 +288,9 @@ func (c *FlowReplayController) update() {
 		if err != nil {
 			c.ErrorJson(-1, "服务更新数据异常", nil)
 		}
-		c.SuccessJson(nil)
-		c.TplName = "replay.html"
+		c.Redirect("/flowreplay/index", http.StatusFound)
+		//c.SuccessJson(nil)
+		//c.TplName = "replay.html"
 	}
 }
 
@@ -347,18 +351,23 @@ func (c *FlowReplayController) Replay() {
 	}
 	logs.Info("请求参数: id=%v", param)
 
-	//flowreplayMongo := models.FlowReplayMongo{}
-	//flowreplay, err := flowreplayMongo.QueryById(param.Id)
-	//if err != nil {
-	//	logs.Error("执行流量回放时, 查询指定回放报错")
-	//	c.ErrorJson(-1, "查询指定回放报错", nil)
-	//}
-	// todo 回放文件名称
-	//flowFileName := flowreplay.FlowFile
-	//filePath := uploadDir+ "/"+flowFileName
+	flowreplayMongo := models.FlowReplayMongo{}
+	flowreplay, err := flowreplayMongo.QueryById(param.Id)
+	if err != nil {
+		logs.Error("执行流量回放时, 查询指定回放报错")
+		c.ErrorJson(-1, "查询指定回放报错", nil)
+	}
+	// 回放文件名称
+	flowFileName := flowreplay.FlowFile
+	//回放路径
+	flowFileName = "/Users/sunzhiying/upload" + "/" + flowFileName
+	//机器
+	filePath := flowreplay.FlowTargetHost
 
 	// 回放频率
-	//replayTimes := param.ReplayTimes
+	replayTimes := flowreplay.ReplayTimes
+
+	fmt.Println(flowFileName, filePath, replayTimes)
 	//if replayTimes == 0 {
 	//	replayTimes = flowreplay.ReplayTimes
 	//}
@@ -371,7 +380,14 @@ func (c *FlowReplayController) Replay() {
 	//execCommand := "./gor --input-file \"./rankingmm.gor|1000%\" --output-http=\"http://172.16.1.22:8766\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
 	//execCommand := "./gor --input-file \"./"+filePath+"|"+strconv.Itoa(int(replayTimes*100))+"%\" --output-http=\"http://"+targetHost+"\" --stats --output-http-stats --output-http-timeout 1s  --output-http-workers 1000"
 	//execCommand := "   "
-	cmd := exec.Command("/bin/bash", "-c", "gor --input-file '/Users/xueyibing/rankingmm.gor|1%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
+	//cmd := exec.Command("/bin/bash", "-c", "gor --input-file '/Users/sunzhiying/rankingmm.gor|1%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
+	//cmd := exec.Command("/bin/sh", "-c", "gor --input-file '/Users/sunzhiying/rankingmm.gor|1%' --output-http=http://172.16.1.22:8766 --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000")
+	//fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000", flowFileName, replayTimes, filePath)
+
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --output-http-workers 1000", flowFileName, replayTimes, filePath))
+
+	//fmt.Println(cmd,cmd1)
+
 	//var out bytes.Buffer
 	//var stderr bytes.Buffer
 	//cmd.Stdout = &out
@@ -386,5 +402,6 @@ func (c *FlowReplayController) Replay() {
 			fmt.Printf("shell执行结果为~~~~~~~~/n: %s", string(body))
 		}
 	}()
-	c.SuccessJson(nil)
+	c.Redirect("/flowreplay/index", http.StatusFound)
+	//c.SuccessJson(nil)
 }
