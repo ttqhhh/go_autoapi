@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const uploadDir = "~/upload"
+const uploadDir = "/Users/sunzhiying/upload"
 
 type FlowReplayController struct {
 	libs.BaseController
@@ -122,7 +122,6 @@ func (c *FlowReplayController) add() {
 			return
 		}
 		//创建目录
-		uploadDir := "/Users/sunzhiying/upload"
 		err := os.MkdirAll(uploadDir, 777)
 		if err != nil {
 			c.Ctx.WriteString(fmt.Sprintf("%v", err))
@@ -241,7 +240,6 @@ func (c *FlowReplayController) update() {
 			return
 		}
 		//创建目录
-		uploadDir := "/Users/sunzhiying/upload"
 		//uploadDir := "~/upload/" + time.Now().Format("2006/01/02/")
 		err := os.MkdirAll(uploadDir, 777)
 		if err != nil {
@@ -360,7 +358,7 @@ func (c *FlowReplayController) Replay() {
 	// 回放文件名称
 	flowFileName := flowreplay.FlowFile
 	//回放路径
-	flowFileName = "/Users/sunzhiying/upload" + "/" + flowFileName
+	flowFileName = uploadDir + "/" + flowFileName
 	//机器
 	filePath := flowreplay.FlowTargetHost
 
