@@ -21,6 +21,7 @@ require (
 	github.com/siddontang/go v0.0.0-20170517070808-cb568a3e5cc0
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spyzhov/ajson v0.4.2
+	github.com/widuu/gojson v0.0.0-20170212122013-7da9d2cd949b
 	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/tools v0.1.0 // indirect
