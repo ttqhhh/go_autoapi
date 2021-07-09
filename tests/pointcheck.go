@@ -3,28 +3,27 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/beego/beego/v2/core/logs"
+	"io"
 	"io/ioutil"
-	"strconv"
+	"net/http"
 	"strings"
 	//"github.com/zyx4843/gojson"
 	"reflect"
 )
 
-func main(){
+const left_data = "{\"ct\":\"1625820849\",\"mid\":\"11668967\",\"type\":\"click\",\"stype\":\"video\",\"id\":\"1585481065\",\"oid\":\"1585481065\",\"frominfo\":\"selectbulletvote\",\"extdata\":{\"app\":\"zuiyou\",\"app_name\":\"zuiyou\",\"app_ver\":\"5.7.13.318\",\"channel\":\"appstore\",\"did\":\"3d7c3cc366fe893164d634d61e9a04f6\",\"dt\":1,\"model\":\"iPhone 12 Pro\",\"net_type\":1,\"pid\":235125605,\"ver\":\"5.7.13.318\",\"video_id\":1585481065}}"
 
-	jsonLeft := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
+func main(){
+	actionList :=[] string {"detail_post"}
+	fmt.Println(actionList)
+	r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","click_video","1625801485.586624","NaN")
+	//jsonLeft := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
 	l := make(map[string]interface{})
-	err := json.Unmarshal([]byte(jsonLeft), &l)
+	err := json.Unmarshal([]byte(left_data), &l)
 	if err != nil{
 		return
 	}
-	jsonRight := `{"from":[{"sb":"sba"},{"sb":"sbs"}],"to":"zs"}`
-	r := make(map[string]interface{})
-	err = json.Unmarshal([]byte(jsonRight), &r)
-	if err != nil{
-		return
-	}
-	//json_right := `{"from":{"sb":"sba"},"to":"zh"}`
 	var result1 string
 	var result2 bool
 	result1, result2 = JsonCompare(l,r,-1)
@@ -33,11 +32,42 @@ func main(){
 }
 
 type JsonDiff struct {
-	HasDiff bool
-	Result  string
-	Path 	string
+	HasDiff    bool
+	Result     string
+	Path       string
+
 	//DataCompareResult  []string
 	//FrameCompareResult []string
+}
+
+func GetRealPoints(did,event, timeBegin, timeEnd string) map[string]interface{} {
+	fmt.Println("准备拉取数据，action:" + event)
+	//时间是空位NaN
+	req, err := http.NewRequest("GET",
+		"http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd,
+		nil)
+	if err != nil {
+		logs.Error("请求失败，err: ", err)
+	}
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		logs.Error("请求失败, err:", err)
+	}
+	var reader io.ReadCloser
+	reader = response.Body
+	body, _:= ioutil.ReadAll(reader)
+	//Sbody := string(body)
+	var result []string
+	_ = json.Unmarshal(body,&result)
+	arr :=strings.Fields(result[0])
+	realJson := arr[len(arr)-1]
+	v := make(map[string]interface{})
+	_ = json.Unmarshal([]byte(realJson),&v)
+	ext := make(map[string]interface{})
+	_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+	v["extdata"] = ext
+	return v
 }
 
 func JsonCompare(left, right map[string]interface{}, n int) (string, bool) {
@@ -60,7 +90,7 @@ func marshal(j interface{}) string {
 
 func jsonDiffDict(json1, json2 map[string]interface{}, depth int, diff *JsonDiff) {
 	for key, value := range json1 {
-		diff.Path = diff.Path + key
+		diff.Path = diff.Path + "[" + key + "]"
 		if _, ok := json2[key]; ok {
 			switch value.(type) {
 			case map[string]interface{}:
@@ -97,7 +127,7 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 		size = len(json2)
 	}
 	for i := 0; i < size; i++ {
-		diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
+		//diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 		switch json1[i].(type) {
 		case map[string]interface{}:
 			if _, ok := json2[i].(map[string]interface{}); ok {
