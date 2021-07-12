@@ -79,7 +79,7 @@
                     , {field: 'replay_uri', title: '并发数', fixed: true}
                     , {field: 'create_by', title: '添加人', fixed: true}
                     // , {field: 'cycle', title: '是否循环', fixed: true}
-                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 230}
+                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 300}
                 ]]
                 , done: function (res, curr, count) {
                     var businessMap = {}
@@ -129,6 +129,8 @@
                 edit(data.id)
             } else if (obj.event === 'run'){
                 run(data.id)
+            } else if (obj.event === 'run_cycle'){
+                run_cycle(data.id)
             } else if (obj.event === 'kill')
                 kill(data.id)
         });
@@ -291,6 +293,26 @@
                 // layer.close(index);
             });
         }
+        window.run_cycle = function (id){
+            layer.confirm('循环执行?', {icon: 3, title: '提示'}, function (index) {
+                //do something
+                var data = {"id": id};
+                $.ajax({
+                    url: "/flowreplay/replaycycle",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        layer.msg("执行成功");
+                        // tableInit();
+                        layer.close(index);
+                        window.location.reload()
+                    }
+                })
+                // layer.close(index);
+            });
+        }
         window.kill = function (id){
             layer.confirm('结束执行?', {icon: 3, title: '提示'}, function (index) {
                 //do something
@@ -317,6 +339,7 @@
     <table id="service" lay-filter="serviceTest"></table>
 
     <script type="text/html" id="serviceOp">
+        <button type='button' class='layui-btn layui-btn-xs layui-btn-warm' lay-event="run_cycle">循环执行</button>
         <button type='button' class='layui-btn layui-btn-xs layui-btn-warm' lay-event="run">执行</button>
         <button type='button' class='layui-btn layui-btn-xs layui-btn-normal' lay-event="edit">编辑</button>
         <button type='button' class='layui-btn layui-btn-xs layui-btn-danger' lay-event="del">删除</button>
