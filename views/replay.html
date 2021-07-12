@@ -76,9 +76,10 @@
                     , {field: 'flow_file', title: '回放文件', fixed: true}
                     , {field: 'flow_target_host', title: '回放机器', fixed: true}
                     , {field: 'replay_times', title: '回放信率', fixed: true}
-                    , {field: 'replay_uri', title: '回放url', fixed: true}
+                    , {field: 'replay_uri', title: '并发数', fixed: true}
                     , {field: 'create_by', title: '添加人', fixed: true}
-                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 300}
+                    // , {field: 'cycle', title: '是否循环', fixed: true}
+                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 230}
                 ]]
                 , done: function (res, curr, count) {
                     var businessMap = {}
@@ -128,7 +129,8 @@
                 edit(data.id)
             } else if (obj.event === 'run'){
                 run(data.id)
-            }
+            } else if (obj.event === 'kill')
+                kill(data.id)
         });
 
         var $ = layui.$, active = {
@@ -175,12 +177,13 @@
                 },
                 yes: function (index) {
                 console.log('save~',$("#replay"));
+                console.log("????????",$("#cycle").val())
                 // return;
                     $("#replay").submit();
-                    const  query = () => {
-                        // window.open('/web_report/queryAll1')
-                        window.location.href = '/web_report/queryAll'
-                    }
+                     // const  query = () => {
+                    //     // window.open('/web_report/queryAll1')
+                    //     window.location.href = '/web_report/queryAll'
+                    // }
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -223,14 +226,15 @@
                                 $("#replay_uri").val(replay_uri)
                                 $('#flow_file_name').html(`当前文件名：${flow_file || 'file-name'}`)
                                 // $('#flow_file_name').html(`${flow_file || 'file-name'}`)
+                                $('#cycle').val(cycle)
                             }
                         }
                     });
                 },
                 yes: function (index) {
                     // 保存按钮的回调
-                    // console.log($("#replay"))
                     $("#replay").submit();
+                    console.log('?????',$('#cycle')[0].value)
                     // layer.close(index)
 
 
@@ -287,15 +291,36 @@
                 // layer.close(index);
             });
         }
+        window.kill = function (id){
+            layer.confirm('结束执行?', {icon: 3, title: '提示'}, function (index) {
+                //do something
+                var data = {"id": id};
+                $.ajax({
+                    url: "/flowreplay/kill",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json;charset=UTF-8',
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        layer.msg("执行成功");
+                        // tableInit();
+                        layer.close(index);
+                        window.location.reload()
+                    }
+                })
+                // layer.close(index);
+            });
+        }
     });
 </script>
 <div style="margin:1%">
     <table id="service" lay-filter="serviceTest"></table>
 
     <script type="text/html" id="serviceOp">
-        <button type='button' class='layui-btn layui-btn-warm' lay-event="run">执行</button>
-        <button type='button' class='layui-btn layui-btn-normal' lay-event="edit">编辑</button>
-        <button type='button' class='layui-btn layui-btn-danger' lay-event="del">删除</button>
+        <button type='button' class='layui-btn layui-btn-xs layui-btn-warm' lay-event="run">执行</button>
+        <button type='button' class='layui-btn layui-btn-xs layui-btn-normal' lay-event="edit">编辑</button>
+        <button type='button' class='layui-btn layui-btn-xs layui-btn-danger' lay-event="del">删除</button>
+        <button type='button' class='layui-btn layui-btn-xs layui-btn-warm' lay-event="kill">终止</button>
     </script>
 </div>
 <!-- 构建form表单 -->
@@ -330,23 +355,33 @@
             <label class="layui-form-label">回放机器</label>
             <div class="layui-input-block">
                 <input type="text" id="flow_target_host" name="flow_target_host" required lay-verify="required"
-                       placeholder="请输回放机器" autocomplete="off" class="layui-input">
+                       placeholder="格式：http://x.x.x.x:xxxx" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item" style="width: 350px">
             <label class="layui-form-label">回放信率</label>
             <div class="layui-input-block">
                 <input type="text" id="replay_times" name="replay_times" required lay-verify="required"
-                       placeholder="请输回放信率" autocomplete="off" class="layui-input">
+                       placeholder="格式：xx%" autocomplete="off" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item" style="width: 350px">
-            <label class="layui-form-label">回放url</label>
+            <label class="layui-form-label">并发数</label>
             <div class="layui-input-block">
                 <input type="text" id="replay_uri" name="replay_uri" required lay-verify="required"
                        placeholder="请输入回放url" autocomplete="off" class="layui-input">
             </div>
         </div>
+<!--        <div class="layui-form-item" style="width: 350px">-->
+<!--            <label class="layui-form-label">是否回放</label>-->
+<!--            <div class="layui-input-block">-->
+<!--                <select id="cycle" class="layui-select layui-btn-lg" lay-filter="cycle" lay-verify="required">-->
+<!--&lt;!&ndash;                    <option  selected="selected">==请选择==</option>&ndash;&gt;-->
+<!--                    <option value="1">是</option>-->
+<!--                    <option value="0">否</option>-->
+<!--                </select>-->
+<!--            </div>-->
+<!--        </div>-->
     </form>
 </div>
 
