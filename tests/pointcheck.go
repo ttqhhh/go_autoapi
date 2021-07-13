@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
@@ -15,20 +16,95 @@ import (
 const left_data = "{\"ct\":\"1625820849\",\"mid\":\"11668967\",\"type\":\"click\",\"stype\":\"video\",\"id\":\"1585481065\",\"oid\":\"1585481065\",\"frominfo\":\"selectbulletvote\",\"extdata\":{\"app\":\"zuiyou\",\"app_name\":\"zuiyou\",\"app_ver\":\"5.7.13.318\",\"channel\":\"appstore\",\"did\":\"3d7c3cc366fe893164d634d61e9a04f6\",\"dt\":1,\"model\":\"iPhone 12 Pro\",\"net_type\":1,\"pid\":235125605,\"ver\":\"5.7.13.318\",\"video_id\":1585481065}}"
 
 func main(){
-	actionList :=[] string {"detail_post"}
-	fmt.Println(actionList)
-	r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","click_video","1625801485.586624","NaN")
-	//jsonLeft := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
-	l := make(map[string]interface{})
-	err := json.Unmarshal([]byte(left_data), &l)
-	if err != nil{
-		return
+	GetBasePoints()
+	//actionList :=[] string {"detail_post"}
+	//fmt.Println(actionList)
+	//r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","click_video","1625801485.586624","NaN")
+	////jsonLeft := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
+	//l := make(map[string]interface{})
+	//err := json.Unmarshal([]byte(left_data), &l)
+	//if err != nil{
+	//	return
+	//}
+	//var result1 string
+	//var result2 bool
+	//result1, result2 = JsonCompare(l,r,-1)
+	//fmt.Println(result2)
+	//fmt.Println(result1)
+}
+
+func GetNowTime(){
+
+}
+
+// 通过埋点系统平台获取标准校验点,获取前一周时间范围的校验点（当前取最后一个校验点）
+func GetBasePoints(){
+	fmt.Println("第一次执行获取total总数")
+	// 当前是按照时间倒序查询，limit限制查询总数
+	postBody := `{"offset": 0,"limit": 2,"app_name": "zuiyou","sort_field":"update_time","sort_flag":"desc"}`
+	postData := bytes.NewReader([]byte(postBody))
+	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list",postData)
+	if err !=nil{
+		logs.Error(err)
 	}
-	var result1 string
-	var result2 bool
-	result1, result2 = JsonCompare(l,r,-1)
-	fmt.Println(result2)
-	fmt.Println(result1)
+	req.Header.Add("Cookie","JSESSIONID=D0878C18E86CD3B5446B0DAB1E9E4311")
+	req.Header.Add("Content-Type","application/json")
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		logs.Error("请求失败, err:", err)
+	}
+	var reader io.ReadCloser
+	reader = response.Body
+	body, _:= ioutil.ReadAll(reader)
+	v := make(map[string]interface{})
+	_ = json.Unmarshal(body,&v)
+	records := v["data"].(map[string]interface{})["records"].([]interface{})
+	for _,val := range records {
+		//fmt.Println(val)
+		//for key, v2 := range val.(map[string]interface{}){
+		//	fmt.Println(key,v2)
+		fmt.Println("循环获取event_detail")
+		vals := val.(map[string]interface{})
+		appName := vals["app_name"].(string)
+		types := vals["type"].(string)
+		stype := vals["stype"].(string)
+		frominfo := vals["frominfo"].(string)
+		postBody2 := `{"app_name": "`+appName+`","frominfo":"`+frominfo+`","is_approval": "false","type":"`+types+`","stype":"`+stype+`"}`
+		postData2:= bytes.NewReader([]byte(postBody2))
+		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
+		req2.Header.Add("Cookie","JSESSIONID=D0878C18E86CD3B5446B0DAB1E9E4311")
+		req2.Header.Add("Content-Type","application/json")
+		if err != nil {
+			logs.Error("请求失败，err: ", err)
+		}
+		client2 := &http.Client{}
+		response2, err := client2.Do(req2)
+		if err != nil {
+			logs.Error("请求失败, err:", err)
+		}
+		var reader2 io.ReadCloser
+		reader2 = response2.Body
+		body2, _:= ioutil.ReadAll(reader2)
+		v2 := make(map[string]interface{})
+		_ = json.Unmarshal(body2,&v2)
+		//fmt.Println(v2)
+		// 主要获取拓展字段自定义字段
+		newExtended := make(map[string]interface{})
+		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
+		for _,valss := range extendedCustom{
+			newExtended[valss.(map[string]interface{})["field_name"].(string)] = ""
+		}
+		fmt.Println(newExtended)
+	}
+	//total := int(v["data"].(map[string]interface{})["total"].(float64))
+	//fmt.Println("获取到埋点总数:",total)
+	//fmt.Println("第二次执行获取total总数")
+	//s := make(map[string]interface{})
+	//s["offset"] = total - 20
+	//s["limit"] = 20
+	//s["app_name"] = "zuiyou"
+	//sm, _ := json.Marshal(s)
 }
 
 type JsonDiff struct {
