@@ -18,43 +18,6 @@ type ZYMonitorController struct {
 	libs.BaseController
 }
 
-type Last7Days struct {
-	Day_1th OneDay24Hours
-	Day_2th OneDay24Hours
-	Day_3th OneDay24Hours
-	Day_4th OneDay24Hours
-	Day_5th OneDay24Hours
-	Day_6th OneDay24Hours
-	Day_7th OneDay24Hours
-}
-
-type OneDay24Hours struct {
-	Time_1  int
-	Time_2  int
-	Time_3  int
-	Time_4  int
-	Time_5  int
-	Time_6  int
-	Time_7  int
-	Time_8  int
-	Time_9  int
-	Time_10 int
-	Time_11 int
-	Time_12 int
-	Time_13 int
-	Time_14 int
-	Time_15 int
-	Time_16 int
-	Time_17 int
-	Time_18 int
-	Time_19 int
-	Time_20 int
-	Time_21 int
-	Time_22 int
-	Time_23 int
-	Time_24 int
-}
-
 func (c *ZYMonitorController) Get() {
 	do := c.GetMethodName()
 	switch do {
@@ -74,9 +37,10 @@ func (c *ZYMonitorController) Get() {
 const baseUrl = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_gateway_acnt_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
 
 /**
-获取接口每个整点的
+获取接口每个整点的响应时间详情
+通过起始时间、终止时间、步长（建议3600，每一个整点）
 */
-func (c *ZYMonitorController) mvp() {
+func (c *ZYMonitorController) getRtDetailByRange() {
 	st := c.GetString("start")
 	et := c.GetString("end")
 	step := c.GetString("step")
@@ -180,35 +144,23 @@ func (c *ZYMonitorController) mvp() {
 分别计算出每个接口过去7天每个整点的平均值，
 */
 func (c *ZYMonitorController) mvp1() {
+	// 最终结构体
+	dateMap := map[string]interface{}{}
 	// 当前时间向前取7天
-	lastRes := []interface{}{}
 	last7DaysZeroTime := getLast7DaysZeroClock(getTodayZeroClock())
-	for _, zeroTime := range last7DaysZeroTime {
-		//st := c.GetString("start")
-		//et := c.GetString("end")
-		//step := c.GetString("step")
+	for i := 0; i < len(last7DaysZeroTime); i++ {
+		// 获取当天0时
+		zeroTime := last7DaysZeroTime[i]
 		step := "3600"
-		//loc, _ := time.LoadLocation("Local")
-
-		//start, _ := time.ParseInLocation(models.Time_format, st, loc)
-		//end, _ := time.ParseInLocation(models.Time_format, et, loc)
-
-		//startTime := start.Unix()
-		//endTime := end.Unix()
-
-		//startStr := strconv.Itoa(int(startTime))
-		//endStr := strconv.Itoa(int(endTime))
 		startStr := strconv.Itoa(zeroTime)
 		endStr := strconv.Itoa(zeroTime + 86399)
+		date := time.Unix(int64(zeroTime), 0).Format("2006-01-02")
 
 		url := baseUrl + "&start=" + startStr + "&end=" + endStr + "&step=" + step
-
 		client := &http.Client{Timeout: 5 * time.Second}
 		reqest, err := http.NewRequest("GET", url, nil)
-		//resp, err := client.Get(url)
 		reqest.Header.Set("Cache-Control", "no-cache")
 		resp, err := client.Do(reqest)
-
 		if err != nil {
 			logs.Error("发送get请求报错, err: ", err)
 		}
@@ -218,9 +170,6 @@ func (c *ZYMonitorController) mvp1() {
 			logs.Error("发送get请求报错, err: ", err)
 		}
 
-		middleRes := make(map[string]interface{})
-
-		//res := string(body)
 		res := make(map[string]interface{})
 		json.Unmarshal(body, &res)
 		status := res["status"].(string)
@@ -233,37 +182,33 @@ func (c *ZYMonitorController) mvp1() {
 			data = res["data"].(map[string]interface{})
 			results := []interface{}{}
 			results = data["result"].([]interface{})
+			uriMap := map[string]interface{}{}
 			for _, r := range results {
 				result := make(map[string]interface{})
 				result = r.(map[string]interface{})
 				// 当有NaN时，该条数据不进行统计
-				unTJ := false
+				//unTJ := false
 				metric := make(map[string]interface{})
 				metric = result["metric"].(map[string]interface{})
 				uri := metric["uri"].(string)
 				fmt.Printf(uri + "\n")
-				rtMap := make(map[string]string)
 				values := []interface{}{}
 				values = result["values"].([]interface{})
+				rtMap := make(map[string]string)
 				for _, val := range values {
-					//arr := []interface{}{}
-					//arr = val.([]interface{})
 					jsonByte, _ := json.Marshal(val)
 					jsonStr := string(jsonByte)
-					onTime := gojson.Json(jsonStr).Arrayindex(1)
 					rt := gojson.Json(jsonStr).Getindex(2).Tostring()
-					//rt := arr[1].(string)
-					if rt == "NaN" {
-						unTJ = true
-						break
-					}
-					//rt := make(map[string]interface{})
-					//rt[""]
-					//append(rts,rt )
-					key := fmt.Sprintf("%v", onTime)
-					//rtMap[key] = arr[1].(string)
+					//if rt == "NaN" {
+					//	unTJ = true
+					//	break
+					//}
+					// 该rt的时间戳
+					onDate := gojson.Json(jsonStr).Arrayindex(1)
+					key := fmt.Sprintf("%v", onDate)
 					index := strings.Index(rt, ".")
 					if index != -1 {
+						// 响应时间向下取整
 						rt = string([]byte(rt)[:index])
 					}
 					// todo 将时间戳转换为时间字符串
@@ -272,21 +217,16 @@ func (c *ZYMonitorController) mvp1() {
 					key = secTime.Format(models.Time_format)
 					rtMap[key] = rt
 				}
-				if !unTJ {
-					//break
-					middleRes[uri] = rtMap
-				}
+				uriMap[uri] = rtMap
 			}
-			// todo
-			strs, _ := json.Marshal(middleRes)
-			fmt.Printf("打印结果为: %s", string(strs))
+			dateMap[date] = uriMap
 		}
-		lastRes = append(lastRes, middleRes)
 	}
+	strs, _ := json.Marshal(dateMap)
+	fmt.Printf("打印结果为: %s", string(strs))
 
-	//fmt.Println(res)
 	// 将body总结
-	c.SuccessJson(lastRes)
+	c.SuccessJson(dateMap)
 }
 
 func (c *ZYMonitorController) test() {
@@ -315,6 +255,9 @@ func getTodayZeroClock() int {
 	return int(shijianchuo)
 }
 
+/**
+时间戳倒序
+*/
 func getLast7DaysZeroClock(todayZoreTime int) []int {
 	result := []int{}
 	for i := 0; i < 7; i++ {
