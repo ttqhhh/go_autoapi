@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/widuu/gojson"
-	"go_autoapi/libs"
 	"go_autoapi/models"
 	"io/ioutil"
 	"net/http"
@@ -14,47 +13,56 @@ import (
 	"time"
 )
 
-type ZYMonitorController struct {
-	libs.BaseController
-}
+const (
+	// 每小时执行一次
+	MONITOR_TASK_EXPRESSION = "0 0 * * * *"
+    ZyPormtheusQueryUrl = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_"
+)
 
-func (c *ZYMonitorController) Get() {
-	do := c.GetMethodName()
-	switch do {
-	case "mvp":
-		c.getRtDetailByRange()
-	case "mvp1":
-		c.mvp1()
-	case "test":
-		c.test()
-	default:
-		logs.Warn("action: %s, not implemented", do)
-		c.ErrorJson(-1, "不支持", nil)
-	}
+func MonitorTask() error {
+	logs.Info("生产接口RT监控定时任务启动执行...")
+	// 查询出来当前业务线下，所有的服务，拼凑出来不同的
+	serviceCode := ""
+	//url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
+	getRtDetailByRange(serviceCode, "", "", 3600)
+	return nil
 }
-
-//const url = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_gateway_acnt_http_latency_quantile%7Bquantile%3D%22p99%22%7D&start=1625558640&end=1625559540&step=15"
-const baseUrl = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_gateway_acnt_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
 
 /**
 获取接口每个整点的响应时间详情
 通过起始时间、终止时间、步长（建议3600，每一个整点）
 */
-func (c *ZYMonitorController) getRtDetailByRange() {
-	st := c.GetString("start")
-	et := c.GetString("end")
-	step := c.GetString("step")
+func getRtDetailByRange(serviceCode string, startTime string, endTime string, step int64) map[string]interface{} {
 	loc, _ := time.LoadLocation("Local")
-	start, _ := time.ParseInLocation(models.Time_format, st, loc)
-	end, _ := time.ParseInLocation(models.Time_format, et, loc)
+	st, _ := time.ParseInLocation(models.Time_format, startTime, loc)
+	et, _ := time.ParseInLocation(models.Time_format, endTime, loc)
 
-	startTime := start.Unix()
-	endTime := end.Unix()
+	startTimeStamp := st.Unix()
+	endTimeStamp := et.Unix()
 
-	startStr := strconv.Itoa(int(startTime))
-	endStr := strconv.Itoa(int(endTime))
+	lastRes := getRtDetailByRangeBase(serviceCode, startTimeStamp, endTimeStamp, step)
 
-	url := baseUrl + "&start=" + startStr + "&end=" + endStr + "&step=" + step
+	return lastRes
+}
+
+/**
+获取接口每个整点的响应时间详情
+通过起始时间、终止时间、步长（建议3600，每一个整点）
+*/
+func getRtDetailByRangeBase(serviceCode string, startTimeStamp int64, endTimeStamp int64, step int64) map[string]interface{} {
+	//loc, _ := time.LoadLocation("Local")
+	//st, _ := time.ParseInLocation(models.Time_format, start, loc)
+	//et, _ := time.ParseInLocation(models.Time_format, end, loc)
+
+	//startTime := st.Unix()
+	//endTime := et.Unix()
+
+	startStr := strconv.Itoa(int(startTimeStamp))
+	endStr := strconv.Itoa(int(endTimeStamp))
+	stepStr := strconv.Itoa(int(step))
+
+	url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
+	url = url + "&start=" + startStr + "&end=" + endStr + "&step=" + stepStr
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	reqest, err := http.NewRequest("GET", url, nil)
@@ -73,7 +81,6 @@ func (c *ZYMonitorController) getRtDetailByRange() {
 
 	lastRes := make(map[string]interface{})
 
-	//res := string(body)
 	res := make(map[string]interface{})
 	json.Unmarshal(body, &res)
 	status := res["status"].(string)
@@ -99,8 +106,6 @@ func (c *ZYMonitorController) getRtDetailByRange() {
 			values := []interface{}{}
 			values = result["values"].([]interface{})
 			for _, val := range values {
-				//arr := []interface{}{}
-				//arr = val.([]interface{})
 				jsonByte, _ := json.Marshal(val)
 				jsonStr := string(jsonByte)
 				onTime := gojson.Json(jsonStr).Arrayindex(1)
@@ -110,11 +115,7 @@ func (c *ZYMonitorController) getRtDetailByRange() {
 					unTJ = true
 					break
 				}
-				//rt := make(map[string]interface{})
-				//rt[""]
-				//append(rts,rt )
 				key := fmt.Sprintf("%v", onTime)
-				//rtMap[key] = arr[1].(string)
 				index := strings.Index(rt, ".")
 				if index != -1 {
 					rt = string([]byte(rt)[:index])
@@ -126,7 +127,6 @@ func (c *ZYMonitorController) getRtDetailByRange() {
 				rtMap[key] = rt
 			}
 			if !unTJ {
-				//break
 				lastRes[uri] = rtMap
 			}
 		}
@@ -135,15 +135,13 @@ func (c *ZYMonitorController) getRtDetailByRange() {
 		fmt.Printf("打印结果为: %s", string(strs))
 	}
 
-	//fmt.Println(res)
-	// 将body总结
-	c.SuccessJson(lastRes)
+	return lastRes
 }
 
 /**
 分别计算出每个接口过去7天每个整点的平均值，
 */
-func (c *ZYMonitorController) mvp1() {
+func getLast7DaysRtData(serviceCode string) map[string]interface{} {
 	// 最终结构体
 	dateMap := map[string]interface{}{}
 	// 当前时间向前取7天
@@ -151,12 +149,15 @@ func (c *ZYMonitorController) mvp1() {
 	for i := 0; i < len(last7DaysZeroTime); i++ {
 		// 获取当天0时
 		zeroTime := last7DaysZeroTime[i]
-		step := "3600"
+		stepStr := "3600"
 		startStr := strconv.Itoa(zeroTime)
 		endStr := strconv.Itoa(zeroTime + 86399)
 		date := time.Unix(int64(zeroTime), 0).Format("2006-01-02")
 
-		url := baseUrl + "&start=" + startStr + "&end=" + endStr + "&step=" + step
+		//url := baseUrl + "&start=" + startStr + "&end=" + endStr + "&step=" + step
+		url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
+		url = url + "&start=" + startStr + "&end=" + endStr + "&step=" + stepStr
+
 		client := &http.Client{Timeout: 5 * time.Second}
 		reqest, err := http.NewRequest("GET", url, nil)
 		reqest.Header.Set("Cache-Control", "no-cache")
@@ -226,13 +227,7 @@ func (c *ZYMonitorController) mvp1() {
 	fmt.Printf("打印结果为: %s", string(strs))
 
 	// 将body总结
-	c.SuccessJson(dateMap)
-}
-
-func (c *ZYMonitorController) test() {
-	todayTimeZero := getTodayZeroClock()
-	getLast7DaysZeroClock(todayTimeZero)
-	c.SuccessJson(nil)
+	return dateMap
 }
 
 func getTodayZeroClock() int {
@@ -267,63 +262,3 @@ func getLast7DaysZeroClock(todayZoreTime int) []int {
 	fmt.Printf("拿到的7个时间戳为：%v", result)
 	return result
 }
-
-//func (c *ZYMonitorController) mvp1() {
-//	resp, err := http.Get(url)
-//	if err != nil {
-//		logs.Error("发送get请求报错, err: ", err)
-//	}
-//	defer resp.Body.Close()
-//	body, err := ioutil.ReadAll(resp.Body)
-//	if err != nil {
-//		logs.Error("发送get请求报错, err: ", err)
-//	}
-//
-//	resMap := make(map[string][]string)
-//
-//	bodyStr := string(body)
-//	fmt.Printf("打印body: %s", bodyStr)
-//	res := gojson.Json(bodyStr)
-//	status := res.Get("status").Tostring()
-//	if status != "success" {
-//		fmt.Printf("请求结果不是success")
-//	} else {
-//		data := gojson.Json(bodyStr)
-//		data.Get("data").Tostring()
-//		fmt.Printf("打印json-data为：%s", data)
-//		//result := data.Get("result").StringtoArray()
-//
-//		result := gojson.Json(bodyStr).Getpath("data", "result")
-//		//resultList := result.Tostring()
-//		//resultStr := result.Tostring()
-//		//resultlist := resultStr.([]interface{})
-//		//resultList = result.Getdata().([]string)
-//		resultList :=  toArray(result)
-//		for _, r := range resultList {
-//			//当有NaN时，该条数据不进行统计
-//			unTJ := false
-//			mertric := gojson.Json(r)
-//			uri := mertric.Get("uri").Tostring()
-//			fmt.Printf(uri)
-//			values := mertric.Get("values").StringtoArray()
-//			for _, val := range values {
-//				vs := gojson.Json(val).StringtoArray()
-//				rt := vs[1]
-//				if rt == "NaN" {
-//					unTJ = true
-//					break
-//				}
-//			}
-//			if unTJ {
-//				break
-//			}
-//			resMap[uri] = values
-//		}
-//		//todo
-//
-//	}
-//
-//	fmt.Println(resMap)
-//	// 将body总结
-//	c.SuccessJson(nil)
-//}
