@@ -16,15 +16,16 @@ import (
 const (
 	// 每小时执行一次
 	MONITOR_TASK_EXPRESSION = "0 0 * * * *"
-    ZyPormtheusQueryUrl = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_"
+    ZyPormtheusQueryUrl = "http://172.16.3.127:1090/api/v1/query_range?query="
 )
 
 func MonitorTask() error {
 	logs.Info("生产接口RT监控定时任务启动执行...")
 	// 查询出来当前业务线下，所有的服务，拼凑出来不同的
-	serviceCode := ""
+	serviceCode := "xmcs_gateway_acnt"
 	//url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
-	getRtDetailByRange(serviceCode, "", "", 3600)
+	//getRtDetailByRange(serviceCode, "", "", 3600)
+	GetLast14DaysRtData(serviceCode)
 	return nil
 }
 
@@ -141,14 +142,15 @@ func getRtDetailByRangeBase(serviceCode string, startTimeStamp int64, endTimeSta
 /**
 分别计算出每个接口过去7天每个整点的平均值，
 */
-func getLast7DaysRtData(serviceCode string) map[string]interface{} {
+func GetLast14DaysRtData(serviceCode string) map[string]interface{} {
 	// 最终结构体
 	dateMap := map[string]interface{}{}
-	// 当前时间向前取7天
-	last7DaysZeroTime := getLast7DaysZeroClock(getTodayZeroClock())
-	for i := 0; i < len(last7DaysZeroTime); i++ {
+	// 当前时间向前取14天
+	//last7DaysZeroTime := getLast7DaysZeroClock(getTodayZeroClock())
+	last14DaysZeroTime := getLast14DaysZeroClock(getTodayZeroClock())
+	for i := 0; i < len(last14DaysZeroTime); i++ {
 		// 获取当天0时
-		zeroTime := last7DaysZeroTime[i]
+		zeroTime := last14DaysZeroTime[i]
 		stepStr := "3600"
 		startStr := strconv.Itoa(zeroTime)
 		endStr := strconv.Itoa(zeroTime + 86399)
@@ -200,10 +202,6 @@ func getLast7DaysRtData(serviceCode string) map[string]interface{} {
 					jsonByte, _ := json.Marshal(val)
 					jsonStr := string(jsonByte)
 					rt := gojson.Json(jsonStr).Getindex(2).Tostring()
-					//if rt == "NaN" {
-					//	unTJ = true
-					//	break
-					//}
 					// 该rt的时间戳
 					onDate := gojson.Json(jsonStr).Arrayindex(1)
 					key := fmt.Sprintf("%v", onDate)
@@ -260,5 +258,18 @@ func getLast7DaysZeroClock(todayZoreTime int) []int {
 		result = append(result, oneTime)
 	}
 	fmt.Printf("拿到的7个时间戳为：%v", result)
+	return result
+}
+
+/**
+时间戳倒序
+*/
+func getLast14DaysZeroClock(todayZoreTime int) []int {
+	result := []int{}
+	for i := 0; i < 14; i++ {
+		oneTime := todayZoreTime - 86400*(i+1)
+		result = append(result, oneTime)
+	}
+	fmt.Printf("拿到的14个时间戳为：%v", result)
 	return result
 }

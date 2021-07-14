@@ -7,6 +7,7 @@ import (
 	"github.com/widuu/gojson"
 	"go_autoapi/libs"
 	"go_autoapi/models"
+	"go_autoapi/task/monitor"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -229,10 +230,13 @@ func (c *ZYMonitorController) mvp1() {
 	c.SuccessJson(dateMap)
 }
 
+
+
 func (c *ZYMonitorController) test() {
-	todayTimeZero := getTodayZeroClock()
-	getLast7DaysZeroClock(todayTimeZero)
-	c.SuccessJson(nil)
+	//todayTimeZero := getTodayZeroClock()
+	//getLast7DaysZeroClock(todayTimeZero)
+	res := monitor.GetLast14DaysRtData("xmcs_gateway_acnt")
+	c.SuccessJson(res)
 }
 
 func getTodayZeroClock() int {
