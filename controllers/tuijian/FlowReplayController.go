@@ -355,7 +355,7 @@ func (c *FlowReplayController) Replay() {
 	//是否循环
 	//cycle := flowreplay.Cycle
 	//默认不循环
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --output-http-workers %s", flowFileName, replayTimes, filePath, replayurl))
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --output-http-workers %s &", flowFileName, replayTimes, filePath, replayurl))
 	//if cycle == "是" {
 	//	cmd = exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --input-file-loop --output-http-workers %s", flowFileName, replayTimes, filePath, replayurl))
 	//}
@@ -419,7 +419,7 @@ func (c *FlowReplayController) ReplayCycle() {
 	//是否循环
 	//cycle := flowreplay.Cycle
 	//默认循环
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --input-file-loop --output-http-workers %s", flowFileName, replayTimes, filePath, replayurl))
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --input-file-loop --output-http-workers %s &", flowFileName, replayTimes, filePath, replayurl))
 	//if cycle == "是" {
 	//	cmd = exec.Command("/bin/bash", "-c", fmt.Sprintf("gor --input-file '%s|%v' --output-http=%s --stats --output-http-stats --output-http-timeout 1s --input-file-loop --output-http-workers %s", flowFileName, replayTimes, filePath, replayurl))
 	//}
@@ -459,6 +459,7 @@ func (c *FlowReplayController) Killreplay() {
 	}
 	//回放文件名称
 	flowFileName := flowreplay.FlowFile
+	//serverName :=flowreplay.ServiceName
 	//回放路径
 	flowFileName = uploadDir + "/" + flowFileName
 	//本地mac结束进程
