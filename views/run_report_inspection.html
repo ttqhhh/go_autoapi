@@ -1,0 +1,113 @@
+{{template "head.html" .}}
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<div style="margin:1%">
+    {{/*    <div class="layui-btn-group demoTable">*/}}
+    {{/*        <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>*/}}
+    {{/*        <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>*/}}
+    {{/*        <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>*/}}
+    {{/*    </div>*/}}
+
+    <table id="run_report_table" class="layui-table" lay-filter="demo"></table>
+
+    <script type="text/html" id="barDemo">
+{{/*        <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="detail">详情</a>*/}}
+    </script>
+
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+
+    <script>
+        // 初始化一个业务线代码和名字的Map映射,用于转码列表中的业务线
+        var businessMap = {}
+        $.ajax({
+            url: "/business/get_user_businesses",
+            type: "GET",
+            dataType: "json",
+            sync: true,
+            success: function (data) {
+                $.each(data.data.businesses, function (index, value) {
+                    businessMap[value.code]=value.name
+                })
+            }
+        })
+
+        $('body',document).on('keyup', function (e) {
+            if (e.which === 27) {
+                // console.log("按下esc");
+                layer.closeAll();
+            }
+        });
+
+        layui.use('table', function () {
+            var table = layui.table;
+
+            table.render({
+                elem: '#run_report_table'
+                // ,height: 312
+                ,url: '/report/run_record_list_inspection' //数据接口
+                ,page: true //开启分页
+                ,cols: [[ //表头
+                    {title: 'ID', field:'id', width:80, sort: true, fixed: true},
+                    {title: '报告名', field:'name', width: 450},
+                    {title: '业务线', field:'business', templet: function(d){
+                            var code = d.business
+                            var name = businessMap[code]
+                            return name
+                        }},
+                    {title: '执行人', field:'create_by'},
+                    {title: '执行时间', field:'created_at'},
+                    {title: '执行ID', field:'run_id'},
+                    {title: '状态', field:'is_pass', templet: function(d){
+                            if (d.is_pass == 0) {
+                                return '<div style="color: yellowgreen">运行中</div>'
+                            } else if (d.is_pass == 1) {
+                                return '<div style="color: green">成功</div>'
+                            } else if (d.is_pass == 2) {
+                                return '<div style="color: red">失败'
+                            }
+                            return '未知'
+                        }},
+                    // {title: '操作', fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}
+                ]],
+
+                done: function (res, curr, count) {
+                    var that = this.elem.next();
+                    res.data.forEach(function (item, index) {
+                        var tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']").click(function () {
+                        window.open("/report/run_report_detail?id=" + item.id, "_blank");
+                        })
+                        // todo 等后续找到合适的色值，可以给失败行一个底色
+                        // if (item.is_pass == 2) {
+                        // var tr = that.find(".layui-table-box tbody tr[data-index='" + index + "']").css("background-color", "grey");
+                        // }
+                    });
+                }
+            });
+
+            //监听表格复选框选择
+            table.on('checkbox(demo)', function (obj) {
+                console.log(obj)
+            });
+            //监听工具条
+            table.on('tool(demo)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'detail') {
+                    // layer.msg('ID：'+ data.id + ' 的查看操作');
+                    layer.open({
+                        title: "详情",
+                        type: 2,
+                        // content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                        content: "/report/run_report_detail?id=" + data.id,
+                        area: ['1600px', '800px']
+                    });
+                }
+            });
+
+            $('.demoTable .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

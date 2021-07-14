@@ -80,7 +80,8 @@
     function inspection(obj, id, target) {
         if (target == 1) { // 操作的预期状态，1-打开；0-关闭
             // 弹出配置巡检Case的窗口
-            window.location.href = "/case/show_inspection_case?id=" + id + "&business={{.business}}";
+            // window.location.href = "/case/show_inspection_case?id=" + id + "&business={{.business}}";
+            window.open("/case/show_inspection_case?id=" + id + "&business={{.business}}","_blank");
         } else {
             // 直接更改巡检Case状态和测试Case关联的巡检Case字段
             layer.msg("请去「巡检用例管理」页面删除该巡检Case")
@@ -161,9 +162,11 @@
                     window.location.reload()
                 });
             } else if(obj.event === 'edit'){
-                window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+                // window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
+                window.open("/case/show_edit_case?id="+data.id+"&business={{.business}}","_blank");
             }else if(obj.event === 'copy'){
                 window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+                // window.open("/case/show_copy_case?id="+data.id+"&business={{.business}}","_blank");
             } else if (obj.event === "run") {
                 var arr = new Array();
                 arr.push(data.id);

@@ -15,7 +15,7 @@ import (
 
 func init() {
 	beego.Router("/", &controllers.MainController{})
-	beego.Router("/api/*", &api.ApiController{})
+	beego.Router("/api/*", &api.ApiController{}) // 对外暴露Api接口
 	beego.Router("/user/*", &controllers.UserController{})
 	beego.Router("/auto/*", &auto.AutoTestController{})
 	beego.Router("/case/*", &casemanage.CaseManageController{})

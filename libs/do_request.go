@@ -231,7 +231,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 		isPass = false
 		return
 	}
@@ -242,7 +242,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
 			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
 			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 			isPass = false
 			return
 		}
@@ -250,7 +250,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			logs.Error("the verify key is not exist in the response", k)
 			reason = "json路径: 【" + k + "】, 未配置有效的校验规则"
 			//saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 			isPass = false
 			return
 		}
@@ -338,12 +338,12 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		}
 		isPass = false
 	}
-	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response)
+	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	return
 }
 
-func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string) {
-	err := models.InsertResult(uuid, caseId, isInspection, result, reason, author, resp)
+func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string, statusCode int) {
+	err := models.InsertResult(uuid, caseId, isInspection, result, reason, author, resp, statusCode)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)
 	}
