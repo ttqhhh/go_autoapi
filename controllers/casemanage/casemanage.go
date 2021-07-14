@@ -35,6 +35,8 @@ func (c *CaseManageController) Get() {
 		c.GetAllReport()
 	case "get_domains":
 		c.GetDomains()
+	case "close_windows":
+		c.CloseWindow()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -120,4 +122,8 @@ func (c *CaseManageController) GetDomains() {
 		logs.Error("获取domains失败")
 	}
 	c.SuccessJson(domains)
+}
+
+func (c *CaseManageController) CloseWindow() {
+	c.TplName = "close.html"
 }

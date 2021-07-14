@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const uploadDir = "/Users/sunzhiying/upload"
+const uploadDir = "/home/work/efficiency/upload/tuijian"
 
 type FlowReplayController struct {
 	libs.BaseController

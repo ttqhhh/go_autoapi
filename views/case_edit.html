@@ -2,7 +2,7 @@
 
 
 
-<form class="layui-form layui-form-pane" action="/case/update_one_case/" method="post" style="padding: 1%">
+<form class="layui-form layui-form-pane" action="/case/update_one_case/" method="post" style="padding: 1%" >
 
     <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >
     <input type="text" name="api_name" value="api_name" style="display: none">
@@ -113,7 +113,7 @@
 
     <div class="layui-form-item">
         <div class="layui-input-block">
-            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" id="sub_save">提交修改</button>
 <!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
         </div>
     </div>
@@ -218,7 +218,7 @@
                 let html_butt =
                     '            <div class="layui-inline" style="margin:0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
-                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+                    // '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
                     '            </div>\n' +
                     // '\n' +
                     // '            <div class="layui-inline">\n' +
@@ -250,7 +250,7 @@
                     '            </div>\n' +
                     '            <div class="layui-inline" style="margin: 0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
-                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
+                    // '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
                     '            </div>\n' +
                     // '            <div class="layui-inline">\n' +
                     // '            </div>\n' +
@@ -379,6 +379,12 @@
             $("#hc_select").next().find("dl").css({ "display": "none" });
             form.render();
         });
+
+
+        // $(document).on('click', "#sub_save", function (){
+        //     window.close()
+        // });
+
 
         $(document).on('click', '#test', function () {
             var request_param = $("#request_param").val()

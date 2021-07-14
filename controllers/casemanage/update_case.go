@@ -72,7 +72,8 @@ func (c *CaseManageController) updateCaseByID() {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("更新成功")
-	c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 func (c *CaseManageController) DelCaseByID() {

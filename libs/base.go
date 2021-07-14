@@ -25,13 +25,29 @@ type ReturnMsgPage struct {
 	Data  interface{} `json:"data"`
 }
 
+// 不需要登录的接口
+var withoutLoginApi = []string{
+	"/case/pp_auto_add_one_case",
+}
+
 // todo 该方法不要注释掉，不然登录功能就没意义了
 func (b *BaseController) Prepare() {
 	_, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
-	if err == false && b.GetMethodName() != "login" && b.GetMethodName() != "to_login" {
+	methodName := b.GetMethodName()
+	if err == false && methodName != "login" && methodName != "to_login" {
 		//logs.Error("not login")
 		//b.ErrorJson(-1, "not login", nil)
-		b.Redirect("/auto/to_login", 302)
+		isNeedCheck := true
+		uri := b.Ctx.Request.RequestURI
+		for _, api := range withoutLoginApi {
+			if api == uri {
+				isNeedCheck = false
+				break
+			}
+		}
+		if isNeedCheck {
+			b.Redirect("/auto/to_login", 302)
+		}
 	}
 	//fmt.Println(userId)
 }
