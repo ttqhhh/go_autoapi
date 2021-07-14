@@ -126,7 +126,7 @@ func isTester(username string) bool {
 var TesterUserList = []string{
 	// 4个超级管理员
 	"fengmanlong",
-	//"xueyibing",
+	"xueyibing",
 	"wangzhen01",
 	"wangjun",
 	"sunzhiying",
@@ -148,5 +148,5 @@ var ShixiTesterUserList = []string{
 
 var WaibaoTesterUserList = []string{
 	"zhaomengxin",
-	"huoyongjian",
+	"renhaohan",
 }
