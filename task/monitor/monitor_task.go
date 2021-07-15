@@ -16,7 +16,7 @@ import (
 const (
 	// 每小时执行一次
 	MONITOR_TASK_EXPRESSION = "0 0 * * * *"
-    ZyPormtheusQueryUrl = "http://172.16.3.127:1090/api/v1/query_range?query="
+	ZyPormtheusQueryUrl     = "http://172.16.3.127:1090/api/v1/query_range?query="
 )
 
 func MonitorTask() error {
@@ -25,7 +25,8 @@ func MonitorTask() error {
 	serviceCode := "xmcs_gateway_acnt"
 	//url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
 	//getRtDetailByRange(serviceCode, "", "", 3600)
-	GetLast14DaysRtData(serviceCode)
+	last14DaysRtData, last14DaysZeroTimes, uris := GetLast14DaysRtData(serviceCode)
+
 	return nil
 }
 
@@ -62,7 +63,7 @@ func getRtDetailByRangeBase(serviceCode string, startTimeStamp int64, endTimeSta
 	endStr := strconv.Itoa(int(endTimeStamp))
 	stepStr := strconv.Itoa(int(step))
 
-	url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
+	url := ZyPormtheusQueryUrl + serviceCode + "_latency_quantile%7Bquantile%3D%22p99%22%7D"
 	url = url + "&start=" + startStr + "&end=" + endStr + "&step=" + stepStr
 
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -142,22 +143,24 @@ func getRtDetailByRangeBase(serviceCode string, startTimeStamp int64, endTimeSta
 /**
 分别计算出每个接口过去7天每个整点的平均值，
 */
-func GetLast14DaysRtData(serviceCode string) map[string]interface{} {
+func GetLast14DaysRtData(serviceCode string) (last14DayRtData map[string]interface{}, last14DaysZeroTimes map[int]int, uris []string) {
 	// 最终结构体
-	dateMap := map[string]interface{}{}
+	//last14DayRtDatas = map[string]interface{}{}
+	// 该服务下的所有接口
+	uris = []string{}
 	// 当前时间向前取14天
-	//last7DaysZeroTime := getLast7DaysZeroClock(getTodayZeroClock())
-	last14DaysZeroTime := getLast14DaysZeroClock(getTodayZeroClock())
-	for i := 0; i < len(last14DaysZeroTime); i++ {
-		// 获取当天0时
-		zeroTime := last14DaysZeroTime[i]
+	last14DaysZeroTimes = getLast14DaysZeroClock(getTodayZeroClock())
+	//for i := 0; i < len(last14DaysZeroTimes); i++ {
+	for k, v := range last14DaysZeroTimes {
+		// 当天0时
+		zeroTime := v
 		stepStr := "3600"
 		startStr := strconv.Itoa(zeroTime)
 		endStr := strconv.Itoa(zeroTime + 86399)
-		date := time.Unix(int64(zeroTime), 0).Format("2006-01-02")
+		//date := time.Unix(int64(zeroTime), 0).Format("2006-01-02")
 
 		//url := baseUrl + "&start=" + startStr + "&end=" + endStr + "&step=" + step
-		url := ZyPormtheusQueryUrl+serviceCode+"_latency_quantile%7Bquantile%3D%22p99%22%7D"
+		url := ZyPormtheusQueryUrl + serviceCode + "_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
 		url = url + "&start=" + startStr + "&end=" + endStr + "&step=" + stepStr
 
 		client := &http.Client{Timeout: 5 * time.Second}
@@ -185,7 +188,7 @@ func GetLast14DaysRtData(serviceCode string) map[string]interface{} {
 			data = res["data"].(map[string]interface{})
 			results := []interface{}{}
 			results = data["result"].([]interface{})
-			uriMap := map[string]interface{}{}
+			//uriMap := map[string]interface{}{}
 			for _, r := range results {
 				result := make(map[string]interface{})
 				result = r.(map[string]interface{})
@@ -194,10 +197,15 @@ func GetLast14DaysRtData(serviceCode string) map[string]interface{} {
 				metric := make(map[string]interface{})
 				metric = result["metric"].(map[string]interface{})
 				uri := metric["uri"].(string)
+				// 路径收集
+				if ElementIndexInSlice(uris, uri) == -1 {
+					uris = append(uris, uri)
+				}
+
 				fmt.Printf(uri + "\n")
 				values := []interface{}{}
 				values = result["values"].([]interface{})
-				rtMap := make(map[string]string)
+				rtMap := make(map[string]int)
 				for _, val := range values {
 					jsonByte, _ := json.Marshal(val)
 					jsonStr := string(jsonByte)
@@ -214,18 +222,70 @@ func GetLast14DaysRtData(serviceCode string) map[string]interface{} {
 					sec, _ := strconv.Atoi(key)
 					secTime := time.Unix(int64(sec), 0)
 					key = secTime.Format(models.Time_format)
-					rtMap[key] = rt
+					rtInt := -1
+					if rt != "NAN" && rt != "" {
+						rtInt, _ = strconv.Atoi(rt)
+					}
+					rtMap[key] = rtInt
 				}
-				uriMap[uri] = rtMap
+				// todo 把rtMap入库
+				rtDetailInDb(k, serviceCode, uri, rtMap)
 			}
-			dateMap[date] = uriMap
 		}
 	}
-	strs, _ := json.Marshal(dateMap)
-	fmt.Printf("打印结果为: %s", string(strs))
+	return
+}
 
-	// 将body总结
-	return dateMap
+func rtDetailInDb(someday int, serviceCode string, uri string, rtMap map[string]int) {
+	mongo := models.RtDetailMongo{}
+	mongo, err := mongo.GetByServiceAndUri(serviceCode, uri)
+	if err != nil {
+		return
+	}
+	rtDetailBytes, err := json.Marshal(rtMap)
+	if err != nil {
+		fmt.Printf("格式化rtMap为json字符串时失败 ...")
+		return
+	}
+	rtDetailStr := string(rtDetailBytes)
+	switch someday {
+	case -1:
+		mongo.Last1DayRt = rtDetailStr
+	case -2:
+		mongo.Last2DayRt = rtDetailStr
+	case -3:
+		mongo.Last3DayRt = rtDetailStr
+	case -4:
+		mongo.Last4DayRt = rtDetailStr
+	case -5:
+		mongo.Last5DayRt = rtDetailStr
+	case -6:
+		mongo.Last6DayRt = rtDetailStr
+	case -7:
+		mongo.Last7DayRt = rtDetailStr
+	case -8:
+		mongo.Last8DayRt = rtDetailStr
+	case -9:
+		mongo.Last9DayRt = rtDetailStr
+	case -10:
+		mongo.Last10DayRt = rtDetailStr
+	case -11:
+		mongo.Last11DayRt = rtDetailStr
+	case -12:
+		mongo.Last12DayRt = rtDetailStr
+	case -13:
+		mongo.Last13DayRt = rtDetailStr
+	case -14:
+		mongo.Last14DayRt = rtDetailStr
+	}
+	if mongo.Id == 0 {
+		mongo.CreatedAt = time.Now().Format(models.Time_format)
+		mongo.ServiceCode = serviceCode
+		mongo.Uri = uri
+	} else {
+		mongo.UpdatedAt = time.Now().Format(models.Time_format)
+		//
+	}
 }
 
 func getTodayZeroClock() int {
@@ -251,25 +311,22 @@ func getTodayZeroClock() int {
 /**
 时间戳倒序
 */
-func getLast7DaysZeroClock(todayZoreTime int) []int {
-	result := []int{}
-	for i := 0; i < 7; i++ {
-		oneTime := todayZoreTime - 86400*(i+1)
-		result = append(result, oneTime)
-	}
-	fmt.Printf("拿到的7个时间戳为：%v", result)
-	return result
-}
-
-/**
-时间戳倒序
-*/
-func getLast14DaysZeroClock(todayZoreTime int) []int {
-	result := []int{}
+func getLast14DaysZeroClock(todayZoreTime int) map[int]int {
+	result := map[int]int{}
 	for i := 0; i < 14; i++ {
 		oneTime := todayZoreTime - 86400*(i+1)
-		result = append(result, oneTime)
+		//result = append(result, oneTime)
+		result[-i] = oneTime
 	}
 	fmt.Printf("拿到的14个时间戳为：%v", result)
 	return result
+}
+
+func ElementIndexInSlice(arr []string, ele string) (index int) {
+	for i, s := range arr {
+		if s == ele {
+			return i
+		}
+	}
+	return -1
 }

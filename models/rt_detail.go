@@ -10,25 +10,25 @@ import (
 
 type RtDetailMongo struct {
 	Id          int64  `json:"id" bson:"_id"`
-	Service     string `json:"service" bson:"service"`
+	ServiceCode string `json:"service_code" bson:"service_code"`
 	Uri         string `json:"uri" bson:"uri"`
 	AvgRt       int    `json:"description" bson:"description"`
 	ThresholdRt int    `json:"threshold_rt" bson:"threshold_rt"`
-	last1DayRt  string `json:"last_1_day_rt" bson:"last_1_day_rt"`
-	last2DayRt  string `json:"last_2_day_rt" bson:"last_2_day_rt"`
-	last3DayRt  string `json:"last_3_day_rt" bson:"last_3_day_rt"`
-	last4DayRt  string `json:"last_4_day_rt" bson:"last_4_day_rt"`
-	last5DayRt  string `json:"last_5_day_rt" bson:"last_5_day_rt"`
-	last6DayRt  string `json:"last_6_day_rt" bson:"last_6_day_rt"`
-	last7DayRt  string `json:"last_7_day_rt" bson:"last_7_day_rt"`
-	last8DayRt  string `json:"last_8_day_rt" bson:"last_8_day_rt"`
-	last9DayRt  string `json:"last_9_day_rt" bson:"last_9_day_rt"`
-	last10DayRt string `json:"last_10_day_rt" bson:"last_10_day_rt"`
-	last11DayRt string `json:"last_11_day_rt" bson:"last_11_day_rt"`
-	last12DayRt string `json:"last_12_day_rt" bson:"last_12_day_rt"`
-	last13DayRt string `json:"last_13_day_rt" bson:"last_13_day_rt"`
-	last14DayRt string `json:"last_14_day_rt" bson:"last_14_day_rt"`
-	last15DayRt string `json:"last_15_day_rt" bson:"last_15_day_rt"`
+	Last1DayRt  string `json:"last_1_day_rt" bson:"last_1_day_rt"`
+	Last2DayRt  string `json:"last_2_day_rt" bson:"last_2_day_rt"`
+	Last3DayRt  string `json:"last_3_day_rt" bson:"last_3_day_rt"`
+	Last4DayRt  string `json:"last_4_day_rt" bson:"last_4_day_rt"`
+	Last5DayRt  string `json:"last_5_day_rt" bson:"last_5_day_rt"`
+	Last6DayRt  string `json:"last_6_day_rt" bson:"last_6_day_rt"`
+	Last7DayRt  string `json:"last_7_day_rt" bson:"last_7_day_rt"`
+	Last8DayRt  string `json:"last_8_day_rt" bson:"last_8_day_rt"`
+	Last9DayRt  string `json:"last_9_day_rt" bson:"last_9_day_rt"`
+	Last10DayRt string `json:"last_10_day_rt" bson:"last_10_day_rt"`
+	Last11DayRt string `json:"last_11_day_rt" bson:"last_11_day_rt"`
+	Last12DayRt string `json:"last_12_day_rt" bson:"last_12_day_rt"`
+	Last13DayRt string `json:"last_13_day_rt" bson:"last_13_day_rt"`
+	Last14DayRt string `json:"last_14_day_rt" bson:"last_14_day_rt"`
+	Last15DayRt string `json:"last_15_day_rt" bson:"last_15_day_rt"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty"`
 	UpdatedAt string `json:"updated_at"`
@@ -53,6 +53,19 @@ func (a *RtDetailMongo) GetById(id int64) (RtDetailMongo, error) {
 
 	fmt.Println(id)
 	query := bson.M{"_id": id}
+	rtDetail := RtDetailMongo{}
+	ms, db := db_proxy.Connect("auto_api", "rt_detail")
+	defer ms.Close()
+	err := db.Find(query).One(&rtDetail)
+	fmt.Println(rtDetail)
+	if err != nil {
+		logs.Error("GetCaseById获取AutoCase失败", err)
+	}
+	return rtDetail, err
+}
+
+func (a *RtDetailMongo) GetByServiceAndUri(serviceCode string, uri string) (RtDetailMongo, error) {
+	query := bson.M{"service_code": serviceCode, "uri": uri}
 	rtDetail := RtDetailMongo{}
 	ms, db := db_proxy.Connect("auto_api", "rt_detail")
 	defer ms.Close()
