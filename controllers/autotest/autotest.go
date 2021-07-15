@@ -18,6 +18,8 @@ func (c *AutoTestController) Get() {
 		c.userIndex() // 页面跳转
 	case "user_list":
 		c.getUserList() // 获取用户数据列表
+	case "check_points":
+		c.showCheckPoints() //展示检查点页面
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -59,6 +61,8 @@ func (c *AutoTestController) Post() {
 		c.getProcess()
 	case "get_result":
 		c.getResult()
+	case "check_points":
+		c.checkPoints()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)

@@ -1,0 +1,53 @@
+{{template "head.html" .}}
+
+<!--<p1>-->
+<!--    牛逼的 check_points 页面-->
+<!--</p1>-->
+
+<form class="layui-form" action="/auto/check_points" style="margin-top: 2%">
+    <div class="layui-form-item">
+        <label class="layui-form-label">输入框</label>
+        <div class="layui-input-block">
+            <input type="text" name="limit" required  lay-verify="required" placeholder="请输入埋点捞取的个数" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择业务线</label>
+        <div class="layui-input-block">
+            <select name="business" lay-verify="required">3
+                <option value=""></option>
+                <option value="0">最右</option>
+                <option value="1">皮皮</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+<fieldset class="layui-elem-field" style="margin: 2%">
+    <legend>报告结果看这里</legend>
+    <div class="layui-field-box">
+        嘿嘿嘿，{{.result}}
+    </div>
+</fieldset>
+
+<script>
+    //Demo
+    layui.use('form', function(){
+        var form = layui.form;
+
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+    });
+</script>
+
+
+</body>

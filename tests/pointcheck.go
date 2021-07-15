@@ -8,24 +8,28 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	//"github.com/zyx4843/gojson"
 	"reflect"
 )
 
-const left_data = "{\"ct\":\"1625820849\",\"mid\":\"11668967\",\"type\":\"click\",\"stype\":\"video\",\"id\":\"1585481065\",\"oid\":\"1585481065\",\"frominfo\":\"selectbulletvote\",\"extdata\":{\"app\":\"zuiyou\",\"app_name\":\"zuiyou\",\"app_ver\":\"5.7.13.318\",\"channel\":\"appstore\",\"did\":\"3d7c3cc366fe893164d634d61e9a04f6\",\"dt\":1,\"model\":\"iPhone 12 Pro\",\"net_type\":1,\"pid\":235125605,\"ver\":\"5.7.13.318\",\"video_id\":1585481065}}"
-
 func main(){
-	GetBasePoints()
+	// 一天的时间是
+	GetBasePoints(2)
 	//actionList :=[] string {"detail_post"}
 	//fmt.Println(actionList)
-	//r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","click_video","1625801485.586624","NaN")
-	////jsonLeft := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
-	//l := make(map[string]interface{})
-	//err := json.Unmarshal([]byte(left_data), &l)
+	//r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","expose_search","1625801485.586624","NaN")
+	//fmt.Println(r)
+	//jsonRight := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
+	//r := make(map[string]interface{})
+	//err := json.Unmarshal([]byte(jsonRight), &r)
 	//if err != nil{
 	//	return
 	//}
+	//jsonLeft := `{"from":[{"sb":"sba"},{"sbs":"sbas"}],"to":"zs"}`
+	//l := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(jsonLeft), &l)
 	//var result1 string
 	//var result2 bool
 	//result1, result2 = JsonCompare(l,r,-1)
@@ -33,15 +37,21 @@ func main(){
 	//fmt.Println(result1)
 }
 
-func GetNowTime(){
-
+type JsonDiff struct {
+	HasDiff    bool
+	Result     string
+	Path       string
 }
 
 // 通过埋点系统平台获取标准校验点,获取前一周时间范围的校验点（当前取最后一个校验点）
-func GetBasePoints(){
+
+// todo 输入的参数有：limit(查询的个数)；
+
+func GetBasePoints(limit int){
 	fmt.Println("第一次执行获取total总数")
+	limits := strconv.Itoa(limit)
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": 0,"limit": 2,"app_name": "zuiyou","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": 0,"limit": `+ limits +`,"app_name": "zuiyou","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
 	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list",postData)
 	if err !=nil{
@@ -61,9 +71,6 @@ func GetBasePoints(){
 	_ = json.Unmarshal(body,&v)
 	records := v["data"].(map[string]interface{})["records"].([]interface{})
 	for _,val := range records {
-		//fmt.Println(val)
-		//for key, v2 := range val.(map[string]interface{}){
-		//	fmt.Println(key,v2)
 		fmt.Println("循环获取event_detail")
 		vals := val.(map[string]interface{})
 		appName := vals["app_name"].(string)
@@ -88,14 +95,32 @@ func GetBasePoints(){
 		body2, _:= ioutil.ReadAll(reader2)
 		v2 := make(map[string]interface{})
 		_ = json.Unmarshal(body2,&v2)
-		//fmt.Println(v2)
 		// 主要获取拓展字段自定义字段
 		newExtended := make(map[string]interface{})
 		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
 		for _,valss := range extendedCustom{
-			newExtended[valss.(map[string]interface{})["field_name"].(string)] = ""
+			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
 		}
-		fmt.Println(newExtended)
+		finallExtended := make(map[string]interface{})
+		finallExtended["cur_page"] = "none"
+		finallExtended["from_page"] = "none"
+		finallExtended["extdata"] = newExtended
+		fmt.Println(finallExtended)
+		// 开始获取真实入库数据
+		r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6",types+"_"+stype,"1625801485.586624","NaN")
+		if r == nil{
+			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
+		}else{
+			var result1 string
+			var result2 bool
+			result1, result2 = JsonCompare(finallExtended,r,-1)
+			if result2 == true {
+				fmt.Println("检查到异常，事件:"+types+"_"+stype)
+				fmt.Println(result1)
+			}else{
+				fmt.Println("检查通过，事件:"+types+"_"+stype)
+			}
+		}
 	}
 	//total := int(v["data"].(map[string]interface{})["total"].(float64))
 	//fmt.Println("获取到埋点总数:",total)
@@ -105,15 +130,6 @@ func GetBasePoints(){
 	//s["limit"] = 20
 	//s["app_name"] = "zuiyou"
 	//sm, _ := json.Marshal(s)
-}
-
-type JsonDiff struct {
-	HasDiff    bool
-	Result     string
-	Path       string
-
-	//DataCompareResult  []string
-	//FrameCompareResult []string
 }
 
 func GetRealPoints(did,event, timeBegin, timeEnd string) map[string]interface{} {
@@ -136,6 +152,10 @@ func GetRealPoints(did,event, timeBegin, timeEnd string) map[string]interface{} 
 	//Sbody := string(body)
 	var result []string
 	_ = json.Unmarshal(body,&result)
+	if len(result)==0 {
+		logs.Error("当前did下没有发现行为埋点：",event)
+		return nil
+	}
 	arr :=strings.Fields(result[0])
 	realJson := arr[len(arr)-1]
 	v := make(map[string]interface{})
@@ -156,6 +176,7 @@ func JsonCompare(left, right map[string]interface{}, n int) (string, bool) {
 			return processContext(diff.Result, n), diff.HasDiff
 		}
 	}
+	fmt.Println(diff.Path)
 	return "", diff.HasDiff
 }
 
@@ -203,18 +224,19 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 		size = len(json2)
 	}
 	for i := 0; i < size; i++ {
-		//diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 		switch json1[i].(type) {
 		case map[string]interface{}:
 			if _, ok := json2[i].(map[string]interface{}); ok {
 				jsonDiffDict(json1[i].(map[string]interface{}), json2[i].(map[string]interface{}), depth+1, diff)
 			} else {
 				diff.HasDiff = true
+				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 map[string]interface{} " + marshal(json2[i])
 			}
 		case []interface{}:
 			if _, ok2 := json2[i].([]interface{}); !ok2 {
 				diff.HasDiff = true
+				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 interface{} -- " + marshal(json2[i])
 			} else {
 				jsonDiffList(json1[i].([]interface{}), json2[i].([]interface{}), depth+1, diff)
@@ -222,6 +244,7 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 		default:
 			if !reflect.DeepEqual(json1[i], json2[i]) {
 				diff.HasDiff = true
+				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";值不相等 -- 期待值：" + json1[i].(string) + "  实际值：" +json2[i].(string)
 			}
 		}
