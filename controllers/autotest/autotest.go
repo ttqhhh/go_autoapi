@@ -18,8 +18,8 @@ func (c *AutoTestController) Get() {
 		c.userIndex() // 页面跳转
 	case "user_list":
 		c.getUserList() // 获取用户数据列表
-	case "login_user_detail":
-		c.loginUserDetail()
+	//case "login_user_detail":
+	//	c.loginUserDetail()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
