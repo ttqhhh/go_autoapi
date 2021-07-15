@@ -20,7 +20,11 @@ import (
 
 // 「测试管理群」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
-const XIAO_NENG_QUN_TOKEN = "a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
+//const XIAO_NENG_QUN_TOKEN = "a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
+
+// 「测试管理群」群web_hook-用来测试
+//const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
+const XIAO_NENG_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
 
 // todo 上线or正常使用时，需要设为true进行开启
 const IS_OPEN_SENDDING_MSG = true
