@@ -1,48 +1,37 @@
 package controllers
 
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/beego/beego/v2/core/logs"
-"io"
-"io/ioutil"
-"net/http"
-"strconv"
-"strings"
-//"github.com/zyx4843/gojson"
-"reflect"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/beego/beego/v2/core/logs"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
-//func main(){
-//	// 一天的时间是
-//	GetBasePoints(2)
-//	//actionList :=[] string {"detail_post"}
-//	//fmt.Println(actionList)
-//	//r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6","expose_search","1625801485.586624","NaN")
-//	//fmt.Println(r)
-//	//jsonRight := `{"from":[{"sb":"sba"},{"sb":"sba"}],"to":"zs"}`
-//	//r := make(map[string]interface{})
-//	//err := json.Unmarshal([]byte(jsonRight), &r)
-//	//if err != nil{
-//	//	return
-//	//}
-//	//jsonLeft := `{"from":[{"sb":"sba"},{"sbs":"sbas"}],"to":"zs"}`
-//	//l := make(map[string]interface{})
-//	//err = json.Unmarshal([]byte(jsonLeft), &l)
-//	//var result1 string
-//	//var result2 bool
-//	//result1, result2 = JsonCompare(l,r,-1)
-//	//fmt.Println(result2)
-//	//fmt.Println(result1)
-//}
+const cookie = "99BFD42401E3660BFE97D2268BB1EC5A"
+
+type pointData struct{
+	Limit    int 		`form:"limit" json:"limit"`
+	Business string		`form:"business" json:"business"`
+	Did      string		`form:"did" json:"did"`
+}
 
 func (c*AutoTestController) showCheckPoints(){
 	c.TplName = "check_points.html"
 }
 
 func (c*AutoTestController) checkPoints(){
-	GetBasePoints(2)
+	pd := pointData{}
+	if err := c.ParseForm(&pd); err != nil { // 传入user指针
+		c.Ctx.WriteString("出错了！")
+	}
+	resultMsg := GetBasePoints(pd.Limit, pd.Business, pd.Did)
+	c.Data["result"] = resultMsg
+	c.TplName = "check_points.html"
 }
 
 type JsonDiff struct {
@@ -55,17 +44,18 @@ type JsonDiff struct {
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int){
+func GetBasePoints(limit int, business string, did string) []string{
+	var resultMsg []string
 	fmt.Println("第一次执行获取total总数")
 	limits := strconv.Itoa(limit)
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": 0,"limit": `+ limits +`,"app_name": "zuiyou","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": 0,"limit": `+ limits +`,"app_name": "` +business+ `","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
 	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list",postData)
 	if err !=nil{
 		logs.Error(err)
 	}
-	req.Header.Add("Cookie","JSESSIONID=D0878C18E86CD3B5446B0DAB1E9E4311")
+	req.Header.Add("Cookie","JSESSIONID="+cookie)
 	req.Header.Add("Content-Type","application/json")
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -88,7 +78,7 @@ func GetBasePoints(limit int){
 		postBody2 := `{"app_name": "`+appName+`","frominfo":"`+frominfo+`","is_approval": "false","type":"`+types+`","stype":"`+stype+`"}`
 		postData2:= bytes.NewReader([]byte(postBody2))
 		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
-		req2.Header.Add("Cookie","JSESSIONID=D0878C18E86CD3B5446B0DAB1E9E4311")
+		req2.Header.Add("Cookie","JSESSIONID="+cookie)
 		req2.Header.Add("Content-Type","application/json")
 		if err != nil {
 			logs.Error("请求失败，err: ", err)
@@ -115,21 +105,25 @@ func GetBasePoints(limit int){
 		finallExtended["extdata"] = newExtended
 		fmt.Println(finallExtended)
 		// 开始获取真实入库数据
-		r := GetRealPoints("3d7c3cc366fe893164d634d61e9a04f6",types+"_"+stype,"1625801485.586624","NaN")
+		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN")
 		if r == nil{
+			resultMsg = append(resultMsg,"没有查询到数据，已跳过："+types+"_"+stype + "\n")
 			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
 		}else{
 			var result1 string
 			var result2 bool
 			result1, result2 = JsonCompare(finallExtended,r,-1)
 			if result2 == true {
+				resultMsg = append(resultMsg,"检查到异常，事件:"+types+"_"+stype +"  ; " + result1)
 				fmt.Println("检查到异常，事件:"+types+"_"+stype)
 				fmt.Println(result1)
 			}else{
+				resultMsg = append(resultMsg,"检查结构通过，事件:"+types+"_"+stype +"\n")
 				fmt.Println("检查通过，事件:"+types+"_"+stype)
 			}
 		}
 	}
+	return resultMsg
 	//total := int(v["data"].(map[string]interface{})["total"].(float64))
 	//fmt.Println("获取到埋点总数:",total)
 	//fmt.Println("第二次执行获取total总数")
@@ -213,10 +207,10 @@ func jsonDiffDict(json1, json2 map[string]interface{}, depth int, diff *JsonDiff
 					jsonDiffList(value.([]interface{}), json2[key].([]interface{}), depth+1, diff)
 				}
 			default:
-				if !reflect.DeepEqual(value, json2[key]) {
-					diff.HasDiff = true
-					diff.Result = diff.Result + "\n path:" + diff.Path + ";值不相等 -- 期待值：" + value.(string) + "  实际值：" +json2[key].(string)
-				}
+				//if !reflect.DeepEqual(value, json2[key]) {
+				//	diff.HasDiff = true
+				//	diff.Result = diff.Result + "\n path:" + diff.Path + ";值不相等 -- 期待值：" + value.(string) + "  实际值：" +json2[key].(string)
+				//}
 			}
 		} else {
 			diff.HasDiff = true
@@ -250,11 +244,11 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 				jsonDiffList(json1[i].([]interface{}), json2[i].([]interface{}), depth+1, diff)
 			}
 		default:
-			if !reflect.DeepEqual(json1[i], json2[i]) {
-				diff.HasDiff = true
-				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
-				diff.Result = diff.Result + "\n path:" + diff.Path + ";值不相等 -- 期待值：" + json1[i].(string) + "  实际值：" +json2[i].(string)
-			}
+			//if !reflect.DeepEqual(json1[i], json2[i]) {
+			//	diff.HasDiff = true
+			//	diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
+			//	diff.Result = diff.Result + "\n path:" + diff.Path + ";值不相等 -- 期待值：" + json1[i].(string) + "  实际值：" +json2[i].(string)
+			//}
 		}
 	}
 }
