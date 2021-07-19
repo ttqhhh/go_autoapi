@@ -34,6 +34,36 @@ func (c*AutoTestController) checkPoints(){
 	c.TplName = "check_points.html"
 }
 
+func getLoginCookie() string {
+	postBody := `{"username": "wangzhen01", "password": "Iepohg5go4iawoo"}`
+	postData := bytes.NewReader([]byte(postBody))
+	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user",postData)
+	if err !=nil{
+		logs.Error(err)
+	}
+	client := &http.Client{}
+	response, _ := client.Do(req)
+	ck := fmt.Sprintf("%v",  response.Cookies())
+	sep := ";"
+	sep2 := "="
+	result := strings.Split(strings.Split(ck,sep)[0],sep2)[1]
+	// 再用这个cookie登录一次
+	postBody2 := `{"username": "wangzhen01", "password": "Iepohg5go4iawoo"}`
+	postData2 := bytes.NewReader([]byte(postBody2))
+	req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user",postData2)
+	req2.Header.Add("Cookie","JSESSIONID="+result)
+	req2.Header.Add("Content-Type","application/json")
+	client2 := &http.Client{}
+	response2, _ := client2.Do(req2)
+	var reader io.ReadCloser
+	reader = response2.Body
+	body2, _:= ioutil.ReadAll(reader)
+	fmt.Println(string(body2))
+	return result
+	//fmt.Println(response)
+
+}
+
 type JsonDiff struct {
 	HasDiff    bool
 	Result     string
@@ -55,7 +85,8 @@ func GetBasePoints(limit int, business string, did string) []string{
 	if err !=nil{
 		logs.Error(err)
 	}
-	req.Header.Add("Cookie","JSESSIONID="+cookie)
+	cookies := getLoginCookie()
+	req.Header.Add("Cookie","JSESSIONID="+cookies)
 	req.Header.Add("Content-Type","application/json")
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -78,7 +109,7 @@ func GetBasePoints(limit int, business string, did string) []string{
 		postBody2 := `{"app_name": "`+appName+`","frominfo":"`+frominfo+`","is_approval": "false","type":"`+types+`","stype":"`+stype+`"}`
 		postData2:= bytes.NewReader([]byte(postBody2))
 		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
-		req2.Header.Add("Cookie","JSESSIONID="+cookie)
+		req2.Header.Add("Cookie","JSESSIONID="+cookies)
 		req2.Header.Add("Content-Type","application/json")
 		if err != nil {
 			logs.Error("请求失败，err: ", err)
@@ -124,14 +155,6 @@ func GetBasePoints(limit int, business string, did string) []string{
 		}
 	}
 	return resultMsg
-	//total := int(v["data"].(map[string]interface{})["total"].(float64))
-	//fmt.Println("获取到埋点总数:",total)
-	//fmt.Println("第二次执行获取total总数")
-	//s := make(map[string]interface{})
-	//s["offset"] = total - 20
-	//s["limit"] = 20
-	//s["app_name"] = "zuiyou"
-	//sm, _ := json.Marshal(s)
 }
 
 func GetRealPoints(did,event, timeBegin, timeEnd string) map[string]interface{} {
