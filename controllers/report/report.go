@@ -157,10 +157,18 @@ func (c *ReportController) runReportDetail() {
 		if autoResult.Result == models.AUTO_RESULT_FAIL {
 			result = "失败"
 		}
-		reasons := []string{"完美Case!!!"}
+		reasons := []string{"完美的case!!!"}
+
 		if autoResult.Reason != "" {
 			reasons = strings.Split(autoResult.Reason, ";")
 		}
+		if autoResult.Result != models.AUTO_RESULT_SUCCESS {
+			var stat string
+			stat = strconv.Itoa(autoResult.StatusCode)
+			reasons = strings.Split("code:"+stat+"<br>"+autoResult.Reason+"<br>"+autoResult.Response,";")
+		}
+
+
 		var testResult *TestResult
 		if autoResult.IsInspection == models.INSPECTION {
 			inspectionCaseMongo = inspectionCaseMongo.GetOneCase(autoResult.CaseId)
