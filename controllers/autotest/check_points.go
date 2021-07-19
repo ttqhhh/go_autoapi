@@ -136,7 +136,7 @@ func GetBasePoints(limit int, business string, did string) []string{
 		finallExtended["extdata"] = newExtended
 		fmt.Println(finallExtended)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN")
+		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName)
 		if r == nil{
 			resultMsg = append(resultMsg,"没有查询到数据，已跳过："+types+"_"+stype + "\n")
 			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
@@ -157,12 +157,16 @@ func GetBasePoints(limit int, business string, did string) []string{
 	return resultMsg
 }
 
-func GetRealPoints(did,event, timeBegin, timeEnd string) map[string]interface{} {
+func GetRealPoints(did,event, timeBegin, timeEnd ,appName string) map[string]interface{} {
 	fmt.Println("准备拉取数据，action:" + event)
 	//时间是空位NaN
-	req, err := http.NewRequest("GET",
-		"http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd,
-		nil)
+	urls := ""
+	if appName != "omg" {
+		urls = "http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd
+	}else{
+		urls = "http://10.12.44.53:9090//search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd
+	}
+	req, err := http.NewRequest("GET", urls,nil)
 	if err != nil {
 		logs.Error("请求失败，err: ", err)
 	}
