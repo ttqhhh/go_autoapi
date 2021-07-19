@@ -101,8 +101,8 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 						isContinue = false
 					}
 					retryTimes++
-					// 当Case失败时，十秒后再重试
-					time.Sleep(10*time.Second)
+					// 当Case失败时，三十秒后再重试
+					time.Sleep(30*time.Second)
 				}
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
