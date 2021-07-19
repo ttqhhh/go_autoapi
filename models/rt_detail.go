@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	_ "github.com/go-sql-driver/mysql"
+	"go_autoapi/constants"
 	"go_autoapi/db_proxy"
+	"go_autoapi/utils"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -12,8 +14,9 @@ type RtDetailMongo struct {
 	Id          int64  `json:"id" bson:"_id"`
 	ServiceCode string `json:"service_code" bson:"service_code"`
 	Uri         string `json:"uri" bson:"uri"`
-	AvgRt       int    `json:"description" bson:"description"`
-	ThresholdRt int    `json:"threshold_rt" bson:"threshold_rt"`
+	AvgRt       string    `json:"description" bson:"description"`
+	ThresholdRt string    `json:"threshold_rt" bson:"threshold_rt"`
+	Last0DayRt  string `json:"last_0_day_rt" bson:"last_0_day_rt"`
 	Last1DayRt  string `json:"last_1_day_rt" bson:"last_1_day_rt"`
 	Last2DayRt  string `json:"last_2_day_rt" bson:"last_2_day_rt"`
 	Last3DayRt  string `json:"last_3_day_rt" bson:"last_3_day_rt"`
@@ -46,6 +49,16 @@ func (a *RtDetailMongo) TableName() string {
 func (a *RtDetailMongo) Insert(rtDetail RtDetailMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "rt_detail")
 	defer ms.Close()
+	// 当没有Id主键时，进行Id赋值
+	if rtDetail.Id == 0 {
+		r := utils.GetRedis()
+		id, err := r.Incr(constants.RT_DETAIL_PRIMARY_KEY).Result()
+		if err != nil {
+			logs.Error("保存接口响应详情时，从redis获取唯一主键报错，err: ", err)
+			return err
+		}
+		rtDetail.Id = id
+	}
 	return db.Insert(rtDetail)
 }
 

@@ -27,7 +27,8 @@ func (c *ZYMonitorController) Get() {
 	case "mvp1":
 		c.mvp1()
 	case "test":
-		c.test()
+		//c.test()
+
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -148,7 +149,7 @@ func (c *ZYMonitorController) mvp1() {
 	// 最终结构体
 	dateMap := map[string]interface{}{}
 	// 当前时间向前取7天
-	last7DaysZeroTime := getLast7DaysZeroClock(getTodayZeroClock())
+	last7DaysZeroTime := monitor.GetLast14DaysZeroClock(monitor.GetTodayZeroClock())
 	for i := 0; i < len(last7DaysZeroTime); i++ {
 		// 获取当天0时
 		zeroTime := last7DaysZeroTime[i]
@@ -229,105 +230,3 @@ func (c *ZYMonitorController) mvp1() {
 	// 将body总结
 	c.SuccessJson(dateMap)
 }
-
-
-
-func (c *ZYMonitorController) test() {
-	//todayTimeZero := getTodayZeroClock()
-	//getLast7DaysZeroClock(todayTimeZero)
-	res := monitor.GetLast14DaysRtData("xmcs_gateway_acnt")
-	c.SuccessJson(res)
-}
-
-func getTodayZeroClock() int {
-	now := time.Now() //获取当前时间
-	fmt.Printf("current time:%v\n", now)
-
-	year := now.Year()     //年
-	month := now.Month()   //月
-	day := now.Day()       //日
-	hour := now.Hour()     //小时
-	minute := now.Minute() //分钟
-	second := now.Second() //秒
-	fmt.Printf("%d-%02d-%02d %02d:%02d:%02d\n", year, month, day, hour, minute, second)
-
-	loc, _ := time.LoadLocation("Local")
-	todayZero := time.Date(year, month, day, 0, 0, 0, 0, loc)
-	shijianchuo := todayZero.Unix()
-	//shijianchuo = shijianchuo - 86400
-	fmt.Printf("打印时间戳：%d", shijianchuo)
-	return int(shijianchuo)
-}
-
-/**
-时间戳倒序
-*/
-func getLast7DaysZeroClock(todayZoreTime int) []int {
-	result := []int{}
-	for i := 0; i < 7; i++ {
-		oneTime := todayZoreTime - 86400*(i+1)
-		result = append(result, oneTime)
-	}
-	fmt.Printf("拿到的7个时间戳为：%v", result)
-	return result
-}
-
-//func (c *ZYMonitorController) mvp1() {
-//	resp, err := http.Get(url)
-//	if err != nil {
-//		logs.Error("发送get请求报错, err: ", err)
-//	}
-//	defer resp.Body.Close()
-//	body, err := ioutil.ReadAll(resp.Body)
-//	if err != nil {
-//		logs.Error("发送get请求报错, err: ", err)
-//	}
-//
-//	resMap := make(map[string][]string)
-//
-//	bodyStr := string(body)
-//	fmt.Printf("打印body: %s", bodyStr)
-//	res := gojson.Json(bodyStr)
-//	status := res.Get("status").Tostring()
-//	if status != "success" {
-//		fmt.Printf("请求结果不是success")
-//	} else {
-//		data := gojson.Json(bodyStr)
-//		data.Get("data").Tostring()
-//		fmt.Printf("打印json-data为：%s", data)
-//		//result := data.Get("result").StringtoArray()
-//
-//		result := gojson.Json(bodyStr).Getpath("data", "result")
-//		//resultList := result.Tostring()
-//		//resultStr := result.Tostring()
-//		//resultlist := resultStr.([]interface{})
-//		//resultList = result.Getdata().([]string)
-//		resultList :=  toArray(result)
-//		for _, r := range resultList {
-//			//当有NaN时，该条数据不进行统计
-//			unTJ := false
-//			mertric := gojson.Json(r)
-//			uri := mertric.Get("uri").Tostring()
-//			fmt.Printf(uri)
-//			values := mertric.Get("values").StringtoArray()
-//			for _, val := range values {
-//				vs := gojson.Json(val).StringtoArray()
-//				rt := vs[1]
-//				if rt == "NaN" {
-//					unTJ = true
-//					break
-//				}
-//			}
-//			if unTJ {
-//				break
-//			}
-//			resMap[uri] = values
-//		}
-//		//todo
-//
-//	}
-//
-//	fmt.Println(resMap)
-//	// 将body总结
-//	c.SuccessJson(nil)
-//}
