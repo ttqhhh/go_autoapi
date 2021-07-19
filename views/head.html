@@ -20,6 +20,7 @@
     <!-- 注意：如果你直接复制所有代码到本地，上述css路径需要改成你本地的 -->
 </head>
 <body style=>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script>
     layui.use(['element', 'jquery',"layer"], function(){
         var element = layui.element;
@@ -80,7 +81,7 @@
 </script>
 
 <ul class="layui-nav" style="background-color: #3081FF;">
-<!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
+    <!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
     <img src="/static/img/zuiyouicon.png" alt="" style="margin-top: -2px;">
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
         <a href="javascript:;">测试用例管理</a>
@@ -92,8 +93,8 @@
         <dl class="layui-nav-child" id="inspection_business_list">
         </dl>
     </li>
-<!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
-<!--{{/*    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>*/}}-->
+    <!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
+    <!--{{/*    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>*/}}-->
     <li class="layui-nav-item" id="/report/show_run_record"><a href="/report/show_run_record">测试报告</a></li>
     <li class="layui-nav-item" id="/show_run_record_inspection"><a href="/report/show_run_record_inspection">巡检报告</a></li>
     <li class="layui-nav-item"><a href="/service/index">服务管理</a></li>
@@ -101,12 +102,14 @@
     <li class="layui-nav-item" id="/web_report/queryEmail"><a href="/web_report/allemail">邮箱组</a></li>
     <li class="layui-nav-item" id="/show_points_test"><a href="/auto/check_points">埋点测试</a></li>
     <li class="layui-nav-item"><a href="http://172.16.2.86:8094/ ">Case平台</a></li>
+    <li class="layui-nav-item"><a href="/flowreplay/index">推荐工具</a></li>
 
-<!--    <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>-->
+    <!--    <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>-->
     <li class="layui-nav-item" lay-unselect="" style="float: right">
         <img src="//t.cn/RCzsdCq" class="layui-nav-img">
         <span class="author">我</span>
     </li>
 
 </ul>
+
 

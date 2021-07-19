@@ -20,6 +20,8 @@ func (c *AutoTestController) Get() {
 		c.getUserList() // 获取用户数据列表
 	case "check_points":
 		c.showCheckPoints() //展示检查点页面
+	//case "login_user_detail":
+	//	c.loginUserDetail()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)

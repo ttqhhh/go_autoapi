@@ -92,6 +92,9 @@ func (c *AutoTestController) login() {
 	code := business["code"]
 	codeInt := code.(int)
 	redirectUrl := "/case/show_cases?business=" + strconv.Itoa(codeInt)
+	//if !isTester(u.UserName) {
+	//	redirectUrl = "/flowreplay/index"
+	//}
 	//redirectUrl := "/case/show_cases?business=ZuiyYou"
 	c.SuccessJson(redirectUrl)
 }
@@ -99,3 +102,51 @@ func (c *AutoTestController) login() {
 func (c *AutoTestController) logout() {
 	c.SuccessJsonWithMsg(map[string]string{"location": "/login"}, "OK")
 }
+
+//func (c *AutoTestController) loginUserDetail() {
+//	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+//	res := make(map[string]interface{})
+//	res["username"] = userId
+//	res["isTester"] = isTester(userId)
+//	c.SuccessJson(res)
+//}
+//
+//func isTester(username string) bool {
+//	alltester := append(TesterUserList, ShixiTesterUserList...)
+//	alltester = append(alltester, WaibaoTesterUserList...)
+//	isTester := false
+//	for _, tester := range alltester {
+//		if username == tester {
+//			isTester = true
+//		}
+//	}
+//	return isTester
+//}
+//
+//var TesterUserList = []string{
+//	// 4个超级管理员
+//	"fengmanlong",
+//	//"xueyibing",
+//	"wangzhen01",
+//	"wangjun",
+//	"sunzhiying",
+//	"zhangjuan",
+//	"liuyinan",
+//	"sunmingyao",
+//	"zhangdanbing",
+//	"xufei",
+//	"suhuimin",
+//	"wanglanjin",
+//	"yangjingfang",
+//	"chengxiaojing",
+//	"zhaoxiaodong",
+//}
+//
+//var ShixiTesterUserList = []string{
+//	"tangtianqing",
+//}
+//
+//var WaibaoTesterUserList = []string{
+//	"zhaomengxin",
+//	"huoyongjian",
+//}
