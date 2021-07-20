@@ -4,6 +4,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/satori/go.uuid"
 	_ "go_autoapi/constants"
+	constant "go_autoapi/constants"
 	"strings"
 )
 
@@ -27,29 +28,30 @@ type ReturnMsgPage struct {
 // 不需要登录的接口
 var withoutLoginApi = []string{
 	"/case/pp_auto_add_one_case",
+	"/monitor/excute_at_first_time",
 }
 
 // todo 该方法不要注释掉，不然登录功能就没意义了
-//func (b *BaseController) Prepare() {
-//	_, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
-//	methodName := b.GetMethodName()
-//	if err == false && methodName != "login" && methodName != "to_login" {
-//		//logs.Error("not login")
-//		//b.ErrorJson(-1, "not login", nil)
-//		isNeedCheck := true
-//		uri := b.Ctx.Request.RequestURI
-//		for _, api := range withoutLoginApi {
-//			if api == uri {
-//				isNeedCheck = false
-//				break
-//			}
-//		}
-//		if isNeedCheck {
-//			b.Redirect("/auto/to_login", 302)
-//		}
-//	}
-//	//fmt.Println(userId)
-//}
+func (b *BaseController) Prepare() {
+	_, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
+	methodName := b.GetMethodName()
+	if err == false && methodName != "login" && methodName != "to_login" {
+		//logs.Error("not login")
+		//b.ErrorJson(-1, "not login", nil)
+		isNeedCheck := true
+		uri := b.Ctx.Request.RequestURI
+		for _, api := range withoutLoginApi {
+			if api == uri {
+				isNeedCheck = false
+				break
+			}
+		}
+		if isNeedCheck {
+			b.Redirect("/auto/to_login", 302)
+		}
+	}
+	//fmt.Println(userId)
+}
 
 func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 
