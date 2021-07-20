@@ -130,6 +130,10 @@ func GenerateLast14DaysRtData(serviceCode string) {
 				metric := make(map[string]interface{})
 				metric = result["metric"].(map[string]interface{})
 				uri := metric["uri"].(string)
+				// 当uri包含如下字符时，不对该uri进行统计
+				if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") {
+					continue
+				}
 				values := []interface{}{}
 				values = result["values"].([]interface{})
 				rtMap := make(map[string]int)

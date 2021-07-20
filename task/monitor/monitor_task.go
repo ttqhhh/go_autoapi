@@ -126,6 +126,10 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 			metric := make(map[string]interface{})
 			metric = result["metric"].(map[string]interface{})
 			uri := metric["uri"].(string)
+			// 当uri包含如下字符时，不对该uri进行统计
+			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") {
+				continue
+			}
 			values := []interface{}{}
 			values = result["value"].([]interface{})
 			rt := values[1].(string)
@@ -195,6 +199,9 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 	return
 }
 
+/**
+每小时跑一次
+*/
 func HalfHourExcute(serviceCode string, timestamp int64) {
 	// 该服务下的所有接口
 	//url := ZyPormtheusQueryUrl + serviceCode + "_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
@@ -234,6 +241,10 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			metric := make(map[string]interface{})
 			metric = result["metric"].(map[string]interface{})
 			uri := metric["uri"].(string)
+			// 当uri包含如下字符时，不对该uri进行统计
+			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") {
+				continue
+			}
 			values := []interface{}{}
 			values = result["values"].([]interface{})
 			rtArr := []int{}
