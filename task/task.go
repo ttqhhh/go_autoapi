@@ -9,6 +9,7 @@ import (
 
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_INSPECTION_TASK = false
+
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_RT_MONITOR_TASK = false
 
@@ -41,7 +42,7 @@ func init() {
 		toolbox.AddTask("Inspection_Task_1day", Inspection1D)
 	}
 	if IS_OPEN_RT_MONITOR_TASK {
-		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", inspection.FIVE_MIN_EXPRESSION, monitor.MonitorTask)
+		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)
 		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
 	}
 	toolbox.StartTask()

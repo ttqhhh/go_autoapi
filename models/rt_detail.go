@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/astaxie/beego/logs"
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/constants"
@@ -14,8 +13,8 @@ type RtDetailMongo struct {
 	Id          int64  `json:"id" bson:"_id"`
 	ServiceCode string `json:"service_code" bson:"service_code"`
 	Uri         string `json:"uri" bson:"uri"`
-	AvgRt       string    `json:"description" bson:"description"`
-	ThresholdRt string    `json:"threshold_rt" bson:"threshold_rt"`
+	AvgRt       string `json:"avg_rt", bson:"avg_rt"`
+	ThresholdRt string `json:"threshold_rt" bson:"threshold_rt"`
 	Last0DayRt  string `json:"last_0_day_rt" bson:"last_0_day_rt"`
 	Last1DayRt  string `json:"last_1_day_rt" bson:"last_1_day_rt"`
 	Last2DayRt  string `json:"last_2_day_rt" bson:"last_2_day_rt"`
@@ -31,16 +30,13 @@ type RtDetailMongo struct {
 	Last12DayRt string `json:"last_12_day_rt" bson:"last_12_day_rt"`
 	Last13DayRt string `json:"last_13_day_rt" bson:"last_13_day_rt"`
 	Last14DayRt string `json:"last_14_day_rt" bson:"last_14_day_rt"`
-	Last15DayRt string `json:"last_15_day_rt" bson:"last_15_day_rt"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty"`
 	UpdatedAt string `json:"updated_at"`
 }
 
 func init() {
-	//orm.RegisterModel(new(AdMockCaseMongo))
 	db_proxy.InitMongoDB()
-	//ORM = db_proxy.GetOrmObject()
 }
 func (a *RtDetailMongo) TableName() string {
 	return "rt_detail"
@@ -62,41 +58,41 @@ func (a *RtDetailMongo) Insert(rtDetail RtDetailMongo) error {
 	return db.Insert(rtDetail)
 }
 
-func (a *RtDetailMongo) GetById(id int64) (RtDetailMongo, error) {
-
-	fmt.Println(id)
+func (a *RtDetailMongo) GetById(id int64) (*RtDetailMongo, error) {
 	query := bson.M{"_id": id}
 	rtDetail := RtDetailMongo{}
 	ms, db := db_proxy.Connect("auto_api", "rt_detail")
 	defer ms.Close()
 	err := db.Find(query).One(&rtDetail)
-	fmt.Println(rtDetail)
 	if err != nil {
-		logs.Error("GetCaseById获取AutoCase失败", err)
+		if err.Error() == "not found" {
+			return nil, nil
+		}
+		logs.Error("GetById未查询到RtDetail数据，err: ", err)
 	}
-	return rtDetail, err
+	return &rtDetail, err
 }
 
-func (a *RtDetailMongo) GetByServiceAndUri(serviceCode string, uri string) (RtDetailMongo, error) {
+func (a *RtDetailMongo) GetByServiceAndUri(serviceCode string, uri string) (*RtDetailMongo, error) {
 	query := bson.M{"service_code": serviceCode, "uri": uri}
 	rtDetail := RtDetailMongo{}
 	ms, db := db_proxy.Connect("auto_api", "rt_detail")
 	defer ms.Close()
 	err := db.Find(query).One(&rtDetail)
-	fmt.Println(rtDetail)
 	if err != nil {
-		logs.Error("GetCaseById获取AutoCase失败", err)
+		if err.Error() == "not found" {
+			return nil, nil
+		}
+		logs.Error("GetByServiceAndUri未查询到RtDetail数据，err: ", err)
 	}
-	return rtDetail, err
+	return &rtDetail, err
 }
 
 func (a *RtDetailMongo) UpdateById(id int64, rtDetail RtDetailMongo) (RtDetailMongo, error) {
-	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "rt_detail")
 	defer ms.Close()
 	err := db.Update(query, rtDetail)
-	fmt.Println(rtDetail)
 	if err != nil {
 		logs.Error("UpdateCaseById更新AutoCase失败", err)
 	}
