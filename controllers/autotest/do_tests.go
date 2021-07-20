@@ -200,6 +200,7 @@ func (c *AutoTestController) performTests() {
 
 func (c *AutoTestController) performInspectTests() {
 	userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+
 	uuid, _ := c.GenUUid()
 	param := performParam{}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &param); err != nil {
@@ -255,6 +256,7 @@ func (c *AutoTestController) performInspectTests() {
 	// 报告的名字：业务线-执行人-时间戳（日期）
 	businessMap := GetBusinesses(userId)
 	businessName := "未知"
+
 	for _, v := range businessMap {
 		if int8(v["code"].(int)) == business {
 			businessName = v["name"].(string)
@@ -263,7 +265,7 @@ func (c *AutoTestController) performInspectTests() {
 	}
 	format := "20060102/150405"
 	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
-	runReport.CreateBy = userId
+	runReport.CreateBy = userId+":线上巡检"
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
 	runReport.IsPass = models.RUNNING

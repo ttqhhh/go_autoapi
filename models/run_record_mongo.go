@@ -134,7 +134,7 @@ func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, p
 	}
 	// 线上巡检case筛选
 	if isInspection == INSPECTION {
-		query["create_by"] = "线上巡检"
+		query["create_by"] = bson.M{"$regex":"线上巡检"}
 	} else {
 		//  限制非【线上巡检】数据
 		query["create_by"] = bson.M{"$ne": "线上巡检"}
