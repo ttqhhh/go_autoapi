@@ -91,113 +91,113 @@ func MonitorTask() error {
 	return nil
 }
 
-func OneHourExcute(serviceCode string, timestamp int64) {
-	// 该服务下的所有接口
-	url := ZyPormtheusQueryUrl + serviceCode + "_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
-
-	client := &http.Client{Timeout: 5 * time.Second}
-	reqest, err := http.NewRequest("GET", url, nil)
-	resp, err := client.Do(reqest)
-	if err != nil {
-		logs.Error("发送get请求报错, err: ", err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logs.Error("发送get请求报错, err: ", err)
-	}
-
-	res := make(map[string]interface{})
-	json.Unmarshal(body, &res)
-	status := res["status"].(string)
-	if status != "success" {
-		fmt.Printf("请求结果不是success")
-		fmt.Printf("请求结果为: %v", res)
-	} else {
-		resStr, _ := json.Marshal(res)
-		fmt.Printf("打印请求结果为: %s", resStr)
-		data := make(map[string]interface{})
-		data = res["data"].(map[string]interface{})
-		results := []interface{}{}
-		results = data["result"].([]interface{})
-		for _, r := range results {
-			result := make(map[string]interface{})
-			result = r.(map[string]interface{})
-			metric := make(map[string]interface{})
-			metric = result["metric"].(map[string]interface{})
-			uri := metric["uri"].(string)
-			// 当uri包含如下字符时，不对该uri进行统计
-			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") || strings.Contains(uri, "+") || strings.Contains(uri, ":") || strings.Contains(uri, "(") || strings.Contains(uri, ")") || strings.Contains(uri, "\\") || strings.Contains(uri, "\"") || strings.Contains(uri, "'") || strings.Contains(uri, ".") || strings.Contains(uri, " ") || strings.Contains(uri, "|") || strings.Contains(uri, "@") || strings.Contains(uri, ";") || strings.Contains(uri, ":") || strings.Contains(uri, ",") || strings.Contains(uri, "!") || strings.Contains(uri, "<") || strings.Contains(uri, ">") || strings.Contains(uri, "--") || strings.Contains(uri, "//") {
-				continue
-			}
-			values := []interface{}{}
-			values = result["value"].([]interface{})
-			rt := values[1].(string)
-			// 该rt的时间戳
-			index := strings.Index(rt, ".")
-			if index != -1 {
-				// 响应时间向下取整
-				rt = string([]byte(rt)[:index])
-			}
-			// todo 将时间戳转换为时间字符串
-			secTime := time.Unix(timestamp, 0)
-			key := secTime.Format(models.Time_format)
-			rtInt := -1
-			if rt != "NAN" && rt != "" {
-				rtInt, _ = strconv.Atoi(rt)
-			}
-			// todo 将rt和库中的阈值（平均值）进行对比
-			mongo := &models.RtDetailMongo{}
-			mongo, err := mongo.GetByServiceAndUri(serviceCode, uri)
-			if err != nil {
-				return
-			}
-			// 存在阈值时，取阈值；不存在阈值时，取平均值
-			thresholdRtStr := mongo.ThresholdRt
-			if thresholdRtStr == "0" || thresholdRtStr == "" || thresholdRtStr == "-1" {
-				oclock := key[11:]
-				avgRt := mongo.AvgRt
-				avgRtMap := map[string]int{}
-				json.Unmarshal([]byte(avgRt), &avgRtMap)
-				thresholdRtStr = strconv.Itoa(avgRtMap[oclock])
-			}
-			// 没有有效的阈值时，不进行验证
-			if thresholdRtStr != "0" && thresholdRtStr != "" && thresholdRtStr != "-1" {
-				thresholdRt, _ := strconv.Atoi(thresholdRtStr)
-				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
-				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
-					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
-					//inspection_strategy.DingSend(content)
-					fmt.Printf(content)
-				}
-			}
-			// todo 把rtMap入库
-			RtDetailInDbNow(timestamp, serviceCode, uri, rtInt)
-			// todo 调用缓增函数，判断该数据是否为缓增数据
-			res := []int{}
-			timeStr := time.Unix(timestamp, 0).Format(models.Time_format)
-			timeStr = timeStr[11:]
-			res = append(res, getMouShijianRt(mongo.Last0DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last1DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last2DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last3DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last4DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last5DayRt, timeStr))
-			res = append(res, getMouShijianRt(mongo.Last6DayRt, timeStr))
-			// todo 需要确保res为由早到晚的时间顺序
-			IsSlowIncrease := IsSlowIncrease(res)
-			if IsSlowIncrease {
-				// todo 发送钉钉出去
-				if MONITOR_DING_SEND_IS_OPEN {
-					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口近期响应时间呈缓增趋势，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
-					//inspection_strategy.DingSend(content)
-					fmt.Printf(content)
-				}
-			}
-		}
-	}
-	return
-}
+//func OneHourExcute(serviceCode string, timestamp int64) {
+//	// 该服务下的所有接口
+//	url := ZyPormtheusQueryUrl + serviceCode + "_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
+//
+//	client := &http.Client{Timeout: 5 * time.Second}
+//	reqest, err := http.NewRequest("GET", url, nil)
+//	resp, err := client.Do(reqest)
+//	if err != nil {
+//		logs.Error("发送get请求报错, err: ", err)
+//	}
+//	defer resp.Body.Close()
+//	body, err := ioutil.ReadAll(resp.Body)
+//	if err != nil {
+//		logs.Error("发送get请求报错, err: ", err)
+//	}
+//
+//	res := make(map[string]interface{})
+//	json.Unmarshal(body, &res)
+//	status := res["status"].(string)
+//	if status != "success" {
+//		fmt.Printf("请求结果不是success")
+//		fmt.Printf("请求结果为: %v", res)
+//	} else {
+//		resStr, _ := json.Marshal(res)
+//		fmt.Printf("打印请求结果为: %s", resStr)
+//		data := make(map[string]interface{})
+//		data = res["data"].(map[string]interface{})
+//		results := []interface{}{}
+//		results = data["result"].([]interface{})
+//		for _, r := range results {
+//			result := make(map[string]interface{})
+//			result = r.(map[string]interface{})
+//			metric := make(map[string]interface{})
+//			metric = result["metric"].(map[string]interface{})
+//			uri := metric["uri"].(string)
+//			// 当uri包含如下字符时，不对该uri进行统计
+//			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") || strings.Contains(uri, "+") || strings.Contains(uri, ":") || strings.Contains(uri, "(") || strings.Contains(uri, ")") || strings.Contains(uri, "\\") || strings.Contains(uri, "\"") || strings.Contains(uri, "'") || strings.Contains(uri, ".") || strings.Contains(uri, " ") || strings.Contains(uri, "|") || strings.Contains(uri, "@") || strings.Contains(uri, ";") || strings.Contains(uri, ":") || strings.Contains(uri, ",") || strings.Contains(uri, "!") || strings.Contains(uri, "<") || strings.Contains(uri, ">") || strings.Contains(uri, "--") || strings.Contains(uri, "//") {
+//				continue
+//			}
+//			values := []interface{}{}
+//			values = result["value"].([]interface{})
+//			rt := values[1].(string)
+//			// 该rt的时间戳
+//			index := strings.Index(rt, ".")
+//			if index != -1 {
+//				// 响应时间向下取整
+//				rt = string([]byte(rt)[:index])
+//			}
+//			// todo 将时间戳转换为时间字符串
+//			secTime := time.Unix(timestamp, 0)
+//			key := secTime.Format(models.Time_format)
+//			rtInt := -1
+//			if rt != "NAN" && rt != "" {
+//				rtInt, _ = strconv.Atoi(rt)
+//			}
+//			// todo 将rt和库中的阈值（平均值）进行对比
+//			mongo := &models.RtDetailMongo{}
+//			mongo, err := mongo.GetByServiceAndUri(serviceCode, uri)
+//			if err != nil {
+//				return
+//			}
+//			// 存在阈值时，取阈值；不存在阈值时，取平均值
+//			thresholdRtStr := mongo.ThresholdRt
+//			if thresholdRtStr == "0" || thresholdRtStr == "" || thresholdRtStr == "-1" {
+//				oclock := key[11:]
+//				avgRt := mongo.AvgRt
+//				avgRtMap := map[string]int{}
+//				json.Unmarshal([]byte(avgRt), &avgRtMap)
+//				thresholdRtStr = strconv.Itoa(avgRtMap[oclock])
+//			}
+//			// 没有有效的阈值时，不进行验证
+//			if thresholdRtStr != "0" && thresholdRtStr != "" && thresholdRtStr != "-1" {
+//				thresholdRt, _ := strconv.Atoi(thresholdRtStr)
+//				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
+//				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
+//					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
+//					//inspection_strategy.DingSend(content)
+//					fmt.Printf(content)
+//				}
+//			}
+//			// todo 把rtMap入库
+//			RtDetailInDbNow(timestamp, serviceCode, uri, rtInt)
+//			// todo 调用缓增函数，判断该数据是否为缓增数据
+//			res := []int{}
+//			timeStr := time.Unix(timestamp, 0).Format(models.Time_format)
+//			timeStr = timeStr[11:]
+//			res = append(res, getMouShijianRt(mongo.Last0DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last1DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last2DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last3DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last4DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last5DayRt, timeStr))
+//			res = append(res, getMouShijianRt(mongo.Last6DayRt, timeStr))
+//			// todo 需要确保res为由早到晚的时间顺序
+//			IsSlowIncrease := IsSlowIncrease(res)
+//			if IsSlowIncrease {
+//				// todo 发送钉钉出去
+//				if MONITOR_DING_SEND_IS_OPEN {
+//					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口近期响应时间呈缓增趋势，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
+//					//inspection_strategy.DingSend(content)
+//					fmt.Printf(content)
+//				}
+//			}
+//		}
+//	}
+//	return
+//}
 
 /**
 每小时跑一次
@@ -240,6 +240,9 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			result = r.(map[string]interface{})
 			metric := make(map[string]interface{})
 			metric = result["metric"].(map[string]interface{})
+			if metric["uri"] == nil {
+				continue
+			}
 			uri := metric["uri"].(string)
 			// 当uri包含如下字符时，不对该uri进行统计
 			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") || strings.Contains(uri, "+") || strings.Contains(uri, ":") || strings.Contains(uri, "(") || strings.Contains(uri, ")") || strings.Contains(uri, "\\") || strings.Contains(uri, "\"") || strings.Contains(uri, "'") || strings.Contains(uri, ".") || strings.Contains(uri, " ") || strings.Contains(uri, "|") || strings.Contains(uri, "@") || strings.Contains(uri, ";") || strings.Contains(uri, ":") || strings.Contains(uri, ",") || strings.Contains(uri, "!") || strings.Contains(uri, "<") || strings.Contains(uri, ">") || strings.Contains(uri, "--") || strings.Contains(uri, "//") {
