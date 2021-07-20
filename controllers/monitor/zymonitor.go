@@ -24,8 +24,8 @@ func (c *ZYMonitorController) Get() {
 	switch do {
 	case "excute_at_first_time":
 		c.excuteAtFirstTime()
-	case "test":
-		c.test()
+	case "excute_one_time":
+		c.excuteOneTime()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -45,7 +45,7 @@ func (c *ZYMonitorController) Post() {
 	}
 }
 
-func (c *ZYMonitorController) test() {
+func (c *ZYMonitorController) excuteOneTime() {
 	monitor.MonitorTask()
 	c.SuccessJson(nil)
 }

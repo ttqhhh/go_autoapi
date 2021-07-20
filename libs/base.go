@@ -29,6 +29,7 @@ type ReturnMsgPage struct {
 var withoutLoginApi = []string{
 	"/case/pp_auto_add_one_case",
 	"/monitor/excute_at_first_time",
+	"/monitor/test",
 }
 
 // todo 该方法不要注释掉，不然登录功能就没意义了
