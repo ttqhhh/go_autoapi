@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/blinkbean/dingtalk"
 	"github.com/widuu/gojson"
 	"go_autoapi/models"
+	"go_autoapi/task/inspection_strategy"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -25,7 +27,7 @@ zy-live-gateway
 const (
 	// 每小时执行一次
 	MONITOR_DING_SEND_IS_OPEN = true
-	MONITOR_TASK_EXPRESSION   = "0 0 * * * *"
+	MONITOR_TASK_EXPRESSION   = "0 30/0 * * * *"
 	ZyPormtheusQueryUrl       = "http://172.16.3.127:1090/api/v1/query?query=xmcs_"
 	ZyPormtheusQueryRangeUrl  = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_"
 )
@@ -37,41 +39,41 @@ const (
 
 // 最右的网关服务集合
 var Zuiyou_Servs = []string{
-	//"chatsrv_gateway",
+	"chatsrv_gateway",
 	"gateway_acnt",
-	//"gateway_ad",
-	//"gateway_apmserver",
-	//"gateway_applist",
-	//"gateway_applog",
-	//"gateway_danmaku",
-	//"gateway_diagnosis",
-	//"gateway_earn",
-	//"gateway_earn_acnt",
-	//"gateway_feedback",
-	//"gateway_market",
-	//"gateway_misc",
-	//"gateway_mixture",
-	//"gateway_post",
-	//"gateway_rec",
-	//"gateway_rev",
-	//"gateway_shop",
-	//"gateway_stat",
-	//"gateway_topic",
-	//"gateway_urlresolver",
-	//"gateway_vasapi",
-	//"gateway_wxapp",
-	//"gray_gateway",
-	//"mall_gateway",
-	//"media_gateway",
-	//"media_gateway_op",
-	//"media_gateway_upload",
-	//"miniemoji_gateway",
-	//"rtcsrv_gateway",
-	//"snssrv_gateway_native",
-	//"snssrv_gateway_nearby",
-	//"zuiyou_trade_gateway",
-	//"zy_gateway_teamchat",
-	//"zy_live_gateway",
+	"gateway_ad",
+	"gateway_apmserver",
+	"gateway_applist",
+	"gateway_applog",
+	"gateway_danmaku",
+	"gateway_diagnosis",
+	"gateway_earn",
+	"gateway_earn_acnt",
+	"gateway_feedback",
+	"gateway_market",
+	"gateway_misc",
+	"gateway_mixture",
+	"gateway_post",
+	"gateway_rec",
+	"gateway_rev",
+	"gateway_shop",
+	"gateway_stat",
+	"gateway_topic",
+	"gateway_urlresolver",
+	"gateway_vasapi",
+	"gateway_wxapp",
+	"gray_gateway",
+	"mall_gateway",
+	"media_gateway",
+	"media_gateway_op",
+	"media_gateway_upload",
+	"miniemoji_gateway",
+	"rtcsrv_gateway",
+	"snssrv_gateway_native",
+	"snssrv_gateway_nearby",
+	"zuiyou_trade_gateway",
+	"zy_gateway_teamchat",
+	"zy_live_gateway",
 }
 
 func MonitorTask() error {
@@ -126,12 +128,6 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 			uri := metric["uri"].(string)
 			values := []interface{}{}
 			values = result["value"].([]interface{})
-			//rtMap := make(map[string]int)
-			// 只会有一个
-			//val := values[0]
-			//jsonByte, _ := json.Marshal(val)
-			//jsonStr := string(jsonByte)
-			//rt := gojson.Json(jsonStr).Getindex(2).Tostring()
 			rt := values[1].(string)
 			// 该rt的时间戳
 			index := strings.Index(rt, ".")
@@ -146,8 +142,6 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 			if rt != "NAN" && rt != "" {
 				rtInt, _ = strconv.Atoi(rt)
 			}
-			//rtMap[key] = rtInt
-			//}
 			// todo 将rt和库中的阈值（平均值）进行对比
 			mongo := &models.RtDetailMongo{}
 			mongo, err := mongo.GetByServiceAndUri(serviceCode, uri)
@@ -166,19 +160,6 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 			// 没有有效的阈值时，不进行验证
 			if thresholdRtStr != "0" && thresholdRtStr != "" && thresholdRtStr != "-1" {
 				thresholdRt, _ := strconv.Atoi(thresholdRtStr)
-				//if rtInt != -1 && rtInt > thresholdRt {
-				//	content := ""
-				//	if  float64(rtInt) <= float64(thresholdRt) * 1.3 {
-				//		// todo 发送钉钉Warn
-				//		fmt.Sprintf("【性能监控-线上巡检Warn】: 接口响应时间超出历史平均值，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
-				//	} else {
-				//		// todo 发送钉钉Alert
-				//		fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间超出历史平均值，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
-				//	}
-				//	if MONITOR_DING_SEND_IS_OPEN {
-				//		inspection_strategy.DingSend(content)
-				//	}
-				//}
 				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
 				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
@@ -308,7 +289,7 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
 				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
-					//inspection_strategy.DingSend(content)
+					DingSend(content)
 					fmt.Printf(content)
 				}
 			}
@@ -331,7 +312,7 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 				// todo 发送钉钉出去
 				if MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口近期响应时间呈缓增趋势，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
-					//inspection_strategy.DingSend(content)
+					DingSend(content)
 					fmt.Printf(content)
 				}
 			}
@@ -436,4 +417,10 @@ func IsSlowIncrease(datas []int) (isSlowIncrease bool) {
 		}
 	}
 	return true
+}
+
+func DingSend(content string) {
+	var dingToken = []string{inspection_strategy.XIAO_NENG_QUN_TOKEN}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
 }
