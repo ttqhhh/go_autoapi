@@ -41,23 +41,23 @@ const (
 var Zuiyou_Servs = []string{
 	"chatsrv_gateway",
 	"gateway_acnt",
-	"gateway_ad",
-	"gateway_apmserver",
+	//"gateway_ad",
+	//"gateway_apmserver",
 	"gateway_applist",
 	"gateway_applog",
 	"gateway_danmaku",
-	"gateway_diagnosis",
-	"gateway_earn",
-	"gateway_earn_acnt",
+	//"gateway_diagnosis", todo
+	//"gateway_earn",
+	//"gateway_earn_acnt",
 	"gateway_feedback",
-	"gateway_market",
-	"gateway_misc",
-	"gateway_mixture",
+	//"gateway_market",
+	//"gateway_misc",
+	//"gateway_mixture",
 	"gateway_post",
 	"gateway_rec",
 	"gateway_rev",
 	"gateway_shop",
-	"gateway_stat",
+	//"gateway_stat", // todo
 	"gateway_topic",
 	"gateway_urlresolver",
 	"gateway_vasapi",
@@ -127,7 +127,7 @@ func OneHourExcute(serviceCode string, timestamp int64) {
 			metric = result["metric"].(map[string]interface{})
 			uri := metric["uri"].(string)
 			// 当uri包含如下字符时，不对该uri进行统计
-			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") {
+			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") || strings.Contains(uri, "+") || strings.Contains(uri, ":") || strings.Contains(uri, "(") || strings.Contains(uri, ")") || strings.Contains(uri, "\\") || strings.Contains(uri, "\"") || strings.Contains(uri, "'") || strings.Contains(uri, ".") || strings.Contains(uri, " ") || strings.Contains(uri, "|") || strings.Contains(uri, "@") || strings.Contains(uri, ";") || strings.Contains(uri, ":") || strings.Contains(uri, ",") {
 				continue
 			}
 			values := []interface{}{}
@@ -242,7 +242,7 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			metric = result["metric"].(map[string]interface{})
 			uri := metric["uri"].(string)
 			// 当uri包含如下字符时，不对该uri进行统计
-			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") {
+			if strings.Contains(uri, "sign") || strings.Contains(uri, "%") || strings.Contains(uri, "=") || strings.Contains(uri, "?") || strings.Contains(uri, "+") || strings.Contains(uri, ":") || strings.Contains(uri, "(") || strings.Contains(uri, ")") || strings.Contains(uri, "\\") || strings.Contains(uri, "\"") || strings.Contains(uri, "'") || strings.Contains(uri, ".") || strings.Contains(uri, " ") || strings.Contains(uri, "|") || strings.Contains(uri, "@") || strings.Contains(uri, ";") || strings.Contains(uri, ":") || strings.Contains(uri, ",") {
 				continue
 			}
 			values := []interface{}{}
