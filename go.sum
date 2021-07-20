@@ -207,6 +207,8 @@ github.com/widuu/gojson v0.0.0-20170212122013-7da9d2cd949b h1:ieRJ8K7QAPWWltEOv7
 github.com/widuu/gojson v0.0.0-20170212122013-7da9d2cd949b/go.mod h1:9W1pyetRkwXqjR9tjOSrSuhGHBK0EqXoQSwWbhBHHwA=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/gopher-lua v0.0.0-20171031051903-609c9cd26973/go.mod h1:aEV29XrmTYFr3CiRxZeGHpkvbwq+prZduBqMaascyCU=
+github.com/zyx4843/gojson v0.0.0-20170207143146-74e5bb72572b h1:nAojBNlk+teK5biGv7YfXPmC+bOWTX51bnKKrUNUhsE=
+github.com/zyx4843/gojson v0.0.0-20170207143146-74e5bb72572b/go.mod h1:8QCpuVlYCeXpONMjBFJnbH6elgZz2hd1x7DlQTsjT0I=
 go.etcd.io/etcd v3.3.25+incompatible/go.mod h1:yaeTdrJi5lOmYerz05bd8+V7KubZs8YSFZfzsF9A6aI=
 go.uber.org/atomic v1.6.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=
 go.uber.org/multierr v1.5.0/go.mod h1:FeouvMocqHpRaaGuG9EjoKcStLC43Zu/fmqdUMPcKYU=

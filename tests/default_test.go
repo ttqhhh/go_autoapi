@@ -1,4 +1,4 @@
-package test
+package main
 
 import (
 	_ "go_autoapi/routers"
