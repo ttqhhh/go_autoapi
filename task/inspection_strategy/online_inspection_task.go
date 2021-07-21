@@ -16,15 +16,15 @@ import (
 
 // 「测试效率团队」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
-//const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
+const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
 // 「测试管理群」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
 //const XIAO_NENG_QUN_TOKEN = "a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
 
-// 「测试管理群」群web_hook-用来测试
+// 「测试群」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
-const XIAO_NENG_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
+const CE_SHI_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
 
 // todo 上线or正常使用时，需要设为true进行开启
 const IS_OPEN_SENDDING_MSG = true
@@ -101,6 +101,8 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 						isContinue = false
 					}
 					retryTimes++
+					// 当Case失败时，三十秒后再重试
+					time.Sleep(30 * time.Second)
 				}
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
@@ -182,7 +184,7 @@ type ReqBody struct {
 }
 
 func DingSend(content string) {
-	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	var dingToken = []string{CE_SHI_QUN_TOKEN}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }

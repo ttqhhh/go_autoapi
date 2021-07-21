@@ -131,8 +131,8 @@ func GetBasePoints(limit int, business string, did string) []string{
 			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
 		}
 		finallExtended := make(map[string]interface{})
-		finallExtended["cur_page"] = "none"
-		finallExtended["from_page"] = "none"
+		newExtended["cur_page"] = "none"
+		newExtended["from_page"] = "none"
 		finallExtended["extdata"] = newExtended
 		fmt.Println(finallExtended)
 		// 开始获取真实入库数据

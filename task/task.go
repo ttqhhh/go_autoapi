@@ -4,10 +4,14 @@ import (
 	"github.com/astaxie/beego/toolbox"
 	"go_autoapi/controllers/inspection"
 	"go_autoapi/task/inspection_strategy"
+	"go_autoapi/task/monitor"
 )
 
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_INSPECTION_TASK = true
+
+// 是否开启线上巡检任务(测试环境关闭)
+const IS_OPEN_RT_MONITOR_TASK = false
 
 func init() {
 	// new一个线上巡检的定时任务定时任务
@@ -36,6 +40,10 @@ func init() {
 		toolbox.AddTask("Inspection_Task_12hour", InspectionHalfD)
 		Inspection1D := toolbox.NewTask("Inspection_Task_1day", inspection.ONE_DAY_EXPRESSION, inspection_strategy.Strategy1Day)
 		toolbox.AddTask("Inspection_Task_1day", Inspection1D)
+	}
+	if IS_OPEN_RT_MONITOR_TASK {
+		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)
+		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
 	}
 	toolbox.StartTask()
 }
