@@ -7,10 +7,10 @@ import (
 	"go_autoapi/task/monitor"
 )
 
-// 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_INSPECTION_TASK = true
+// 是否开启巡检Case线上巡检任务(测试环境关闭)
+const IS_OPEN_INSPECTION_TASK = false
 
-// 是否开启线上巡检任务(测试环境关闭)
+// 是否开启接口性能监控线上巡检任务(测试环境关闭)
 const IS_OPEN_RT_MONITOR_TASK = false
 
 func init() {

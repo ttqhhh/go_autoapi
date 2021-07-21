@@ -25,8 +25,8 @@ zy-live-gateway
 
 */
 const (
-	// 每小时执行一次
-	MONITOR_DING_SEND_IS_OPEN = true
+	// 每小时执行一次(测试环境关闭)
+	MONITOR_DING_SEND_IS_OPEN = false
 	MONITOR_TASK_EXPRESSION   = "0 30/0 * * * *"
 	ZyPormtheusQueryUrl       = "http://172.16.3.127:1090/api/v1/query?query=xmcs_"
 	ZyPormtheusQueryRangeUrl  = "http://172.16.3.127:1090/api/v1/query_range?query=xmcs_"
