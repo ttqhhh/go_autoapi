@@ -42,7 +42,8 @@ const (
 )
 
 const (
-	FIVE_MIN_EXPRESSION    = "0 0/5 * * * *"
+	//FIVE_MIN_EXPRESSION    = "0 0/5 * * * *"
+	FIVE_MIN_EXPRESSION    = "0/5 * * * * *"
 	TEN_MIN_EXPRESSION     = "0 0/10 * * * *"
 	ONE_QUARTER_EXPRESSION = "0 0/15 * * * *"
 	HALF_HOUR_EXPRESSION   = "0 0/30 * * * *"
