@@ -287,6 +287,10 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			if err != nil {
 				return
 			}
+			if mongo == nil {
+				// todo 当未查询到数据时，是否需要新增？？？
+				return
+			}
 			// 存在阈值时，取阈值；不存在阈值时，取平均值
 			thresholdRtStr := mongo.ThresholdRt
 			if thresholdRtStr == "0" || thresholdRtStr == "" || thresholdRtStr == "-1" {
