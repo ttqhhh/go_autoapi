@@ -31,6 +31,7 @@ var withoutLoginApi = []string{
 	"/monitor/excute_at_first_time",
 	"/monitor/excute_one_time",
 	"/health/check",
+	"/flowreplay/collect_flow_file",
 }
 
 // todo 该方法不要注释掉，不然登录功能就没意义了
