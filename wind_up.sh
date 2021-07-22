@@ -13,7 +13,7 @@ function main() {
     # 检出master分支
     git checkout master
     # 将合并需求分支后的dev分支合并至master分支, 并推至远程
-    git merge dev
+    git merge develop
     git push
     # 将合并后的master分支打一个master_tag, 并推至远程
     git tag -a "master_tag_${develop_branch}" -m "将分支${develop_branch}合并master后，对master打一个tag"
