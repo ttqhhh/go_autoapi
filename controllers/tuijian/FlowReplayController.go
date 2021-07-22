@@ -53,6 +53,8 @@ func (c *FlowReplayController) Post() {
 		c.Replay()
 	case "replaycycle":
 		c.ReplayCycle()
+	case "collect_flow_file":
+		c.collectFlowFile()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -480,5 +482,27 @@ func (c *FlowReplayController) Killreplay() {
 		}
 	}()
 	//c.Redirect("/flowreplay/index", http.StatusFound)
+	c.SuccessJson(nil)
+}
+
+func (c *FlowReplayController) collectFlowFile() {
+	//获取上传的文件
+	f, h, _ := c.GetFile("file")
+	fileName := h.Filename
+	//创建目录
+	err := os.MkdirAll(uploadDir, 777)
+	if err != nil {
+		logs.Error("创建文件目录报错, err: ", err)
+		c.ErrorJson(-1, "保存文件失败", nil)
+	}
+
+	fpath := uploadDir + "/" + fileName
+	defer f.Close() //关闭上传的文件，不然的话会出现临时文件不能清除的情况
+
+	err = c.SaveToFile("file", fpath)
+	if err != nil {
+		logs.Error("保存文件报错,  err: ", err)
+		c.ErrorJson(-1, "保存文件失败", nil)
+	}
 	c.SuccessJson(nil)
 }
