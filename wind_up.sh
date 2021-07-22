@@ -2,8 +2,11 @@
 
 function main() {
     develop_branch=$1
+    # 将远程develop分支合并到本地需求分支
+    git pull origin develop:${develop_branch}
     # 检出dev分支
     git checkout develop
+    git pull
     # 将需求分支合并至dev分支, 并推至远程
     git merge  $develop_branch
     git push
@@ -12,6 +15,7 @@ function main() {
     git push origin "dev_tag_${develop_branch}"
     # 检出master分支
     git checkout master
+    git pull
     # 将合并需求分支后的dev分支合并至master分支, 并推至远程
     git merge develop
     git push
