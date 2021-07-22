@@ -410,9 +410,17 @@ func IsQuickIncrease(nowRt int, avgRt int) (isSlowIncrease bool) {
 		if float64(nowRt) > float64(avgRt)*1.5 && nowRt > avgRt+50 {
 			isQuickIncrease = true
 		}
-	} else {
+	} else if avgRt > 100 && avgRt <= 200 {
 		// todo-done 平均值在100+时,当rt涨幅高于50%时，报警
 		if float64(nowRt) > float64(avgRt)*1.5 {
+			isQuickIncrease = true
+		}
+	} else if avgRt > 200 && avgRt <= 300 {
+		if float64(nowRt) > float64(avgRt)*1.6 {
+			isQuickIncrease = true
+		}
+	} else if avgRt > 300 {
+		if float64(nowRt) > float64(avgRt)*1.7 {
 			isQuickIncrease = true
 		}
 	}
