@@ -74,8 +74,8 @@ type JsonDiff struct {
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int, business string, did string) []string{
-	var resultMsg []string
+func GetBasePoints(limit int, business string, did string) [][]string{
+	var resultMsg [][]string
 	fmt.Println("第一次执行获取total总数")
 	limits := strconv.Itoa(limit)
 	// 当前是按照时间倒序查询，limit限制查询总数
@@ -138,18 +138,19 @@ func GetBasePoints(limit int, business string, did string) []string{
 		// 开始获取真实入库数据
 		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName)
 		if r == nil{
-			resultMsg = append(resultMsg,"没有查询到数据，已跳过："+types+"_"+stype + "\n")
+			resultMsg = append(resultMsg,[]string{"埋点事件："+types+"_"+stype,"检查结果：没有查询到数据，已跳过："})
 			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
 		}else{
 			var result1 string
 			var result2 bool
 			result1, result2 = JsonCompare(finallExtended,r,-1)
 			if result2 == true {
-				resultMsg = append(resultMsg,"检查到异常，事件:"+types+"_"+stype +"  ; " + result1)
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构异常", "异常信息："+result1,
+					"实际结果："+marshal(r)})
 				fmt.Println("检查到异常，事件:"+types+"_"+stype)
 				fmt.Println(result1)
 			}else{
-				resultMsg = append(resultMsg,"检查结构通过，事件:"+types+"_"+stype +"\n")
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构正常"})
 				fmt.Println("检查通过，事件:"+types+"_"+stype)
 			}
 		}
