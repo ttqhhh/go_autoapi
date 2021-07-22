@@ -11,7 +11,7 @@ import (
 const IS_OPEN_INSPECTION_TASK = false
 
 // 是否开启接口性能监控线上巡检任务(测试环境关闭)
-const IS_OPEN_RT_MONITOR_TASK = false
+const IS_OPEN_RT_MONITOR_TASK = true
 
 func init() {
 	// new一个线上巡检的定时任务定时任务

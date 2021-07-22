@@ -20,6 +20,7 @@ function main() {
     git push origin "master_tag_${develop_branch}"
 }
 
+git fetch
 # 1、todo-done 首先确定本地已经检出了本地分支
 dev_branch=`git branch | grep "develop$"`
 if [ ${dev_branch} ]; then
