@@ -163,7 +163,7 @@ func (c *FlowReplayController) update() {
 	if err != nil {
 		logs.Error("流量回放添加时, 验证serviceName唯一性时报错")
 	}
-	if temp != nil {
+	if temp != nil && temp.Id != flowreplay.Id{
 		c.ErrorJson(-1, "存在服务名相同的流量", nil)
 	}
 	flowreplay.UpdateBy = userId
