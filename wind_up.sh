@@ -42,6 +42,8 @@ fi
 # 3、todo-done 最后验证脚本执行参数
 if [ $1 ]; then
     main $1
+    # 再将当前分支切回原开发分支, 避免在master引起误改
+    git checkout $1
 else
     echo "请输入您的需求分支，否则无法执行后续操作"
 fi
