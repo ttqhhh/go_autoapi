@@ -8,6 +8,7 @@ import (
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -31,6 +32,8 @@ func (c *FlowReplayController) Get() {
 		c.list()
 	case "getById":
 		c.getById()
+	case "showAllFlowFiles":
+		c.showAllFlowFiles()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -505,4 +508,17 @@ func (c *FlowReplayController) collectFlowFile() {
 		c.ErrorJson(-1, "保存文件失败", nil)
 	}
 	c.SuccessJson(nil)
+}
+
+func (c *FlowReplayController) showAllFlowFiles() {
+	fileNames := []string{}
+	files, err := ioutil.ReadDir(uploadDir)
+	if err != nil {
+	    logs.Error("获取文件夹下文件列表时报错, err: ", err)
+	    c.ErrorJson(-1, "获取文件夹下文件列表时报错", nil)
+	}
+	for _, file := range files {
+		fileNames = append(fileNames, file.Name())
+	}
+	c.SuccessJson(fileNames)
 }
