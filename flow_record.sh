@@ -18,10 +18,13 @@ function record_unit() {
   echo "The service name is "${service_name}
   echo "The Flow file name in request is "${file_name}
 
-  curl -F file=@$file_name http://172.16.2.86:8080/flowreplay/collect_flow_file
-
-  # Delete the flow file
-  rm  -rf ${file_name}
+  if [ -f ${file_name} ]; then
+      curl -F file=@$file_name http://172.16.2.86:8080/flowreplay/collect_flow_file
+      # Delete the flow file
+      rm  -rf ${file_name}
+  else
+    echo "The ${file_name} is not exist!!!"
+  fi
 }
 # The script need a param, be used in the loop. eg: ./gor_record 720
 while :
