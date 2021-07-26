@@ -257,6 +257,19 @@ func (t *InspectionCaseMongo) GetAllInspectionCasesByServiceAndStrategy(serviceI
 	}
 	return
 }
+// 获取指定服务集合下状态为开启巡查的Case
+func (t *InspectionCaseMongo) GetInspectionCasesByServiceAndStrategy(serviceId int64, strategy int64) (result []*InspectionCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+	query := bson.M{"status": status, "service_id": serviceId, "strategy": strategy,"is_inspection":1}
+	// 获取指定业务线下开启巡查的case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
 
 func GetCasesByIds(ids []int64) (acms []*InspectionCaseMongo, err error) {
 	ms, db := db_proxy.Connect(db, inspection_collection)
