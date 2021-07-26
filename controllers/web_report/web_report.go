@@ -486,7 +486,7 @@ func GetLink() *sql.DB {
 	// sql.Open的第一个参数是driver名称，第二个参数是driver连接数据库的信息，各个driver可能不同。
 	// DB不是连接，并且只有当需要使用时才会创建连接，如果想立即验证连接，需要用Ping()方法
 	// 172.16.2.86
-	db, err := sql.Open("mysql", "root:12345678@tcp(127.0.0.1:3306)/go_autoapi")
+	db, err := sql.Open("mysql", "root:12345678@tcp(127.0.0.1:3306)/test")
 	if err != nil {
 		fmt.Println(err)
 	}

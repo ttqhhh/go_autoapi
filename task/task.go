@@ -8,7 +8,7 @@ import (
 )
 
 // 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_INSPECTION_TASK = true
+const IS_OPEN_INSPECTION_TASK = false
 
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_RT_MONITOR_TASK = true
