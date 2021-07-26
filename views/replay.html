@@ -59,7 +59,6 @@
                     , {field: 'replay_times', title: '回放信率', fixed: true}
                     , {field: 'replay_uri', title: '并发数', fixed: true}
                     , {field: 'create_by', title: '添加人', fixed: true}
-                    // , {field: 'cycle', title: '是否循环', fixed: true}
                     , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 300}
                 ]]
                 , done: function (res, curr, count) {
@@ -163,6 +162,19 @@
                 },
                 cancel: function (index) {
                     $("#add-main").css("display", "none")
+                    $("#id").val("")
+                    $("#service_name").val("")
+                    $("#flow_target_host").val("")
+                    $("#replay_times").val("")
+                    $("#replay_uri").val("")
+                    var i=0
+                    $("#flow_file option").each(function () {
+                        // var value = $(this).val()
+                        if (i == 0) {
+                            $(this).attr("selected", true);
+                            i++
+                        }
+                    })
                     layer.close(index)
                     return false;
                 }
@@ -195,7 +207,13 @@
                                 $("#flow_target_host").val(flow_target_host)
                                 $("#replay_times").val(replay_times)
                                 $("#replay_uri").val(replay_uri)
-                                $('#cycle').val(cycle)
+                                $("#flow_file option").each(function () {
+                                    var value = $(this).val()
+                                    if (value == flow_file) {
+                                        $(this).attr("selected", true)
+                                    }
+                                })
+                                form.render()
                             }
                         }
                     });
@@ -203,8 +221,6 @@
                 yes: function (index) {
                     // 保存按钮的回调
                     $("#replay").submit();
-
-
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -213,6 +229,19 @@
                 },
                 cancel: function (index) {
                     $("#add-main").css("display", "none")
+                    $("#id").val("")
+                    $("#service_name").val("")
+                    $("#flow_target_host").val("")
+                    $("#replay_times").val("")
+                    $("#replay_uri").val("")
+                    var i=0
+                    $("#flow_file option").each(function () {
+                        // var value = $(this).val()
+                        if (i == 0) {
+                            $(this).attr("selected", true);
+                            i++
+                        }
+                    })
                     layer.close(index)
                     return false;
                 }
