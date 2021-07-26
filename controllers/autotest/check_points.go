@@ -136,21 +136,25 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 		finallExtended["extdata"] = newExtended
 		fmt.Println(finallExtended)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName)
+		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName,frominfo)
 		if r == nil{
-			resultMsg = append(resultMsg,[]string{"埋点事件："+types+"_"+stype,"检查结果：没有查询到数据，已跳过："})
+			resultMsg = append(resultMsg,[]string{
+						"埋点事件："+types+"_"+stype + "; frominfo:"+frominfo,
+						"检查结果：没有查询到数据，已跳过："})
 			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
 		}else{
 			var result1 string
 			var result2 bool
 			result1, result2 = JsonCompare(finallExtended,r,-1)
 			if result2 == true {
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构异常", "异常信息："+result1,
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
+					"检查结果：结构异常", "异常信息："+result1,
 					"实际结果："+marshal(r)})
 				fmt.Println("检查到异常，事件:"+types+"_"+stype)
 				fmt.Println(result1)
 			}else{
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构正常"})
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
+					"检查结果：结构正常"})
 				fmt.Println("检查通过，事件:"+types+"_"+stype)
 			}
 		}
@@ -158,7 +162,7 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 	return resultMsg
 }
 
-func GetRealPoints(did,event, timeBegin, timeEnd ,appName string) map[string]interface{} {
+func GetRealPoints(did,event, timeBegin, timeEnd ,appName , fromInfo string) map[string]interface{} {
 	fmt.Println("准备拉取数据，action:" + event)
 	//时间是空位NaN
 	urls := ""
@@ -186,13 +190,19 @@ func GetRealPoints(did,event, timeBegin, timeEnd ,appName string) map[string]int
 		logs.Error("当前did下没有发现行为埋点：",event)
 		return nil
 	}
-	arr :=strings.Fields(result[0])
-	realJson := arr[len(arr)-1]
 	v := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(realJson),&v)
-	ext := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-	v["extdata"] = ext
+	loop:
+		for _, val := range result{
+			arr :=strings.Fields(val)
+			realJson := arr[len(arr)-1]
+			_ = json.Unmarshal([]byte(realJson),&v)
+			if v["frominfo"].(string) == fromInfo{
+				ext := make(map[string]interface{})
+				_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+				v["extdata"] = ext
+				break loop
+			}
+		}
 	return v
 }
 
