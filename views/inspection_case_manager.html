@@ -80,8 +80,46 @@
     //     })
     // }
 
+
+    function inspection(obj, id, target) {
+        if (target == 0) { // 操作的预期状态，0=关闭自动巡查；1=打开自动巡查
+            //window.open("/inspection/change_case_inspection_close?id=" + id);
+            $.ajax({
+                type: 'POST',
+                url: '/inspection/change_case_inspection_close',
+                async: false,
+                dataType: "json",
+                data: {
+                    "id": id,
+                },
+                success:function(data){
+                   // document.write(data)
+                    window.location.reload();
+                }
+            });
+            layer.msg("以关闭自动巡查")
+
+
+        } else if (target == 1) {
+            $.ajax({
+                type: 'POST',
+                url: '/inspection/change_case_inspection_open',
+                async: false,
+                dataType: "json",
+                data: {
+                    "id": id,
+                },
+                success:function(data){
+                    // document.write(data)
+                    window.location.reload();
+                }
+            });
+
+        }
+
+    }
     $.ajax({
-        type: 'GET',
+        type: 'POST',
         url: '/inspection/get_all_strategy',
         success: function (data) {
             var date = data.data
@@ -104,7 +142,7 @@
         // 获取service的方法
         $(function () {
             $.ajax({
-                type: 'GET',
+                type: 'POST',
                 url: '/service/list?business={{.business}}',
                 success: function (data) {
                     var date = data.data
@@ -136,6 +174,7 @@
                     {title: '用例名称', field: 'case_name', width: 200},
                     {title: '用例描述', field: 'description'},
                     {title: '添加人', field: 'author', width: 150},
+
                     {
                         title: '接口数据', field: 'api_url', templet: function (d) {
                             return '<div><span title="' + d.api_url + '">' + d.api_url + '</span></div>'
@@ -167,6 +206,13 @@
                     },
                     {title: '请求方式', field: 'request_method', width: 100},
                     {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
+                    {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
+                            if (d.is_inspection == 1) {
+                                return "<div onclick='inspection(this, " + d.id+ ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked/></div>";
+                            } else if(d.is_inspection == 0){
+                                return "<div onclick='inspection(this, " + d.id+ ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
+                            }
+                        }},
                 ]]
             });
         }
@@ -179,7 +225,13 @@
         //     window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
         // });
 
+
         //监听工具条
+        //开关点击事件
+        form.on('select(test)', function(data){
+            console.log(data);
+        });
+
         table.on('tool(demo)', function(obj){
             var data = obj.data;
             if(obj.event === 'detail'){

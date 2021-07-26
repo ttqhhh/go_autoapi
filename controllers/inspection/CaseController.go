@@ -102,6 +102,10 @@ func (c *CaseController) Post() {
 		c.AddOneCase()
 	case "del_one_inspection_case":
 		c.DelCaseByID()
+	case "change_case_inspection_close":
+		c.ChanceCaseInspectionClose()
+	case "change_case_inspection_open":
+		c.ChanceCaseInspectionOpen()
 	default:
 		log.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -246,6 +250,7 @@ func (c *CaseController) AddOneCase() {
 	acm.UpdatedAt = now
 	acm.Status = 0
 	business := acm.BusinessCode
+	acm.IsInspection =models.INSPECTION
 	//if business == "0" {
 	//	acm.BusinessName = "最右"
 	//} else if business == "1" {
@@ -288,6 +293,33 @@ func (c *CaseController) AddOneCase() {
 	testCaseMongo.SetInspection(acm.TestCaseId, models.INSPECTION)
 	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
 	c.Ctx.Redirect(302, "/case/close_windows")
+}
+//更改一个线上巡航case的状态为不巡航
+func (c *CaseController) ChanceCaseInspectionClose() {
+	caseID := c.GetString("id")
+	ac := models.InspectionCaseMongo{}
+	id, err := strconv.Atoi(caseID)
+	if err != nil {
+		logs.Error("请求参数类型转换报错， err:", err)
+		c.ErrorJson(-1, "请求参数转换异常", nil)
+	}
+	InspectionCaseMongo :=ac.GetOneCase(int64(id))
+	InspectionCaseMongo.SetInspection(int64(id),models.NOT_INSPECTION)
+
+	c.SuccessJson(InspectionCaseMongo)
+}
+//更改一个线上巡航case的状态为巡航
+func (c *CaseController) ChanceCaseInspectionOpen() {
+	caseID := c.GetString("id")
+	ac := models.InspectionCaseMongo{}
+	id, err := strconv.Atoi(caseID)
+	if err != nil {
+		logs.Error("请求参数类型转换报错， err:", err)
+		c.ErrorJson(-1, "请求参数转换异常", nil)
+	}
+	InspectionCaseMongo :=ac.GetOneCase(int64(id))
+	InspectionCaseMongo.SetInspection(int64(id),models.INSPECTION)
+	c.SuccessJson(InspectionCaseMongo)
 }
 
 func (c *CaseController) DelCaseByID() {

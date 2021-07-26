@@ -33,6 +33,7 @@ type InspectionCaseMongo struct {
 	//zen
 	Author string `form:"author" json:"author" bson:"author"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
 	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
@@ -155,7 +156,7 @@ func (t *InspectionCaseMongo) UpdateCase(id int64, acm InspectionCaseMongo) (Ins
 	return acm, err
 }
 
-//
+//设置巡航状态
 func (t *InspectionCaseMongo) SetInspection(id int64, is_inspection int8) error {
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
