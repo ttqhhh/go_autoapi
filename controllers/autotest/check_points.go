@@ -208,13 +208,14 @@ func GetRealPoints(did,event, timeBegin, timeEnd ,appName , fromInfo string) map
 			arr :=strings.Fields(val)
 			realJson := arr[len(arr)-1]
 			_ = json.Unmarshal([]byte(realJson),&v)
+			ext := make(map[string]interface{})
+			_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+			v["extdata"] = ext
 			if v["frominfo"].(string) == fromInfo{
-				ext := make(map[string]interface{})
-				_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-				v["extdata"] = ext
 				break loop
 			}
 		}
+
 	}
 	return v
 }
