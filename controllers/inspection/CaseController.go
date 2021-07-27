@@ -154,8 +154,8 @@ func (c *CaseController) updateCaseByID() {
 	}
 	icm.Parameter = string(paramByte)
 	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
-	//InspectionCaseMongo := icm.GetOneCase(caseId)
-	//icm.IsInspection = InspectionCaseMongo.IsInspection
+	InspectionCaseMongo := icm.GetOneCase(caseId)
+	icm.IsInspection = InspectionCaseMongo.IsInspection
 	icm, err = icm.UpdateCase(caseId, icm)
 	if err != nil {
 		logs.Error("更新Case报错，err: ", err)
