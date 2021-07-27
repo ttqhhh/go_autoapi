@@ -31,8 +31,8 @@ type InspectionCaseMongo struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 	//zen
-	Author string `form:"author" json:"author" bson:"author"`
-	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	Author        string `form:"author" json:"author" bson:"author"`
+	IsInspection  int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
 	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
@@ -155,7 +155,7 @@ func (t *InspectionCaseMongo) UpdateCase(id int64, acm InspectionCaseMongo) (Ins
 	return acm, err
 }
 
-//
+//设置巡航状态
 func (t *InspectionCaseMongo) SetInspection(id int64, is_inspection int8) error {
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
@@ -249,6 +249,20 @@ func (t *InspectionCaseMongo) GetAllInspectionCasesByServiceAndStrategy(serviceI
 
 	query := bson.M{"status": status, "service_id": serviceId, "strategy": strategy}
 	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
+// 获取指定服务集合下状态为开启巡查的Case
+func (t *InspectionCaseMongo) GetInspectionCasesByServiceAndStrategy(serviceId int64, strategy int64) (result []*InspectionCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+	query := bson.M{"status": status, "service_id": serviceId, "strategy": strategy, "is_inspection": 1}
+	// 获取指定业务线下开启巡查的case列表
 	err = c.Find(query).All(&result)
 	if err != nil {
 		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
