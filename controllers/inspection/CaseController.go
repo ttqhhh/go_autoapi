@@ -318,7 +318,10 @@ func (c *CaseController) ChanceCaseInspectionOpen() {
 		c.ErrorJson(-1, "请求参数转换异常", nil)
 	}
 	InspectionCaseMongo :=ac.GetOneCase(int64(id))
+	//InspectionCaseMongo.ClearWarningTimeById(int64(id),ac)
+	InspectionCaseMongo.ClearWarningTimes(int64(id),InspectionCaseMongo) //将case的情报次数清零
 	InspectionCaseMongo.SetInspection(int64(id),models.INSPECTION)
+
 	c.SuccessJson(InspectionCaseMongo)
 }
 

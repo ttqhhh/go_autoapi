@@ -10,6 +10,8 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -145,14 +147,23 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				icm := models.InspectionCaseMongo{}
 				icm = icm.GetOneCase(caseId)
 				caseName := icm.CaseName
-				uri := icm.ApiUrl
-
+				uri := strings.SplitAfter(icm.ApiUrl, "?")
+				dingUri:=uri[0] //切割字符串
 				autoResult := autoResultList[2]
 				resp := autoResult.Response
 				//resp := "{\"ret\":1,\"data\":{\"banner\":[{\"name\":\"gaokaozhiyuan\",\"img\":\"file.izuiyou.com/img/png/id/1567506494\",\"url\":\"zuiyou://eventactivity?eventActivityId=330334\"},{\"name\":\"fangyandugongyue\",\"img\":\"https://file.izuiyou.com/img/png/id/1568965881\",\"url\":\"zuiyou://postdetail?id=233156321\"},{\"name\":\"MCNzhaomu\",\"img\":\"https://file.izuiyou.com/img/png/id/1564965136\",\"url\":\"https://h5.izuiyou.com/hybrid/template/smartH5?\\u0026id=329839\"},{\"name\":\"shenhezhuanqu\",\"img\":\"https://file.izuiyou.com/img/png/id/1568973427\",\"url\":\"https://h5.izuiyou.com/hybrid/censor/entry\"},{\"name\":\"maishoudian\",\"img\":\"https://file.izuiyou.com/img/png/id/1561594314\",\"url\":\"zuiyou://postdetail?id=232312632\"},{\"name\":\"wanyouxi\",\"img\":\"https://file.izuiyou.com/img/png/id/1567612281\",\"url\":\"http://www.shandw.com/auth\"}]}}"
 				reason := autoResult.Reason
 				statusCode := autoResult.StatusCode
+				icm.AddOneTimeById(caseId,icm) //执行失败，警报次数加1
+				if(icm.WarningNumber > 1){  //执行三次 后会发送警报，并关闭巡查
+					icm.SetInspection(caseId,0)
+					//todo 向丁丁发送该条case的消息（id）
+					caseId:=strconv.FormatInt(caseId,10)
+					dingMsg := fmt.Sprintf("【报警抑制-线上巡检】：当前Case报警次数已达3次且未得到有效解决，系统已默认将Case巡检状态置为关闭。请相关同学尽快处理！编辑或打开该Case均可恢复巡检状态。\n"+"\n"+"【业务线】："+icm.BusinessName+"\n"+"【网关服务】："+serviceName+"\n"+"【URI】:"+dingUri+"\n"+"【Caseid】:"+caseId)
+					logs.Info(dingMsg)
+					DingSend(dingMsg)
 
+				}
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %d;\n【失败原因】: %s;\n【响应结果】: %s;\n\n", caseName, uri, statusCode, reason, resp)

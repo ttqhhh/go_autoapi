@@ -30,6 +30,7 @@ type InspectionCaseMongo struct {
 	Method      string `form:"method" json:"method" bson:"method"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
+	WarningNumber int8  `form:"warning_number" json:"warning_number" bson:"warning_number"`
 	//zen
 	Author        string `form:"author" json:"author" bson:"author"`
 	IsInspection  int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
@@ -147,6 +148,34 @@ func (t *InspectionCaseMongo) UpdateCase(id int64, acm InspectionCaseMongo) (Ins
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
 	acm.Status = 0
+	err := db.Update(query, acm)
+	fmt.Println(acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
+// 通过id增加报警次数
+func (t *InspectionCaseMongo) AddOneTimeById(id int64, acm InspectionCaseMongo) (InspectionCaseMongo, error) {
+	fmt.Println(id)
+	query := bson.M{"_id": id}
+	ms, db := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+	acm.WarningNumber = acm.WarningNumber+1
+	err := db.Update(query, acm)
+	fmt.Println(acm)
+	if err != nil {
+		logs.Error(1024, err)
+	}
+	return acm, err
+}
+//将报警次数清零
+func (t *InspectionCaseMongo) ClearWarningTimes(id int64,acm InspectionCaseMongo) (InspectionCaseMongo,error) {
+	fmt.Println(id)
+	query := bson.M{"_id": id}
+	ms, db := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+	acm.WarningNumber = 0
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
