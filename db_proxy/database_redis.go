@@ -12,8 +12,8 @@ func InitClient() (err error) {
 	rdb = redis.NewClient(&redis.Options{
 		//Addr: "172.20.20.2:6379", // 测试
 		Addr:     "172.16.2.86:6379", // 生产
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Password: "",                 // no password set
+		DB:       0,                  // use default DB
 	})
 
 	_, err = rdb.Ping().Result()

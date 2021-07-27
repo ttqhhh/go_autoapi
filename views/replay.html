@@ -17,44 +17,25 @@
 <script type="text/javascript">
     businessMap = {}
 
-    // 请求真实business下拉框数据
-    // function selectInit(domId) {
-    //     $.ajax({
-    //         url: "/business/get_user_businesses",
-    //         type: "GET",
-    //         dataType: "json",
-    //         success: function (data) {
-    //             $.each(data.data.businesses, function (index, value) {
-    //                 var option = "<option value='" + value.code + "'>" + value.name + "</option>";
-    //                 // 对列表筛选框select进行option元素追加
-    //                 $("#" + domId).append(option);
-    //                 businessMap[value.code] = value.name
-    //             })
-    //         }
-    //     })
-    // }
-
-    // selectInit("list_business");
-
     layui.use('table', function () {
         var table = layui.table;
         var form = layui.form;
 
         window.initSelect = function () {
             // 先清空
-            $("#form_business").empty();;
+            $("#flow_file").empty();;
             // 初始化select下拉框
             $.ajax({
-                url: "/business/get_user_businesses",
+                url: "/flowreplay/showAllFlowFiles",
                 type: "GET",
                 dataType: "json",
                 success: function (data) {
-                    $.each(data.data.businesses, function (index, value) {
+                    $.each(data.data, function (index, value) {
                         // 进行option元素追加
-                        var option = "<option value='" + value.code + "'>" + value.name + "</option>";
-                        $("#form_business").append(option);
+                        var option = "<option value='" + value + "'>" + value + "</option>";
+                        $("#flow_file").append(option)
                         form.render();
-                    })
+                    });
                 }
             })
         };
@@ -78,7 +59,6 @@
                     , {field: 'replay_times', title: '回放信率', fixed: true}
                     , {field: 'replay_uri', title: '并发数', fixed: true}
                     , {field: 'create_by', title: '添加人', fixed: true}
-                    // , {field: 'cycle', title: '是否循环', fixed: true}
                     , {title: '操作', fixed: 'right', align: 'center', toolbar: '#serviceOp',width: 300}
                 ]]
                 , done: function (res, curr, count) {
@@ -143,10 +123,6 @@
                 for (var i = 0; i < data.length; i++) {
                     arr_id.push(data[i].id);
                 }
-                // 提交列表形式的id
-                // $.ajax({
-                //     url:
-                // })
             }
             , getCheckLength: function () { //获取选中数目
                 var checkStatus = table.checkStatus('user')
@@ -171,21 +147,13 @@
                 title: "新增",
                 type: 1,
                 content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
-                // content: url,
                 area: ['800px', '600px'],
                 btn: ['保存', '取消'],
                 success: function () {
                     initSelect()
                 },
                 yes: function (index) {
-                console.log('save~',$("#replay"));
-                console.log("????????",$("#cycle").val())
-                // return;
                     $("#replay").submit();
-                     // const  query = () => {
-                    //     // window.open('/web_report/queryAll1')
-                    //     window.location.href = '/web_report/queryAll'
-                    // }
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -194,6 +162,19 @@
                 },
                 cancel: function (index) {
                     $("#add-main").css("display", "none")
+                    $("#id").val("")
+                    $("#service_name").val("")
+                    $("#flow_target_host").val("")
+                    $("#replay_times").val("")
+                    $("#replay_uri").val("")
+                    var i=0
+                    $("#flow_file option").each(function () {
+                        // var value = $(this).val()
+                        if (i == 0) {
+                            $(this).attr("selected", true);
+                            i++
+                        }
+                    })
                     layer.close(index)
                     return false;
                 }
@@ -226,9 +207,13 @@
                                 $("#flow_target_host").val(flow_target_host)
                                 $("#replay_times").val(replay_times)
                                 $("#replay_uri").val(replay_uri)
-                                $('#flow_file_name').html(`当前文件名：${flow_file || 'file-name'}`)
-                                // $('#flow_file_name').html(`${flow_file || 'file-name'}`)
-                                $('#cycle').val(cycle)
+                                $("#flow_file option").each(function () {
+                                    var value = $(this).val()
+                                    if (value == flow_file) {
+                                        $(this).attr("selected", true)
+                                    }
+                                })
+                                form.render()
                             }
                         }
                     });
@@ -236,10 +221,6 @@
                 yes: function (index) {
                     // 保存按钮的回调
                     $("#replay").submit();
-                    console.log('?????',$('#cycle')[0].value)
-                    // layer.close(index)
-
-
                 },
                 btn2: function (index) {
                     // 取消按钮的回调
@@ -248,6 +229,19 @@
                 },
                 cancel: function (index) {
                     $("#add-main").css("display", "none")
+                    $("#id").val("")
+                    $("#service_name").val("")
+                    $("#flow_target_host").val("")
+                    $("#replay_times").val("")
+                    $("#replay_uri").val("")
+                    var i=0
+                    $("#flow_file option").each(function () {
+                        // var value = $(this).val()
+                        if (i == 0) {
+                            $(this).attr("selected", true);
+                            i++
+                        }
+                    })
                     layer.close(index)
                     return false;
                 }
@@ -255,7 +249,6 @@
         };
         window.del = function (id) {
             layer.confirm('确认删除么?', {icon: 3, title: '提示'}, function (index) {
-                //do something
                 var data = {"id": id};
                 $.ajax({
                     url: "/flowreplay/remove",
@@ -265,7 +258,6 @@
                     data: JSON.stringify(data),
                     success: function (data) {
                         layer.msg("删除成功");
-                        // tableInit();
                         layer.close(index);
                         window.location.reload()
                     }
@@ -285,17 +277,14 @@
                     data: JSON.stringify(data),
                     success: function (data) {
                         layer.msg("执行成功");
-                        // tableInit();
                         layer.close(index);
                         window.location.reload()
                     }
                 })
-                // layer.close(index);
             });
         }
         window.run_cycle = function (id){
             layer.confirm('循环执行?', {icon: 3, title: '提示'}, function (index) {
-                //do something
                 var data = {"id": id};
                 $.ajax({
                     url: "/flowreplay/replaycycle",
@@ -305,17 +294,14 @@
                     data: JSON.stringify(data),
                     success: function (data) {
                         layer.msg("执行成功");
-                        // tableInit();
                         layer.close(index);
                         window.location.reload()
                     }
                 })
-                // layer.close(index);
             });
         }
         window.kill = function (id){
             layer.confirm('结束执行?', {icon: 3, title: '提示'}, function (index) {
-                //do something
                 var data = {"id": id};
                 $.ajax({
                     url: "/flowreplay/kill",
@@ -325,12 +311,10 @@
                     data: JSON.stringify(data),
                     success: function (data) {
                         layer.msg("执行成功");
-                        // tableInit();
                         layer.close(index);
                         window.location.reload()
                     }
                 })
-                // layer.close(index);
             });
         }
     });
@@ -348,7 +332,7 @@
 </div>
 <!-- 构建form表单 -->
 <div id="add-main" style="display: none">
-    <form id="replay" class="layui-form" method="post" action="/flowreplay/save" enctype="multipart/form-data">
+    <form id="replay" class="layui-form" method="post" action="/flowreplay/save">
         <div class="layui-form-item">
             <div class="layui-input-block">
                 <input type="text" id="id" name="id" hidden value="{{ .id }}">
@@ -364,16 +348,9 @@
         <div class="layui-form-item" style="width: 350px">
             <label class="layui-form-label">回放文件</label>
             <div class="layui-input-block" style="position: relative">
-                <input type="file" id="flow_file" name="flow_file" class="layui-input">
-<!--                <span style="position: absolute;right: 0;" id="flow_file_name"></span>-->
+                <select id="flow_file" name="flow_file" class="layui-input"></select>
             </div>
         </div>
-<!--        <div class="layui-form-item" style="width: 350px">-->
-            <label class="layui-form-label"></label>
-            <div class="layui-input-block" style="position: relative">
-                <span style="position: absolute;float:left; margin-top: 10px" id="flow_file_name"></span>
-            </div>
-<!--        </div>-->
         <div class="layui-form-item" style="width: 350px">
             <label class="layui-form-label">回放机器</label>
             <div class="layui-input-block">
@@ -395,16 +372,6 @@
                        placeholder="请输入并发数" autocomplete="off" class="layui-input">
             </div>
         </div>
-<!--        <div class="layui-form-item" style="width: 350px">-->
-<!--            <label class="layui-form-label">是否回放</label>-->
-<!--            <div class="layui-input-block">-->
-<!--                <select id="cycle" class="layui-select layui-btn-lg" lay-filter="cycle" lay-verify="required">-->
-<!--&lt;!&ndash;                    <option  selected="selected">==请选择==</option>&ndash;&gt;-->
-<!--                    <option value="1">是</option>-->
-<!--                    <option value="0">否</option>-->
-<!--                </select>-->
-<!--            </div>-->
-<!--        </div>-->
     </form>
 </div>
 

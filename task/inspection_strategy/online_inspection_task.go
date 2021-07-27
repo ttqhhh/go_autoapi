@@ -39,8 +39,8 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
 	caseList := []*models.InspectionCaseMongo{}
 
-	// 查询指定服务下所有的Case
-	caseList, err = mongo.GetAllInspectionCasesByServiceAndStrategy(serviceId, strategy)
+	// 查询指定服务下状态为开启巡查的Case
+	caseList, err = mongo.GetInspectionCasesByServiceAndStrategy(serviceId, strategy)
 	if err != nil {
 		logs.Error("获取测试用例列表失败, err: ", err)
 		return
