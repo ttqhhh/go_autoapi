@@ -47,8 +47,16 @@
     <div class="layui-field-box">
         <!--        嘿嘿嘿，{{.result}}-->
         {{range .result}}
-        {{range .}}
-        <div>{{.}}</div>
+            {{range .}}
+                {{if eq . "检查结果 : 结构异常"}}
+                    <div style="color: red">{{.}}</div>
+                {{else if eq . "检查结果 : 结构正常"}}
+                    <div style="color: green">{{.}}</div>
+                {{else if eq . "检查结果 : 无数据"}}
+                    <div style="color: deeppink">{{.}}</div>
+                {{else}}
+                    <div>{{.}}</div>
+                {{end}}
         {{end}}
         <hr>
         {{end}}

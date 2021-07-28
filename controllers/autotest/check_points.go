@@ -127,30 +127,38 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 		// 主要获取拓展字段自定义字段
 		newExtended := make(map[string]interface{})
 		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
+		// m 是存储拓展自定义字段中的是否必选的bool
+		m := make(map[string]bool)
 		for _,valss := range extendedCustom{
 			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
+			m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
 		}
-		finallExtended := make(map[string]interface{})
+		fmt.Println(m)
+		l := make(map[string]interface{})
 		newExtended["cur_page"] = "none"
 		newExtended["from_page"] = "none"
-		finallExtended["extdata"] = newExtended
-		fmt.Println(finallExtended)
+		l["extdata"] = newExtended
+		fmt.Println(l)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName)
+		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName,frominfo)
 		if r == nil{
-			resultMsg = append(resultMsg,[]string{"埋点事件："+types+"_"+stype,"检查结果：没有查询到数据，已跳过："})
+			resultMsg = append(resultMsg,[]string{
+						"埋点事件："+types+"_"+stype + "; frominfo:"+frominfo,
+						"检查结果 : 无数据"})
 			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
 		}else{
 			var result1 string
 			var result2 bool
-			result1, result2 = JsonCompare(finallExtended,r,-1)
+			result1, result2 = JsonCompare(l,r,m,-1)
 			if result2 == true {
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构异常", "异常信息："+result1,
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
+					"检查结果 : 结构异常", "异常信息："+result1,
 					"实际结果："+marshal(r)})
 				fmt.Println("检查到异常，事件:"+types+"_"+stype)
 				fmt.Println(result1)
 			}else{
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype, "检查结果：结构正常"})
+				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
+					"检查结果 : 结构正常"})
 				fmt.Println("检查通过，事件:"+types+"_"+stype)
 			}
 		}
@@ -158,7 +166,7 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 	return resultMsg
 }
 
-func GetRealPoints(did,event, timeBegin, timeEnd ,appName string) map[string]interface{} {
+func GetRealPoints(did,event, timeBegin, timeEnd ,appName , fromInfo string) map[string]interface{} {
 	fmt.Println("准备拉取数据，action:" + event)
 	//时间是空位NaN
 	urls := ""
@@ -186,19 +194,35 @@ func GetRealPoints(did,event, timeBegin, timeEnd ,appName string) map[string]int
 		logs.Error("当前did下没有发现行为埋点：",event)
 		return nil
 	}
-	arr :=strings.Fields(result[0])
-	realJson := arr[len(arr)-1]
 	v := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(realJson),&v)
-	ext := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-	v["extdata"] = ext
+	if fromInfo == "$old$"{
+		arr :=strings.Fields(result[1])
+		realJson := arr[len(arr)-1]
+		_ = json.Unmarshal([]byte(realJson),&v)
+		ext := make(map[string]interface{})
+		_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+		v["extdata"] = ext
+	}else{
+	loop:
+		for _, val := range result{
+			arr :=strings.Fields(val)
+			realJson := arr[len(arr)-1]
+			_ = json.Unmarshal([]byte(realJson),&v)
+			ext := make(map[string]interface{})
+			_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+			v["extdata"] = ext
+			if v["frominfo"].(string) == fromInfo{
+				break loop
+			}
+		}
+
+	}
 	return v
 }
 
-func JsonCompare(left, right map[string]interface{}, n int) (string, bool) {
+func JsonCompare(left, right map[string]interface{} ,extBool map[string]bool, n int) (string, bool) {
 	diff := &JsonDiff{HasDiff: false, Result: ""}
-	jsonDiffDict(left, right, 1, diff)
+	jsonDiffDict(left, right, extBool,1, diff)
 	if diff.HasDiff {
 		if n < 0 {
 			return diff.Result, diff.HasDiff
@@ -215,7 +239,7 @@ func marshal(j interface{}) string {
 	return string(value)
 }
 
-func jsonDiffDict(json1, json2 map[string]interface{}, depth int, diff *JsonDiff) {
+func jsonDiffDict(json1, json2 map[string]interface{}, extBool map[string]bool, depth int, diff *JsonDiff) {
 	for key, value := range json1 {
 		diff.Path = diff.Path + "[" + key + "]"
 		if _, ok := json2[key]; ok {
@@ -225,14 +249,14 @@ func jsonDiffDict(json1, json2 map[string]interface{}, depth int, diff *JsonDiff
 					diff.HasDiff = true
 					diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 map[string]interface{} " + marshal(json2[key])
 				} else {
-					jsonDiffDict(value.(map[string]interface{}), json2[key].(map[string]interface{}), depth+1, diff)
+					jsonDiffDict(value.(map[string]interface{}), json2[key].(map[string]interface{}),extBool, depth+1, diff)
 				}
 			case []interface{}:
 				if _, ok2 := json2[key].([]interface{}); !ok2 {
 					diff.HasDiff = true
 					diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 interface{} -- " + marshal(json2[key])
 				} else {
-					jsonDiffList(value.([]interface{}), json2[key].([]interface{}), depth+1, diff)
+					jsonDiffList(value.([]interface{}), json2[key].([]interface{}), extBool, depth+1, diff)
 				}
 			default:
 				//if !reflect.DeepEqual(value, json2[key]) {
@@ -242,12 +266,16 @@ func jsonDiffDict(json1, json2 map[string]interface{}, depth int, diff *JsonDiff
 			}
 		} else {
 			diff.HasDiff = true
-			diff.Result = diff.Result + "\n 键不存在：" + key
+			if extBool[key] == true{
+				diff.Result = diff.Result + "\n 键不存在：" + key + "(是)"
+			}else{
+				diff.Result = diff.Result + "\n 键不存在：" + key + "(否)"
+			}
 		}
 	}
 }
 
-func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
+func jsonDiffList(json1, json2 []interface{}, extBool map[string]bool, depth int, diff *JsonDiff) {
 
 	size := len(json1)
 	if size > len(json2) {
@@ -257,7 +285,7 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 		switch json1[i].(type) {
 		case map[string]interface{}:
 			if _, ok := json2[i].(map[string]interface{}); ok {
-				jsonDiffDict(json1[i].(map[string]interface{}), json2[i].(map[string]interface{}), depth+1, diff)
+				jsonDiffDict(json1[i].(map[string]interface{}), json2[i].(map[string]interface{}), extBool, depth+1, diff)
 			} else {
 				diff.HasDiff = true
 				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
@@ -269,7 +297,7 @@ func jsonDiffList(json1, json2 []interface{}, depth int, diff *JsonDiff) {
 				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 interface{} -- " + marshal(json2[i])
 			} else {
-				jsonDiffList(json1[i].([]interface{}), json2[i].([]interface{}), depth+1, diff)
+				jsonDiffList(json1[i].([]interface{}), json2[i].([]interface{}), extBool, depth+1, diff)
 			}
 		default:
 			//if !reflect.DeepEqual(json1[i], json2[i]) {
