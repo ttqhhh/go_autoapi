@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const cookie = "99BFD42401E3660BFE97D2268BB1EC5A"
@@ -140,7 +141,7 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 		l["extdata"] = newExtended
 		fmt.Println(l)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did,types+"_"+stype,"1625801485.586624","NaN",appName,frominfo)
+		r := GetRealPoints(did,types+"_"+stype,appName,frominfo)
 		if r == nil{
 			resultMsg = append(resultMsg,[]string{
 						"埋点事件："+types+"_"+stype + "; frominfo:"+frominfo,
@@ -166,14 +167,19 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 	return resultMsg
 }
 
-func GetRealPoints(did,event, timeBegin, timeEnd ,appName , fromInfo string) map[string]interface{} {
+func GetRealPoints(did,event ,appName , fromInfo string) map[string]interface{} {
 	fmt.Println("准备拉取数据，action:" + event)
 	//时间是空位NaN
+	now := time.Now().Unix()
+	var oneMonth int64 = 2626560
+	lastOneMonth := now - oneMonth
+	lastonemonthS := strconv.FormatInt(lastOneMonth,10)
+	fmt.Println(lastonemonthS)
 	urls := ""
 	if appName != "omg" {
-		urls = "http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd
+		urls = "http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+ lastonemonthS +"&time_end=NaN"
 	}else{
-		urls = "http://10.12.44.53:9090//search?user="+did+"&event="+event+"&time_begin="+timeBegin+"&time_end="+timeEnd
+		urls = "http://10.12.44.53:9090//search?user="+did+"&event="+event+"&time_begin="+lastonemonthS+"&time_end=NaN"
 	}
 	req, err := http.NewRequest("GET", urls,nil)
 	if err != nil {
@@ -203,19 +209,24 @@ func GetRealPoints(did,event, timeBegin, timeEnd ,appName , fromInfo string) map
 		_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
 		v["extdata"] = ext
 	}else{
+	num := 0
 	loop:
 		for _, val := range result{
 			arr :=strings.Fields(val)
 			realJson := arr[len(arr)-1]
 			_ = json.Unmarshal([]byte(realJson),&v)
-			ext := make(map[string]interface{})
-			_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-			v["extdata"] = ext
 			if v["frominfo"].(string) == fromInfo{
+				num += 1
+				ext := make(map[string]interface{})
+				_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
+				v["extdata"] = ext
 				break loop
 			}
 		}
-
+	if num == 0{
+		logs.Error("当前did下没有发现行为埋点（none frominfo）：",event)
+		return nil
+	}
 	}
 	return v
 }
