@@ -51,6 +51,11 @@ const (
 	HALF_DAY_EXPRESSION    = "0 0 0/12 * * *"
 	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
 )
+const (
+	ONE_MONTH_EXPRESSION    = "0 0 12 * * 1"  //每周一中午12点清理gitgi
+
+
+)
 
 var StrategyCode2Name = map[int]string{
 	FIVE_MIN_CODE:    FIVE_MIN,

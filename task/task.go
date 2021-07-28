@@ -13,6 +13,9 @@ const IS_OPEN_INSPECTION_TASK = false
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_RT_MONITOR_TASK = false
 
+//是否开启定期删除任务
+const IS_OPEN_REGULAR_DELETE_TASK= true
+
 func init() {
 	// new一个线上巡检的定时任务定时任务
 	//onlineInspectionTask := toolbox.NewTask("Inspection_Task", ONLINE_INSPECTION_EXPRESSION, OnlineInspection)
@@ -44,6 +47,11 @@ func init() {
 	if IS_OPEN_RT_MONITOR_TASK {
 		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)
 		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
+	}
+	if IS_OPEN_REGULAR_DELETE_TASK{ //新增，每月执行一次的定时删除报告任务
+		DeleteDateOneMonth := toolbox.NewTask("Delete_Date_1Month", inspection.ONE_MONTH_EXPRESSION, inspection_strategy.Delete1Month)
+		toolbox.AddTask("Delete_Date_1Month", DeleteDateOneMonth)
+
 	}
 	toolbox.StartTask()
 }

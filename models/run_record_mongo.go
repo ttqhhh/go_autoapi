@@ -34,6 +34,7 @@ type RunReportMongo struct {
 	UpdateBy       string `form:"update_by" json:"update_by" bson:"update_by"`    // 修改人
 	CreatedAt      string `form:"created_at" json:"created_at" bson:"created_at"` // omitempty 表示该字段为空时，不返回
 	UpdatedAt      string `form:"updated_at" json:"updated_at" bson:"updated_at"`
+
 }
 
 func (mongo *RunReportMongo) TableName() string {
@@ -61,25 +62,20 @@ func (mongo *RunReportMongo) Insert(service RunReportMongo) (int64, error) {
 	return id, err
 }
 
-// 删
-//func (mongo *RunReportMongo) Delete(id int64) error {
-//	ms, db := db_proxy.Connect(db, run_record_collection)
-//	defer ms.Close()
-//
-//	// 处理更新时间字段
-//	data := bson.M{
-//		"$set": bson.M{
-//			"status":     1,
-//			"updated_at": time.Now().Format(time_format),
-//		},
-//	}
-//	changeInfo, err := db.UpsertId(id, data)
-//	if err != nil {
-//		logs.Error("Delete 错误: %v", err)
-//	}
-//	logs.Info("upsert函数返回的响应为：%v", changeInfo)
-//	return err
-//}
+//删(直接删除库中数据)
+func (mongo *RunReportMongo) Delete(id int64) error {
+	ms, db := db_proxy.Connect(db, run_record_collection)
+	defer ms.Close()
+	// 处理更新时间字段
+	data := bson.M{
+		"_id":id,
+	}
+	err := db.Remove(data)
+	//if err != nil {
+	//	logs.Error("Delete 错误: %v", err)
+	//}
+	return err
+}
 
 //改
 func (mongo *RunReportMongo) UpdateIsPass(id int64, isPass int8, totalFailCase int64, username string) error {
@@ -188,4 +184,25 @@ func (mongo *RunReportMongo) QueryById(id int64) (*RunReportMongo, error) {
 		logs.Error("QueryById 错误: %v", err)
 	}
 	return &runReport, err
+}
+//查询所有的报告
+func (mongo *RunReportMongo) Query() ([]RunReportMongo, error) {
+	ms, db := db_proxy.Connect(db, run_record_collection)
+	defer ms.Close()
+	//timeUnix := time.Now().Unix() //当前时间转换为时间戳
+	//nowTime:=time.Unix(timeUnix,0).Format("2006-01-02 15:04:05") //时间戳转换为字符串
+	//NOWTIME,_:=time.ParseInLocation("2006-01-02 15:04:05",nowTime,time.Local)
+	query := bson.M{
+	}
+	runReportList := []RunReportMongo{}
+	err := db.Find(query).All(&runReportList)
+	if err != nil {
+		if err.Error() == "not found" {
+			err = nil
+			//return nil, nil
+			return nil, nil
+		}
+		logs.Error("查询错误: %v", err)
+	}
+	return runReportList, err
 }
