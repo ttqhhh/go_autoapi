@@ -48,9 +48,9 @@ func init() {
 		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)
 		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
 	}
-	if IS_OPEN_REGULAR_DELETE_TASK{ //新增，每月执行一次的定时删除报告任务
-		DeleteDateOneMonth := toolbox.NewTask("Delete_Date_1Month", inspection.ONE_MONTH_EXPRESSION, inspection_strategy.Delete1Month)
-		toolbox.AddTask("Delete_Date_1Month", DeleteDateOneMonth)
+	if IS_OPEN_REGULAR_DELETE_TASK{ //新增，每周一执行一次的定时删除报告任务
+		Delete1Week := toolbox.NewTask("Delete_Date_1Week", inspection.ONE_WEEK_EXPRESSION, inspection_strategy.Delete1Week)
+		toolbox.AddTask("Delete_Date_1Week", Delete1Week)
 
 	}
 	toolbox.StartTask()

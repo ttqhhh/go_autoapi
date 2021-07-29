@@ -52,8 +52,7 @@ const (
 	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
 )
 const (
-	ONE_MONTH_EXPRESSION    = "0 0 12 * * 1"  //每周一中午12点清理gitgi
-
+	ONE_WEEK_EXPRESSION    = "0 0 12 * * 1"  //每周一中午12点清理
 
 )
 

@@ -10,8 +10,8 @@ import (
 	"go_autoapi/models"
 )
 
-func Delete1Month() error {
-	logs.Info("【月】定期批量清理报告任务启动执行。。。。。。")
+func Delete1Week() error {
+	logs.Info("【周】定期批量清理报告任务启动执行。。。。。。")
 	var once = 0  //计数器
 	var rp = models.RunReportMongo{}
 	runReportList, err := rp.Query()
@@ -20,7 +20,7 @@ func Delete1Month() error {
 		}
 		count:=len(runReportList)  //返回的list个数
 		str1 := strconv.Itoa(count)
-		fmt.Printf("共查询到"+str1+"个报告,开始批量删除超过一个月的报告\n\n")
+		fmt.Printf("共查询到"+str1+"个报告,开始批量删除超过一周的报告\n\n")
 
 		for _,report := range runReportList {   //遍历list
 			reportCreateStringTime:=report.CreatedAt  //取出每个报告的创建时间
