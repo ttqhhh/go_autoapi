@@ -155,7 +155,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				reason := autoResult.Reason
 				statusCode := autoResult.StatusCode
 				icm.AddOneTimeById(caseId,icm) //执行失败，警报次数加1
-				if(icm.WarningNumber > 1){  //执行三次 后会发送警报，并关闭巡查
+				if(icm.WarningNumber>2){  //执行第三次 后会发送警报，并关闭巡查
 					icm.SetInspection(caseId,0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId:=strconv.FormatInt(caseId,10)

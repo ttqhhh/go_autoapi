@@ -161,7 +161,7 @@ func (t *InspectionCaseMongo) AddOneTimeById(id int64, acm InspectionCaseMongo) 
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
-	acm.WarningNumber = acm.WarningNumber+1
+	acm.WarningNumber++   //自增1
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
