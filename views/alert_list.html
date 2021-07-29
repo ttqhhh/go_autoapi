@@ -1,0 +1,71 @@
+{{template "head.html" .}}
+
+{{/*<script src="/static/layui/layui.js" charset="utf-8"></script>*/}}
+
+<!-- 引入 echarts.js -->
+<script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+<body>
+<div style="margin-top: 20px; margin-bottom: 20px; margin-left: 50px;">
+    <button type="button" class="layui-btn layui-btn-normal" onclick="list()">查看选中</button>
+    {{/*            <button id="add" type="button" class="layui-btn layui-btn-normal">新增</button>*/}}
+</div>
+<div style="margin:1%">
+    <table id="alert" lay-filter="alertFilter"></table>
+
+    <script type="text/html" id="alertOp">
+        <button type='button' class='layui-btn layui-btn-normal' lay-event="del">查看</button>
+    </script>
+</div>
+<div id="main" style="width: 600px;height:400px;"></div>
+</body>
+<script type="text/javascript">
+    layui.use('table', function () {
+        var table = layui.table;
+        var form = layui.form;
+
+        /** 表格加载 begin */
+        //第一个实例
+        function loadTable() {
+            table.render({
+                elem: '#alert'
+                , url: '/monitor/this_week_alert' //数据接口
+                , page: true //开启分页
+                , limit: 10
+                , method: 'get'
+                // , where: {business: business, service_name: service_name}
+                , cols: [[ //表头
+                    {type: 'checkbox', fixed: 'left'}
+                    , {field: 'id', title: 'ID', fixed: 'left', fixed: true}
+                    , {field: 'service_code', title: '服务名', fixed: true}
+                    , {field: 'uri', title: 'URI', fixed: true}
+                    , {field: 'create_at', title: '报警时间', fixed: true}
+                    , {title: '操作', fixed: 'right', align: 'center', toolbar: '#alertOp'}
+                ]]
+                , done: function (res, curr, count) {
+                    var businessMap = {}
+                    // 去加载业务线全量数据，用来映射表格中的业务线值
+                    $.ajax({
+                        url: "/business/get_user_businesses",
+                        type: "GET",
+                        async: false,
+                        dataType: "json",
+                        success: function (data) {
+                            $.each(data.data.businesses, function (index, value) {
+                                businessMap[value.code] = value.name;
+                            })
+                        }
+                    })
+                    // 如果是异步请求数据方式，res即为你接口返回的信息。
+                    // 如果是直接赋值的方式，res即为：{data: [], count: 99} data为当前页数据、count为数据总长度
+                    $("[data-field='business']").children().each(function () {
+                        var businessCode = $(this).text()
+                        var businessName = businessMap[businessCode];
+                        $(this).text(businessName)
+                    });
+                }
+            });
+        }
+        loadTable()
+    })
+</script>
+</html>

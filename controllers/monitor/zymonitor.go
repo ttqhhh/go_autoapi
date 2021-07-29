@@ -26,6 +26,14 @@ func (c *ZYMonitorController) Get() {
 		c.excuteAtFirstTime()
 	case "excute_one_time":
 		c.excuteOneTime()
+	case "index":
+		c.index()
+	case "alert_visual":
+		c.alertVisual()
+	case "this_week_alert":
+		c.ThisWeekAlert()
+	case "list_2_week_trend":
+		c.Last2WeekTrend()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -68,6 +76,139 @@ func (c *ZYMonitorController) excuteAtFirstTime() {
 	}()
 	c.SuccessJson(nil)
 }
+
+func (c *ZYMonitorController) index() {
+	c.TplName = "alert_list.html"
+}
+
+func (c *ZYMonitorController) alertVisual() {
+	alerts := c.GetString("alerts")
+	data := map[interface{}]interface{}{}
+	data["alerts"] = alerts
+
+	c.Data = data
+	c.TplName = "alert_visual.html"
+}
+
+func (c *ZYMonitorController) ThisWeekAlert() {
+	//serviceCode := c.GetString("service_code")
+	//uri := c.GetString("uri")
+	//oclock := c.GetString("oclock")
+	//
+	//todayZoreTimestamp := GetTodayZeroClock()
+	//last14DateMap := GetLast14DaysDate(todayZoreTimestamp)
+	mongo := models.RtDetailAlertMongo{}
+	alertInfos, err := mongo.GetOneWeekAlertInfo()
+	if err != nil {
+	    //logs.Error("获取本周报警数据报错, err: ", err)
+	    c.ErrorJson(-1, "获取本周报警数据报错", nil)
+	}
+	//alertMap := map[string]models.RtDetailAlertMongo{}
+	alertList := []interface{}{}
+	for _, alert := range alertInfos {
+		oneAlert := map[string]interface{}{}
+		oneAlert["service_code"] = alert.ServiceCode
+		oneAlert["uri"] = alert.Uri
+		oneAlert["create_at"] = alert.CreatedAt
+		alertList = append(alertList, oneAlert)
+	}
+	c.SuccessJson(alertList)
+}
+
+func (c *ZYMonitorController) Last2WeekTrend() {
+	serviceCode := c.GetString("service_code")
+	uri := c.GetString("uri")
+	oclock := c.GetString("oclock")
+
+	todayZoreTimestamp := GetTodayZeroClock()
+	last14DateMap := GetLast14DaysDate(todayZoreTimestamp)
+
+
+	rtDetail := &models.RtDetailMongo{}
+	rtDetail, err := rtDetail.GetByServiceAndUri(serviceCode, uri)
+	if err != nil {
+	    logs.Error("查询接口响应数据详情报错, err: ", err)
+	    c.ErrorJson(-1, "查询接口响应数据详情报错", nil)
+	}
+
+	times := []string{}
+	rts := []int{}
+	times = append(times, last14DateMap[-14]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last14DayRt, oclock),)
+
+	times = append(times, last14DateMap[-13]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-12]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-11]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-10]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-9]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-8]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-7]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-6]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-5]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-4]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-3]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-2]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	times = append(times, last14DateMap[-1]+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+
+	todayDate := time.Now().Format(models.Time_format)[:10]
+	times = append(times, todayDate+" "+oclock)
+	rts = append(rts, getRtByOclock(rtDetail.Last0DayRt, oclock),)
+
+	result := map[string]interface{}{}
+	result["times"] = times
+	result["rts"] = rts
+	c.SuccessJson(&result)
+}
+
+func getRtByOclock(rtStr string, oclock string) (rt  int) {
+	rtMap := map[string]int{}
+	json.Unmarshal([]byte(rtStr), &rtMap)
+	rt = rtMap[oclock]
+	return
+}
+
+//func (c *ZYMonitorController) listAlert() {
+//	mongo := models.RtDetailAlertMongo{}
+//	list, err := mongo.SummaryLast2WeekAlert()
+//	if err != nil {
+//	    logs.Error("查询报警数据报错")
+//	}
+//	alertMap := map[string][]models.RtDetailAlertMongo{}
+//	for _, alert := range list {
+//		alertType := alert.Type
+//		if alertType == models.SLOW_INCREASE_RT_ALERT {
+//			continue
+//		}
+//		serviceCode := alert.ServiceCode
+//		uri := alert.Uri
+//		time := alert.CreatedAt
+//	}
+//}
 
 type SetRtThresholdParam struct {
 	ServiceCode string `json:"service_code"`
@@ -180,6 +321,17 @@ func GetLast14DaysZeroClock(todayZoreTime int) map[int]int {
 		result[-i-1] = oneTime
 	}
 	fmt.Printf("拿到的14个时间戳为：%v\n", result)
+	return result
+}
+
+func GetLast14DaysDate(todayZoreTime int) map[int]string {
+	result := map[int]string{}
+	for i := 0; i < 14; i++ {
+		oneTime := todayZoreTime - 86400*(i+1)
+		oneDate := time.Unix(int64(oneTime), 0).Format(models.Time_format)[:10]
+		result[-i-1] = oneDate
+	}
+	fmt.Printf("拿到的14个日期为：%v\n", result)
 	return result
 }
 

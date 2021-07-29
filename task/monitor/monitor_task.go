@@ -6,8 +6,10 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/blinkbean/dingtalk"
 	"github.com/widuu/gojson"
+	"go_autoapi/constants"
 	"go_autoapi/models"
 	"go_autoapi/task/inspection_strategy"
+	"go_autoapi/utils"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -203,6 +205,7 @@ func MonitorTask() error {
 每小时跑一次
 */
 func HalfHourExcute(serviceCode string, timestamp int64) {
+	taskTime := time.Unix(timestamp, 0).Format(models.Time_format)
 	// 该服务下的所有接口
 	//url := ZyPormtheusQueryUrl + serviceCode + "_http_latency_quantile%7Bquantile%3D%22p99%22%7D"
 	startStr := fmt.Sprintf("%v", timestamp-60*60)
@@ -292,10 +295,11 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 				return
 			}
 			// 存在阈值时，取阈值；不存在阈值时，取平均值
+			isCheckThreshold := true
 			thresholdRtStr := mongo.ThresholdRt
 			if thresholdRtStr == "0" || thresholdRtStr == "" || thresholdRtStr == "-1" {
-				oclock := time.Unix(timestamp, 0).Format(models.Time_format)[11:]
-				//oclock := key[11:]
+				isCheckThreshold = false
+				oclock := taskTime[11:]
 				avgRt := mongo.AvgRt
 				avgRtMap := map[string]int{}
 				json.Unmarshal([]byte(avgRt), &avgRtMap)
@@ -305,10 +309,33 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			if thresholdRtStr != "0" && thresholdRtStr != "" && thresholdRtStr != "-1" {
 				thresholdRt, _ := strconv.Atoi(thresholdRtStr)
 				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
-				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
-					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
-					DingSend(content)
-					fmt.Printf(content)
+				if isQuickIncrease {
+					// 告警记录落库
+					mongo :=  models.RtDetailAlertMongo{}
+					r := utils.GetRedis()
+					id, err := r.Incr(constants.RT_DETAIL_ALERT_PRIMARY_KEY).Result()
+					if err != nil {
+						logs.Error("保存接口响应时间报警数据时，从redis获取唯一主键报错，err: ", err)
+						return
+					}
+					mongo.Id = id
+					mongo.Type = models.QUICK_INCREASE_RT_ALERT
+					mongo.Business = constants.ZuiyYou
+					mongo.ServiceCode = serviceCode
+					mongo.Uri = uri
+					if isCheckThreshold {
+						mongo.ThresholdRt = thresholdRt
+					} else {
+						mongo.AvgRt = thresholdRt
+					}
+					mongo.Rt = rtInt
+					mongo.CreatedAt  = taskTime
+					mongo.Insert(mongo)
+					if MONITOR_DING_SEND_IS_OPEN {
+						content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
+						DingSend(content)
+						fmt.Printf(content)
+					}
 				}
 			}
 			// todo 把rtMap入库
@@ -327,6 +354,27 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 			// todo 需要确保res为由早到晚的时间顺序
 			IsSlowIncrease := IsSlowIncrease(res)
 			if IsSlowIncrease {
+				// 告警记录落库
+				mongo :=  models.RtDetailAlertMongo{}
+				r := utils.GetRedis()
+				id, err := r.Incr(constants.RT_DETAIL_ALERT_PRIMARY_KEY).Result()
+				if err != nil {
+					logs.Error("保存接口响应时间报警数据时，从redis获取唯一主键报错，err: ", err)
+					return
+				}
+				mongo.Id = id
+				mongo.Type = models.SLOW_INCREASE_RT_ALERT
+				mongo.Business = constants.ZuiyYou
+				mongo.ServiceCode = serviceCode
+				mongo.Uri = uri
+				//if isCheckThreshold {
+				//	mongo.ThresholdRt = thresholdRt
+				//} else {
+				//	mongo.AvgRt = thresholdRt
+				//}
+				mongo.Rt = rtInt
+				mongo.CreatedAt  = taskTime
+				mongo.Insert(mongo)
 				// todo 发送钉钉出去
 				if MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口近期响应时间呈缓增趋势，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
