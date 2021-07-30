@@ -157,7 +157,6 @@ func (t *InspectionCaseMongo) UpdateCase(id int64, acm InspectionCaseMongo) (Ins
 }
 // 通过id增加报警次数
 func (t *InspectionCaseMongo) AddOneTimeById(id int64, acm InspectionCaseMongo) InspectionCaseMongo {
-	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
@@ -165,13 +164,12 @@ func (t *InspectionCaseMongo) AddOneTimeById(id int64, acm InspectionCaseMongo) 
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("警报次数增加错误，err:", err)
 	}
 	return acm
 }
 //将报警次数清零
 func (t *InspectionCaseMongo) ClearWarningTimes(id int64,acm InspectionCaseMongo) (InspectionCaseMongo,error) {
-	fmt.Println(id)
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
@@ -179,7 +177,7 @@ func (t *InspectionCaseMongo) ClearWarningTimes(id int64,acm InspectionCaseMongo
 	err := db.Update(query, acm)
 	fmt.Println(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("警报次数清零错误，err:", err)
 	}
 	return acm, err
 }
