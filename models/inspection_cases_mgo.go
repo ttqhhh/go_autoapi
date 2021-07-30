@@ -162,7 +162,6 @@ func (t *InspectionCaseMongo) AddOneTimeById(id int64, acm InspectionCaseMongo) 
 	defer ms.Close()
 	acm.WarningNumber+=1
 	err := db.Update(query, acm)
-	fmt.Println(acm)
 	if err != nil {
 		logs.Error("警报次数增加错误，err:", err)
 	}
@@ -175,7 +174,6 @@ func (t *InspectionCaseMongo) ClearWarningTimes(id int64,acm InspectionCaseMongo
 	defer ms.Close()
 	acm.WarningNumber = 0
 	err := db.Update(query, acm)
-	fmt.Println(acm)
 	if err != nil {
 		logs.Error("警报次数清零错误，err:", err)
 	}
