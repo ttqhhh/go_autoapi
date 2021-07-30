@@ -71,9 +71,9 @@ func (mongo *RunReportMongo) Delete(id int64) error {
 		"_id":id,
 	}
 	err := db.Remove(data)
-	//if err != nil {
-	//	logs.Error("Delete 错误: %v", err)
-	//}
+	if err != nil {
+		logs.Error("Delete 错误，err:", err)
+	}
 	return err
 }
 
