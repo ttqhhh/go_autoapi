@@ -154,8 +154,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				//resp := "{\"ret\":1,\"data\":{\"banner\":[{\"name\":\"gaokaozhiyuan\",\"img\":\"file.izuiyou.com/img/png/id/1567506494\",\"url\":\"zuiyou://eventactivity?eventActivityId=330334\"},{\"name\":\"fangyandugongyue\",\"img\":\"https://file.izuiyou.com/img/png/id/1568965881\",\"url\":\"zuiyou://postdetail?id=233156321\"},{\"name\":\"MCNzhaomu\",\"img\":\"https://file.izuiyou.com/img/png/id/1564965136\",\"url\":\"https://h5.izuiyou.com/hybrid/template/smartH5?\\u0026id=329839\"},{\"name\":\"shenhezhuanqu\",\"img\":\"https://file.izuiyou.com/img/png/id/1568973427\",\"url\":\"https://h5.izuiyou.com/hybrid/censor/entry\"},{\"name\":\"maishoudian\",\"img\":\"https://file.izuiyou.com/img/png/id/1561594314\",\"url\":\"zuiyou://postdetail?id=232312632\"},{\"name\":\"wanyouxi\",\"img\":\"https://file.izuiyou.com/img/png/id/1567612281\",\"url\":\"http://www.shandw.com/auth\"}]}}"
 				reason := autoResult.Reason
 				statusCode := autoResult.StatusCode
-				icm.AddOneTimeById(caseId,icm) //执行失败，警报次数加1
-				if(icm.WarningNumber>2){  //执行第三次 后会发送警报，并关闭巡查
+				icm=icm.AddOneTimeById(caseId,icm) //执行失败，警报次数加1
+				check:=icm.WarningNumber
+				if(check>2){  //执行第三次 后会发送警报，并关闭巡查
 					icm.SetInspection(caseId,0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId:=strconv.FormatInt(caseId,10)
