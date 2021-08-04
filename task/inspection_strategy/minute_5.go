@@ -11,12 +11,20 @@ func Strategy5Min() error {
 	logs.Info("【5分钟】级别的定时任务启动执行...")
 	//msgList := make([]string, 5)
 	msgChannel := make(chan string)
+	restrainMsgChannel := make(chan string)
 	var msgList []string
+	var restrainMsgList []string
 	// 起一个协程用于承接msg
 	go func() {
 		for true {
 			msg := <-msgChannel
 			msgList = append(msgList, msg)
+		}
+	}()
+	go func() {
+		for true {
+			msg := <-restrainMsgChannel
+			restrainMsgList = append(restrainMsgList, msg)
 		}
 	}()
 	// 获取所以业务线，并进行遍历所有的业务线
@@ -32,7 +40,7 @@ func Strategy5Min() error {
 		}
 		// 遍历服务下边所有的巡检Case
 		for _, service := range serviceMongos {
-			PerformInspection(businessId, service.Id, msgChannel, inspection.FIVE_MIN_CODE)
+			PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.FIVE_MIN_CODE)
 		}
 
 	}
@@ -45,6 +53,18 @@ func Strategy5Min() error {
 		logs.Info("打印钉钉消息日志：\n" + dingMsg)
 		if IS_OPEN_SENDDING_MSG {
 			DingSend(dingMsg)
+		}
+	}
+	// dingMsg中的「线上巡检」为消息关键字，不可变更
+	// dingMsg := fmt.Sprintf("【报警抑制-线上巡检】：当前Case报警次数已达3次且未得到有效解决，系统已默认将Case巡检状态置为关闭。请相关同学尽快处理！编辑或打开该Case均可恢复巡检状态。\n" + "\n" + "【业务线】：" + icm.BusinessName + "\n" + "【网关服务】：" + serviceName + "\n" + "【URI】:" + dingUri + "\n" + "【Caseid】:" + caseId)
+	dingRestrainMsg := "【报警抑制-线上巡检】：当前Case报警次数已达3次且未得到有效解决，系统已默认将Case巡检状态置为关闭。请相关同学尽快处理！编辑或打开该Case均可恢复巡检状态。\n\n"
+	for _, restrainMsg := range restrainMsgList {
+		dingRestrainMsg += restrainMsg
+	}
+	if len(dingRestrainMsg) > 0 {
+		logs.Info("打印钉钉消息日志：\n" + dingRestrainMsg)
+		if IS_OPEN_SENDDING_MSG {
+			DingSend(dingRestrainMsg)
 		}
 	}
 	return nil
