@@ -32,7 +32,7 @@ const CE_SHI_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffb
 const IS_OPEN_SENDDING_MSG = false
 
 // 执行线上巡检Case
-func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, strategy int64) (err error) {
+func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, restrainMsgChannel chan string, strategy int64) (err error) {
 	userId := "线上巡检"
 	u2 := uuid.NewV4()
 	uuid := u2.String()
@@ -137,8 +137,10 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}
 		}
 		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
+		restrainBaseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。\n\n", businessName, serviceName)
 		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
 		msg := ""
+		restrainMsg := ""
 		for caseId, autoResultList := range case2ResultMap {
 			if len(autoResultList) > 2 {
 				//todo 此时该条巡检Case有问题，进行对外通知
@@ -160,9 +162,10 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					icm.SetInspection(caseId, 0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId := strconv.FormatInt(caseId, 10)
-					dingMsg := fmt.Sprintf("【报警抑制-线上巡检】：当前Case报警次数已达3次且未得到有效解决，系统已默认将Case巡检状态置为关闭。请相关同学尽快处理！编辑或打开该Case均可恢复巡检状态。\n" + "\n" + "【业务线】：" + icm.BusinessName + "\n" + "【网关服务】：" + serviceName + "\n" + "【URI】:" + dingUri + "\n" + "【Caseid】:" + caseId)
-					logs.Info(dingMsg)
-					DingSend(dingMsg)
+					//restrainMsg += fmt.Sprintf("【业务线】：" + icm.BusinessName + "\n" + "【网关服务】：" + serviceName + "\n" + "【URI】:" + dingUri + "\n" + "【Caseid】:" + caseId)
+					restrainMsg += fmt.Sprintf("【URI】: %s;\n【Caseid】: %s;\n\n", dingUri, caseId)
+					//logs.Info(dingMsg)
+					//DingSend(dingMsg)
 
 				}
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
@@ -177,6 +180,10 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		if msg != "" {
 			totalMsg := baseMsg + msg
 			msgChannel <- totalMsg
+		}
+		if restrainMsg != "" {
+			totalMsg := restrainBaseMsg + restrainMsg
+			restrainMsgChannel <- totalMsg
 		}
 
 		// 更新失败个数和本次执行记录状态
