@@ -62,7 +62,7 @@ func Delete1Week() error {
 		}
 		timess := strconv.Itoa(once1)
 		logs.Info("批量删除成功,共删除"+timess+"条报告结果")
-		DingSendDeleteReport("【线上巡检：定时删除】\n每周一12：00的定时删除功能启动：已经删除一周前的测试报告和巡检报告，请有关同学及时关注并检查！\n清除报告数量：\n\n共检查到"+str1+"个报告\n已删除"+times+"个报告")
+		DingSendDeleteReport("【线上巡检：定时删除】\n每周一8：00的定时删除功能启动：已经删除一周前的测试报告和巡检报告，请有关同学及时关注并检查！\n清除报告数量：\n\n共检查到"+str1+"个报告\n已删除"+times+"个报告")
 		return nil
 }
 func DingSendDeleteReport(content string) {
