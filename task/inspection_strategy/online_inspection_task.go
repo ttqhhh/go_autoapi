@@ -196,7 +196,7 @@ type ReqBody struct {
 }
 
 func DingSend(content string) {
-	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	var dingToken = []string{CE_SHI_QUN_TOKEN}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }
