@@ -205,7 +205,6 @@
                         }
                     },
                     {title: '请求方式', field: 'request_method', width: 100},
-                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
                     {title: '报警次数', field: 'warning_number', width: 100},
                     {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
                             if (d.is_inspection == 1) {
@@ -214,6 +213,8 @@
                                 return "<div onclick='inspection(this, " + d.id+ ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
                             }
                         }},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
+
                 ]]
             });
         }
