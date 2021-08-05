@@ -137,7 +137,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}
 		}
 		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
-		restrainBaseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。\n\n", businessName, serviceName)
+		restrainBaseMsg := fmt.Sprintf("==========  ==========\n【业务线】: %s, 【服务】: %s。\n\n", businessName, serviceName)
 		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
 		msg := ""
 		restrainMsg := ""
@@ -162,11 +162,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					icm.SetInspection(caseId, 0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId := strconv.FormatInt(caseId, 10)
-					//restrainMsg += fmt.Sprintf("【业务线】：" + icm.BusinessName + "\n" + "【网关服务】：" + serviceName + "\n" + "【URI】:" + dingUri + "\n" + "【Caseid】:" + caseId)
 					restrainMsg += fmt.Sprintf("【URI】: %s;\n【Caseid】: %s;\n\n", dingUri, caseId)
-					//logs.Info(dingMsg)
-					//DingSend(dingMsg)
-
 				}
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
