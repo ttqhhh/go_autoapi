@@ -61,7 +61,7 @@ func Strategy6Hour() error {
 	for _, restrainMsg := range restrainMsgList {
 		dingRestrainMsg += restrainMsg
 	}
-	if len(dingRestrainMsg) > 0 {
+	if len(restrainMsgList) > 0 {
 		logs.Info("打印钉钉消息日志：\n" + dingRestrainMsg)
 		if IS_OPEN_SENDDING_MSG {
 			DingSend(dingRestrainMsg)

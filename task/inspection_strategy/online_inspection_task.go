@@ -137,7 +137,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}
 		}
 		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
-		restrainBaseMsg := fmt.Sprintf("==========  ==========\n【业务线】: %s, 【服务】: %s。\n\n", businessName, serviceName)
+		restrainBaseMsg := fmt.Sprintf("==========  ==========\n【业务线】: %s, 【服务】: %s。\n==========  ==========\n", businessName, serviceName)
 		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
 		msg := ""
 		restrainMsg := ""
@@ -149,8 +149,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				icm := models.InspectionCaseMongo{}
 				icm = icm.GetOneCase(caseId)
 				caseName := icm.CaseName
-				uri := strings.SplitAfter(icm.ApiUrl, "?")
-				dingUri := uri[0] //切割字符串
+				//uri := strings.SplitAfter(icm.ApiUrl, "?")
+				uris := strings.Split(icm.ApiUrl, "?")
+				uri := uris[0] //切割字符串
 				autoResult := autoResultList[2]
 				//resp := autoResult.Response
 				//resp := "{\"ret\":1,\"data\":{\"banner\":[{\"name\":\"gaokaozhiyuan\",\"img\":\"file.izuiyou.com/img/png/id/1567506494\",\"url\":\"zuiyou://eventactivity?eventActivityId=330334\"},{\"name\":\"fangyandugongyue\",\"img\":\"https://file.izuiyou.com/img/png/id/1568965881\",\"url\":\"zuiyou://postdetail?id=233156321\"},{\"name\":\"MCNzhaomu\",\"img\":\"https://file.izuiyou.com/img/png/id/1564965136\",\"url\":\"https://h5.izuiyou.com/hybrid/template/smartH5?\\u0026id=329839\"},{\"name\":\"shenhezhuanqu\",\"img\":\"https://file.izuiyou.com/img/png/id/1568973427\",\"url\":\"https://h5.izuiyou.com/hybrid/censor/entry\"},{\"name\":\"maishoudian\",\"img\":\"https://file.izuiyou.com/img/png/id/1561594314\",\"url\":\"zuiyou://postdetail?id=232312632\"},{\"name\":\"wanyouxi\",\"img\":\"https://file.izuiyou.com/img/png/id/1567612281\",\"url\":\"http://www.shandw.com/auth\"}]}}"
@@ -162,15 +163,11 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					icm.SetInspection(caseId, 0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId := strconv.FormatInt(caseId, 10)
-					restrainMsg += fmt.Sprintf("【URI】: %s;\n【Caseid】: %s;\n\n", dingUri, caseId)
+					restrainMsg += fmt.Sprintf("【Caseid】: %s;【CaseName】: %s;\n【URI】: %s;\n\n", caseId, caseName, uri)
 				}
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %d;\n【失败原因】: %s;\n\n", caseName, uri, statusCode, reason)
-				//msg = fmt.Sprintf("%s【Case名称: %s; 接口路径: %s; 失败原因: %s; 】\n", msg, caseName, uri, reason)
-				// 将报告错误消息写进channel
-				//msgChannel <- msg
-				//break
 			}
 		}
 		if msg != "" {
