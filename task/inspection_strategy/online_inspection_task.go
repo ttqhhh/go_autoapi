@@ -163,7 +163,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					icm.SetInspection(caseId, 0)
 					//todo 向丁丁发送该条case的消息（id）
 					caseId := strconv.FormatInt(caseId, 10)
-					restrainMsg += fmt.Sprintf("【Caseid】: %s;【CaseName】: %s;\n【URI】: %s;\n\n", caseId, caseName, uri)
+					restrainMsg += fmt.Sprintf("【Caseid】: %s\n;【CaseName】: %s;\n【URI】: %s;\n\n", caseId, caseName, uri)
 				}
 				// todo 某个服务的巡检任务存在失败Case时，认定为本次巡检任务失败，对外发送钉钉消息通知到相关同学
 				// todo 发送钉钉消息时，注意频次，预防被封群
