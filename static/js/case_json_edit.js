@@ -22,7 +22,7 @@ pre = '        <div class="json-nb">\n' +
     '                <select name="check_type" id="check_type">\n' +
     '                    <option value="eq" selected>eq</option>\n' +
     '                    <option value="in">in</option>\n' +
-    '                    <option value="need">need</option>\n' +
+    '                    <option value="exist">exist</option>\n' +
     '                    <option value="lt">lt</option>\n' +
     '                    <option value="gt">gt</option>\n' +
     '                    <option value="lte">lte</option>\n' +
@@ -34,8 +34,9 @@ pre = '        <div class="json-nb">\n' +
     '                <input type="text" name="value" id="value" lay-verify="title" autocomplete="off" placeholder="输入验证值" class="layui-input">\n' +
     '            </div>\n' +
     '\n' +
-    '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+    '            <div class="layui-inline" style="margin: 0;width: 150px">\n' +
     '                <select name="value_type" id="value_type">\n' +
+    '                    <option value="请选择数据类型">请选择数据类型</option>\n' +
     '                    <option value="number">number</option>\n' +
     '                    <option value="string">string</option>\n' +
     '                </select>\n' +

@@ -236,93 +236,103 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		return
 	}
 	// 提前检查jsonpath是否存在，不存在就报错
-	for k := range verify {
-		verifyO, err := jsonpath.JSONPath([]byte(response), k)
+	//for path := range verify {
+	//	verifyO, err := jsonpath.JSONPath([]byte(response), path)
+	//	if err != nil {
+	//		logs.Error("doVerifyV2 jsonpath error，test failed", err)
+	//		//saveTestResult(uuid, caseId, result, path+" jsonpath err", runBy, response)
+	//		//reason = "checkpoint表达式有误，请检查您的checkpoint (" + path + ")"
+	//		reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
+	//		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+	//		isPass = false
+	//		return
+	//	}
+	//	if len(verifyO) == 0 {
+	//		logs.Error("the verify key is not exist in the response", path)
+	//		//reason = "json路径: 【" + path + "】, 未配置有效的校验规则"
+	//		reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
+	//		//saveTestResult(uuid, caseId, result, path+" the verify key not exist err", runBy, response)
+	//		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+	//		isPass = false
+	//		return
+	//	}
+	//}
+
+	for path, checkRule := range verify {
+		//fmt.Println(path, checkRule, verify, reflect.TypeOf(verify))
+		logs.Error("path,checkRule is ", path, checkRule, reflect.TypeOf(path))
+		valueInResp, err := jsonpath.JSONPath([]byte(response), path)
+		// 提前检查jsonpath是否存在，不存在就报错
 		if err != nil {
 			logs.Error("doVerifyV2 jsonpath error，test failed", err)
-			//saveTestResult(uuid, caseId, result, k+" jsonpath err", runBy, response)
-			reason = "checkpoint表达式有误，请检查您的checkpoint (" + k + ")"
+			reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
 			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 			isPass = false
 			return
 		}
-		if len(verifyO) == 0 {
-			logs.Error("the verify key is not exist in the response", k)
-			reason = "json路径: 【" + k + "】, 未配置有效的校验规则"
-			//saveTestResult(uuid, caseId, result, k+" the verify key not exist err", runBy, response)
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
-			isPass = false
-			return
+		if len(valueInResp) == 0 {
+			logs.Error("the verify key is not exist in the response", path)
+			reason += ";" + fmt.Sprintf("不满足【存在】, json路径：【%s】", path)
+			continue
 		}
-	}
-
-	for k, v := range verify {
-		//fmt.Println(k, v, verify, reflect.TypeOf(verify))
-		logs.Error("k,v is ", k, v, reflect.TypeOf(k))
-		verifyO, _ := jsonpath.JSONPath([]byte(response), k)
-		for subK, subV := range v {
+		for checkType, checkValue := range checkRule {
 			var vv interface{}
 			// 根据类型转换jsonpath获取的数组首位类型
-			switch subV.(type) {
+			switch checkValue.(type) {
 			case string:
-				vv = verifyO[0].MustString()
+				vv = valueInResp[0].MustString()
 			case float64:
-				vv = verifyO[0].MustNumeric()
+				vv = valueInResp[0].MustNumeric()
 
 			}
-			if subK == "eq" {
-				if subV != vv {
-					logs.Error("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not equal, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", k, vv, subV)
+			if checkType == "eq" {
+				if checkValue != vv {
+					logs.Error("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【%checkRule】", path, vv, checkValue)
 					continue
 				}
-			} else if subK == "need" {
-				if subV != vv {
-					logs.Error("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not need, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【必须】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", k, vv, subV)
+			} else if checkType == "exist" {
+				continue
+			} else if checkType == "in" {
+				if !strings.Contains(vv.(string), checkValue.(string)) {
+					logs.Error("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【包含】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【包含于%checkRule】", path, vv, checkValue)
 					continue
 				}
-			} else if subK == "in" {
-				if !strings.Contains(vv.(string), subV.(string)) {
-					logs.Error("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not in, key %s, actual value %v,expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【包含】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【包含于%v】", k, vv, subV)
+			} else if checkType == "lt" {
+				if !(vv.(float64) < checkValue.(float64)) {
+					logs.Error("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【小于】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【<%checkRule】", path, vv, checkValue)
 					continue
 				}
-			} else if subK == "lt" {
-				if !(vv.(float64) < subV.(float64)) {
-					logs.Error("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not lt, key %s, actual %v < expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【小于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<%v】", k, vv, subV)
+			} else if checkType == "gt" {
+				if !(vv.(float64) > checkValue.(float64)) {
+					logs.Error("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【大于】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【>%checkRule】", path, vv, checkValue)
 					continue
 				}
-			} else if subK == "gt" {
-				if !(vv.(float64) > subV.(float64)) {
-					logs.Error("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not gt, key %s, actual %v > expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【大于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>%v】", k, vv, subV)
+			} else if checkType == "lte" {
+				if !(vv.(float64) <= checkValue.(float64)) {
+					logs.Error("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【小于等于】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【<=%checkRule】", path, vv, checkValue)
 					continue
 				}
-			} else if subK == "lte" {
-				if !(vv.(float64) <= subV.(float64)) {
-					logs.Error("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not lte, key %s, actual %v <= expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【小于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<=%v】", k, vv, subV)
-					continue
-				}
-			} else if subK == "gte" {
-				if !(vv.(float64) >= subV.(float64)) {
-					logs.Error("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					//reason += ";" + fmt.Sprintf("not gte, key %s, actual %v >= expected %v", k, vv, subV)
-					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>=%v】", k, vv, subV)
+			} else if checkType == "gte" {
+				if !(vv.(float64) >= checkValue.(float64)) {
+					logs.Error("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
+					//reason += ";" + fmt.Sprintf("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%checkRule】, 期望值: 【>=%checkRule】", path, vv, checkValue)
 					continue
 				}
 			} else {
-				logs.Error("do not support, subK: ", subK)
+				logs.Error("do not support, checkType: ", checkType)
 				//reason += ";" + fmt.Sprintf("do not support this operator")
-				reason += ";" + fmt.Sprintf("不支持的验证类型: %s", subK)
+				reason += ";" + fmt.Sprintf("不支持的验证类型: %s", checkType)
 				continue
 			}
 		}
