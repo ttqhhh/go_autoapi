@@ -52,7 +52,7 @@ const (
 	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
 )
 const (
-	ONE_WEEK_EXPRESSION    = "0 0 12 * * 1"  //每周一中午12点清理
+	ONE_WEEK_EXPRESSION    = "0 0 8 * * 1"  //每周一早上8点
 
 )
 

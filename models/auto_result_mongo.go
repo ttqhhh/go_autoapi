@@ -122,3 +122,35 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	failCount = int64(count)
 	return
 }
+//删(直接删除库中数据)
+func (a *AutoResult) DeleteResult(id string) error {
+	ms, db := db_proxy.Connect(db, result_collection)
+	defer ms.Close()
+	// 处理更新时间字段
+	data := bson.M{
+		"run_id":id,
+	}
+	err := db.Remove(data)
+	if err != nil {
+		logs.Error("Delete 错误，err:", err)
+	}
+	return err
+}
+//查询所有的报告结果
+func (a *AutoResult) QueryResult() ([]AutoResult, error) {
+	ms, db := db_proxy.Connect(db, result_collection)
+	defer ms.Close()
+	query := bson.M{
+	}
+	autoResultList := []AutoResult{}
+	err := db.Find(query).All(&autoResultList)
+	if err != nil {
+		if err.Error() == "not found" {
+			err = nil
+			//return nil, nil
+			return nil, nil
+		}
+		logs.Error("查询错误: %v", err)
+	}
+	return autoResultList, err
+}
