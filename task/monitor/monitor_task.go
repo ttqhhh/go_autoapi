@@ -307,8 +307,8 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 				isQuickIncrease := IsQuickIncrease(rtInt, thresholdRt)
 				if isQuickIncrease && MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
+					fmt.Printf("性能监控-线上巡检Alert: %s", content)
 					DingSend(content)
-					fmt.Printf(content)
 				}
 			}
 			// todo 把rtMap入库
@@ -330,8 +330,8 @@ func HalfHourExcute(serviceCode string, timestamp int64) {
 				// todo 发送钉钉出去
 				if MONITOR_DING_SEND_IS_OPEN {
 					content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口近期响应时间呈缓增趋势，请关注！\n【业务线】: 最右\n【服务】: %s\n【URI】: %s\n", serviceCode, uri)
+					fmt.Printf("性能监控-线上巡检Alert: %s", content)
 					DingSend(content)
-					fmt.Printf(content)
 				}
 			}
 		}
