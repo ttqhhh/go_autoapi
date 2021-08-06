@@ -125,6 +125,8 @@ function generateJsonPath(checkpoints, json) {
                 return result;
             }
             value = parseFloat(value)
+        } else if (checkType == "exist" && valueType == "请选择数据类型") {
+            value = "none"
         }
         var checkMap = {};
         checkMap[checkType] = value
@@ -219,11 +221,13 @@ function analysisJsonPath(jsonpath) {
         // }
         checkpoint["node"] = node;
         checkpoint["checkType"] = checkType;
-        checkpoint["value"] = checkValue;
         var valueType = "string"
         if (typeof(checkValue) == "number") {
             valueType = "number";
+        } else if (checkValue == "none") {
+            valueType = "请选择数据类型";
         }
+        checkpoint["value"] = checkValue;
         checkpoint["valueType"] = valueType;
 
         // 将解析出来的校验点push到数组中
