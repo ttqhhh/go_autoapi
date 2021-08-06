@@ -202,7 +202,7 @@ func GetRealPoints(did,event ,appName , fromInfo string) map[string]interface{} 
 	}
 	v := make(map[string]interface{})
 	if fromInfo == "$old$"{
-		arr :=strings.Fields(result[0])
+		arr :=strings.Fields(result[len(result)-1])
 		realJson := arr[len(arr)-1]
 		_ = json.Unmarshal([]byte(realJson),&v)
 		ext := make(map[string]interface{})

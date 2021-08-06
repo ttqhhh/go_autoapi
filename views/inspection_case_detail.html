@@ -222,7 +222,7 @@
                     '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
                     '                    <option value="eq">eq</option>\n' +
                     '                    <option value="in">in</option>\n' +
-                    '                    <option value="need">need</option>\n' +
+                    '                    <option value="exist">exist</option>\n' +
                     '                    <option value="lt">lt</option>\n' +
                     '                    <option value="gt">gt</option>\n' +
                     '                    <option value="lte">lte</option>\n' +
@@ -234,9 +234,10 @@
                     '                <input type="text" id="value" value=' + v.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
                     '            </div>\n' +
                     '\n' +
-                    '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
+                    '            <div class="layui-inline" style="width: 150px;margin: 0">\n' +
                     '                <select name="value_type" id="value_type">\n' +
                     '                    <option checked value='+v.valueType+'>' + v.valueType + '</option>\n' +
+                    '                    <option value="请选择数据类型">请选择数据类型</option>\n' +
                     '                    <option value="number">number</option>\n' +
                     '                    <option value="string">string</option>\n' +
                     '                </select>\n' +
