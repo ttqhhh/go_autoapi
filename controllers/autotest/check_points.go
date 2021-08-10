@@ -34,14 +34,14 @@ func (c *AutoTestController) checkPoints() {
 		if pdList[k].Did != "" {
 			pdList[k].Business = c.GetString("business")
 			pdList[k].Limit, _ = c.GetInt("limit")
-			resultMsg := GetBasePoints(pdList[k].Limit, pdList[k].Business, pdList[k].Did)
-			c.Data["result"+strconv.Itoa(k)] = resultMsg
 			k++
 		} else if pdList[k].Did == "" {
 			k++
 			continue
 		}
 	}
+	resultMsg := GetBasePoints(pdList[0].Limit, pdList[0].Business, pdList)
+	c.Data["result"] = resultMsg
 	c.TplName = "check_points.html"
 }
 
@@ -85,7 +85,7 @@ type JsonDiff struct {
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int, business string, did string) [][]string {
+func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 	var resultMsg [][]string
 	fmt.Println("第一次执行获取total总数")
 	limits := strconv.Itoa(limit)
@@ -151,30 +151,48 @@ func GetBasePoints(limit int, business string, did string) [][]string {
 		l["extdata"] = newExtended
 		fmt.Println(l)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did, types+"_"+stype, appName, frominfo)
-		if r == nil {
-			resultMsg = append(resultMsg, []string{
-				"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
-				"检查结果 : 无数据"})
-			logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
-		} else {
-			var result1 string
-			var result2 bool
-			result1, result2 = JsonCompare(l, r, m, -1)
-			if result2 == true {
-				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-					"检查结果 : 结构异常", "异常信息：" + result1,
-					"实际结果：" + marshal(r)})
-				fmt.Println("检查到异常，事件:" + types + "_" + stype)
-				fmt.Println(result1)
-			} else {
-				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-					"检查结果 : 结构正常"})
-				fmt.Println("检查通过，事件:" + types + "_" + stype)
+		j := 0
+		for j < 5 {
+			did := pdList[j].Did
+			if did == "" { //传值为"" 不操作
+				j++
+				continue
+
+			} else if did != "" { //不为空  拿到真实point
+				r := GetRealPoints(did, types+"_"+stype, appName, frominfo)
+				if r == nil { //返回结果为空 说明没查到 继续查下一个did
+					j++
+					continue
+
+				} else { //返回结果不为空，说明查到了，终止循环 并进行compare对比  并返回结果
+					var result1 string
+					var result2 bool
+					result1, result2 = JsonCompare(l, v, m, -1)
+					if result2 == true {
+						resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+							"检查结果 : 结构异常", "异常信息：" + result1,
+							"实际结果：" + marshal(v)})
+						fmt.Println("检查到异常，事件:" + types + "_" + stype)
+						fmt.Println(result1)
+						return resultMsg
+						break
+					} else {
+						resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+							"检查结果 : 结构正常"})
+						fmt.Println("检查通过，事件:" + types + "_" + stype)
+						return resultMsg
+						break
+					}
+				}
 			}
 		}
+		resultMsg = append(resultMsg, []string{ //全部为空 没有did查到 返回结果
+			"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
+			"检查结果 : 无数据"})
+		logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
 	}
 	return resultMsg
+
 }
 
 func GetRealPoints(did, event, appName, fromInfo string) map[string]interface{} {
