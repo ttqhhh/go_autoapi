@@ -79,6 +79,29 @@
         });
     });
 </script>
+<script>
+    layui.use('dropdown', function(){
+        var dropdown = layui.dropdown
+        dropdown.render({
+            elem: '#demo1' //可绑定在任意元素中，此处以上述按钮为例
+            ,data: [{
+                title: '埋点测试'
+                ,id: 100
+                ,href: '/auto/check_points'
+            },{
+                title: '海外埋点测试'
+                ,id: 101
+                ,href: 'http://192.168.11.62:8080/auto/check_points' //开启超链接
+                ,target: '_blank' //新窗口方式打开
+            },]
+            ,id: 'demo1'
+            //菜单被点击的事件
+            ,click: function(obj){
+
+            }
+        });
+    });
+</script>
 
 <ul class="layui-nav" style="background-color: #3081FF;">
     <!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
@@ -100,7 +123,10 @@
     <li class="layui-nav-item"><a href="/service/index">服务管理</a></li>
     <li class="layui-nav-item" id="/web_report/show_web_report"><a href="/web_report/allwebreport">报告发送</a></li>
     <li class="layui-nav-item" id="/web_report/queryEmail"><a href="/web_report/allemail">邮箱组</a></li>
-    <li class="layui-nav-item" id="/show_points_test"><a href="/auto/check_points">埋点测试</a></li>
+    <button class="layui-btn" id="demo1" style="background-color: #3081FF;color: #c0d8fe">
+        埋点测试
+        <i class="layui-icon layui-icon-down layui-font-12"></i>
+    </button>
     <li class="layui-nav-item"><a href="http://172.16.2.86:8094/ ">Case平台</a></li>
     <li class="layui-nav-item"><a href="/flowreplay/index">推荐工具</a></li>
 
