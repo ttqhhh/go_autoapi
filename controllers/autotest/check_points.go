@@ -178,11 +178,11 @@ func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 }
 
 func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[string]interface{} {
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 5; i++ { //进行5次循环
 		if didList[i].Did == "" {
-			i++
+			i++ //前台没传值  直接跳过
 			continue
-		} else { //查
+		} else { // 访问获得realpoint
 			fmt.Println("准备拉取数据，action:" + event)
 			//时间是空位NaN
 			now := time.Now().Unix()
@@ -213,7 +213,7 @@ func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[st
 			_ = json.Unmarshal(body, &result)
 			if len(result) == 0 {
 				logs.Error("当前did下没有发现行为埋点：", event)
-
+				//没查到 继续循环
 				continue
 			}
 			v := make(map[string]interface{})
@@ -241,16 +241,15 @@ func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[st
 				}
 				if num == 0 {
 					logs.Error("当前did下没有发现行为埋点（none frominfo）：", event)
-
+					//没查到，继续循环
 					continue
 				}
 			}
 			return v
-
+			//查到了 直接跳出循环 return 结果
 		}
-
 	}
-	return nil
+	return nil //一直没查到，统一返回nil
 }
 
 func JsonCompare(left, right map[string]interface{}, extBool map[string]bool, n int) (string, bool) {
