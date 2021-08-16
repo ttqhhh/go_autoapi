@@ -180,7 +180,6 @@ func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[string]interface{} {
 	for i := 0; i < 5; i++ { //进行5次循环
 		if didList[i].Did == "" {
-			i++ //前台没传值  直接跳过
 			continue
 		} else { // 访问获得realpoint
 			fmt.Println("准备拉取数据，action:" + event)
