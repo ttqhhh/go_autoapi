@@ -7114,7 +7114,7 @@ body.skin-3 {
             $.each(logs, function (i, n) {
                 detailLog = detailLog + "<p>" + n + "</p>";
             });
-            $(obj).parent().parent().after("<tr><td colspan='" + len + "'><div style='font-family: Consolas;font-size:12px'>" + detailLog + "</div></td></tr>");
+            $(obj).parent().parent().after("<tr><td colspan='" + len + "'><div style='font-family: Consolas;font-size:12px;word-break: break-all'>" + detailLog + "</div></td></tr>");
         } else if ($(obj).text() == '收起') {
             $(obj).parent().parent().next().remove();
             $(obj).text("展开");
