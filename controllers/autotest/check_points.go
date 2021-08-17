@@ -15,22 +15,32 @@ import (
 
 const cookie = "99BFD42401E3660BFE97D2268BB1EC5A"
 
-type pointData struct{
-	Limit    int 		`form:"limit" json:"limit"`
-	Business string		`form:"business" json:"business"`
-	Did      string		`form:"did" json:"did"`
+type pointData struct {
+	Limit    int    `form:"limit" json:"limit"`
+	Business string `form:"business" json:"business"`
+	Did      string `form:"did" json:"did"`
 }
 
-func (c*AutoTestController) showCheckPoints(){
+func (c *AutoTestController) showCheckPoints() {
 	c.TplName = "check_points.html"
 }
 
-func (c*AutoTestController) checkPoints(){
-	pd := pointData{}
-	if err := c.ParseForm(&pd); err != nil { // 传入user指针
-		c.Ctx.WriteString("出错了！")
+func (c *AutoTestController) checkPoints() {
+	pdList := [5]pointData{}
+	k := 0
+	for k < 5 {
+		didString := "did" + "[" + strconv.Itoa(k) + "]"
+		pdList[k].Did = c.GetString(didString)
+		if pdList[k].Did != "" {
+			pdList[k].Business = c.GetString("business")
+			pdList[k].Limit, _ = c.GetInt("limit")
+			k++
+		} else if pdList[k].Did == "" {
+			k++
+			continue
+		}
 	}
-	resultMsg := GetBasePoints(pd.Limit, pd.Business, pd.Did)
+	resultMsg := GetBasePoints(pdList[0].Limit, pdList[0].Business, pdList)
 	c.Data["result"] = resultMsg
 	c.TplName = "check_points.html"
 }
@@ -38,27 +48,27 @@ func (c*AutoTestController) checkPoints(){
 func getLoginCookie() string {
 	postBody := `{"username": "wangzhen01", "password": "Iepohg5go4iawoo"}`
 	postData := bytes.NewReader([]byte(postBody))
-	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user",postData)
-	if err !=nil{
+	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user", postData)
+	if err != nil {
 		logs.Error(err)
 	}
 	client := &http.Client{}
 	response, _ := client.Do(req)
-	ck := fmt.Sprintf("%v",  response.Cookies())
+	ck := fmt.Sprintf("%v", response.Cookies())
 	sep := ";"
 	sep2 := "="
-	result := strings.Split(strings.Split(ck,sep)[0],sep2)[1]
+	result := strings.Split(strings.Split(ck, sep)[0], sep2)[1]
 	// 再用这个cookie登录一次
 	postBody2 := `{"username": "wangzhen01", "password": "Iepohg5go4iawoo"}`
 	postData2 := bytes.NewReader([]byte(postBody2))
-	req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user",postData2)
-	req2.Header.Add("Cookie","JSESSIONID="+result)
-	req2.Header.Add("Content-Type","application/json")
+	req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/user", postData2)
+	req2.Header.Add("Cookie", "JSESSIONID="+result)
+	req2.Header.Add("Content-Type", "application/json")
 	client2 := &http.Client{}
 	response2, _ := client2.Do(req2)
 	var reader io.ReadCloser
 	reader = response2.Body
-	body2, _:= ioutil.ReadAll(reader)
+	body2, _ := ioutil.ReadAll(reader)
 	fmt.Println(string(body2))
 	return result
 	//fmt.Println(response)
@@ -66,29 +76,29 @@ func getLoginCookie() string {
 }
 
 type JsonDiff struct {
-	HasDiff    bool
-	Result     string
-	Path       string
+	HasDiff bool
+	Result  string
+	Path    string
 }
 
 // 通过埋点系统平台获取标准校验点,获取前一周时间范围的校验点（当前取最后一个校验点）
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int, business string, did string) [][]string{
+func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 	var resultMsg [][]string
 	fmt.Println("第一次执行获取total总数")
 	limits := strconv.Itoa(limit)
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": 0,"limit": `+ limits +`,"app_name": "` +business+ `","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": 0,"limit": ` + limits + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
-	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list",postData)
-	if err !=nil{
+	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list", postData)
+	if err != nil {
 		logs.Error(err)
 	}
 	cookies := getLoginCookie()
-	req.Header.Add("Cookie","JSESSIONID="+cookies)
-	req.Header.Add("Content-Type","application/json")
+	req.Header.Add("Cookie", "JSESSIONID="+cookies)
+	req.Header.Add("Content-Type", "application/json")
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
@@ -96,22 +106,22 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 	}
 	var reader io.ReadCloser
 	reader = response.Body
-	body, _:= ioutil.ReadAll(reader)
+	body, _ := ioutil.ReadAll(reader)
 	v := make(map[string]interface{})
-	_ = json.Unmarshal(body,&v)
+	_ = json.Unmarshal(body, &v)
 	records := v["data"].(map[string]interface{})["records"].([]interface{})
-	for _,val := range records {
+	for _, val := range records {
 		fmt.Println("循环获取event_detail")
 		vals := val.(map[string]interface{})
 		appName := vals["app_name"].(string)
 		types := vals["type"].(string)
 		stype := vals["stype"].(string)
 		frominfo := vals["frominfo"].(string)
-		postBody2 := `{"app_name": "`+appName+`","frominfo":"`+frominfo+`","is_approval": "false","type":"`+types+`","stype":"`+stype+`"}`
-		postData2:= bytes.NewReader([]byte(postBody2))
+		postBody2 := `{"app_name": "` + appName + `","frominfo":"` + frominfo + `","is_approval": "false","type":"` + types + `","stype":"` + stype + `"}`
+		postData2 := bytes.NewReader([]byte(postBody2))
 		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
-		req2.Header.Add("Cookie","JSESSIONID="+cookies)
-		req2.Header.Add("Content-Type","application/json")
+		req2.Header.Add("Cookie", "JSESSIONID="+cookies)
+		req2.Header.Add("Content-Type", "application/json")
 		if err != nil {
 			logs.Error("请求失败，err: ", err)
 		}
@@ -122,15 +132,15 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 		}
 		var reader2 io.ReadCloser
 		reader2 = response2.Body
-		body2, _:= ioutil.ReadAll(reader2)
+		body2, _ := ioutil.ReadAll(reader2)
 		v2 := make(map[string]interface{})
-		_ = json.Unmarshal(body2,&v2)
+		_ = json.Unmarshal(body2, &v2)
 		// 主要获取拓展字段自定义字段
 		newExtended := make(map[string]interface{})
 		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
 		// m 是存储拓展自定义字段中的是否必选的bool
 		m := make(map[string]bool)
-		for _,valss := range extendedCustom{
+		for _, valss := range extendedCustom {
 			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
 			m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
 		}
@@ -141,99 +151,109 @@ func GetBasePoints(limit int, business string, did string) [][]string{
 		l["extdata"] = newExtended
 		fmt.Println(l)
 		// 开始获取真实入库数据
-		r := GetRealPoints(did,types+"_"+stype,appName,frominfo)
-		if r == nil{
-			resultMsg = append(resultMsg,[]string{
-						"埋点事件："+types+"_"+stype + "; frominfo:"+frominfo,
-						"检查结果 : 无数据"})
-			logs.Error("没有查询到数据，已跳过："+types+"_"+stype)
-		}else{
+		r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
+		if r == nil {
+			resultMsg = append(resultMsg, []string{
+				"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
+				"检查结果 : 无数据"})
+			logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
+		} else {
 			var result1 string
 			var result2 bool
-			result1, result2 = JsonCompare(l,r,m,-1)
+			result1, result2 = JsonCompare(l, r, m, -1)
 			if result2 == true {
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
-					"检查结果 : 结构异常", "异常信息："+result1,
-					"实际结果："+marshal(r)})
-				fmt.Println("检查到异常，事件:"+types+"_"+stype)
+				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+					"检查结果 : 结构异常", "异常信息：" + result1,
+					"实际结果：" + marshal(r)})
+				fmt.Println("检查到异常，事件:" + types + "_" + stype)
 				fmt.Println(result1)
-			}else{
-				resultMsg = append(resultMsg,[]string{"埋点事件:"+types+"_"+stype + "; frominfo:"+frominfo,
+			} else {
+				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
 					"检查结果 : 结构正常"})
-				fmt.Println("检查通过，事件:"+types+"_"+stype)
+				fmt.Println("检查通过，事件:" + types + "_" + stype)
 			}
 		}
 	}
 	return resultMsg
 }
 
-func GetRealPoints(did,event ,appName , fromInfo string) map[string]interface{} {
-	fmt.Println("准备拉取数据，action:" + event)
-	//时间是空位NaN
-	now := time.Now().Unix()
-	var oneMonth int64 = 2626560
-	lastOneMonth := now - oneMonth
-	lastonemonthS := strconv.FormatInt(lastOneMonth,10)
-	fmt.Println(lastonemonthS)
-	urls := ""
-	if appName != "omg" {
-		urls = "http://172.16.2.217:8090/search?user="+did+"&event="+event+"&time_begin="+ lastonemonthS +"&time_end=NaN"
-	}else{
-		urls = "http://10.12.44.53:9090//search?user="+did+"&event="+event+"&time_begin="+lastonemonthS+"&time_end=NaN"
-	}
-	req, err := http.NewRequest("GET", urls,nil)
-	if err != nil {
-		logs.Error("请求失败，err: ", err)
-	}
-	client := &http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		logs.Error("请求失败, err:", err)
-	}
-	var reader io.ReadCloser
-	reader = response.Body
-	body, _:= ioutil.ReadAll(reader)
-	//Sbody := string(body)
-	var result []string
-	_ = json.Unmarshal(body,&result)
-	if len(result)==0 {
-		logs.Error("当前did下没有发现行为埋点：",event)
-		return nil
-	}
-	v := make(map[string]interface{})
-	if fromInfo == "$old$"{
-		arr :=strings.Fields(result[len(result)-1])
-		realJson := arr[len(arr)-1]
-		_ = json.Unmarshal([]byte(realJson),&v)
-		ext := make(map[string]interface{})
-		_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-		v["extdata"] = ext
-	}else{
-	num := 0
-	loop:
-		for _, val := range result{
-			arr :=strings.Fields(val)
-			realJson := arr[len(arr)-1]
-			_ = json.Unmarshal([]byte(realJson),&v)
-			if v["frominfo"].(string) == fromInfo{
-				num += 1
-				ext := make(map[string]interface{})
-				_ = json.Unmarshal([]byte(v["extdata"].(string)),&ext)
-				v["extdata"] = ext
-				break loop
+func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[string]interface{} {
+	for i := 0; i < 5; i++ { //进行5次循环
+		if didList[i].Did == "" {
+			continue
+		} else { // 访问获得realpoint
+			fmt.Println("准备拉取数据，action:" + event)
+			//时间是空位NaN
+			now := time.Now().Unix()
+			var oneMonth int64 = 2626560
+			lastOneMonth := now - oneMonth
+			lastonemonthS := strconv.FormatInt(lastOneMonth, 10)
+			fmt.Println(lastonemonthS)
+			urls := ""
+			if appName != "omg" {
+				urls = "http://172.16.2.217:8090/search?user=" + didList[i].Did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
+			} else {
+				urls = "http://10.12.44.53:9090//search?user=" + didList[i].Did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
 			}
+			req, err := http.NewRequest("GET", urls, nil)
+			if err != nil {
+				logs.Error("请求失败，err: ", err)
+			}
+			client := &http.Client{}
+			response, err := client.Do(req)
+			if err != nil {
+				logs.Error("请求失败, err:", err)
+			}
+			var reader io.ReadCloser
+			reader = response.Body
+			body, _ := ioutil.ReadAll(reader)
+			//Sbody := string(body)
+			var result []string
+			_ = json.Unmarshal(body, &result)
+			if len(result) == 0 {
+				logs.Error("当前did下没有发现行为埋点：", event)
+				//没查到 继续循环
+				continue
+			}
+			v := make(map[string]interface{})
+			if fromInfo == "$old$" {
+				arr := strings.Fields(result[len(result)-1])
+				realJson := arr[len(arr)-1]
+				_ = json.Unmarshal([]byte(realJson), &v)
+				ext := make(map[string]interface{})
+				_ = json.Unmarshal([]byte(v["extdata"].(string)), &ext)
+				v["extdata"] = ext
+			} else {
+				num := 0
+			loop:
+				for _, val := range result {
+					arr := strings.Fields(val)
+					realJson := arr[len(arr)-1]
+					_ = json.Unmarshal([]byte(realJson), &v)
+					if v["frominfo"].(string) == fromInfo {
+						num += 1
+						ext := make(map[string]interface{})
+						_ = json.Unmarshal([]byte(v["extdata"].(string)), &ext)
+						v["extdata"] = ext
+						break loop
+					}
+				}
+				if num == 0 {
+					logs.Error("当前did下没有发现行为埋点（none frominfo）：", event)
+					//没查到，继续循环
+					continue
+				}
+			}
+			return v
+			//查到了 直接跳出循环 return 结果
 		}
-	if num == 0{
-		logs.Error("当前did下没有发现行为埋点（none frominfo）：",event)
-		return nil
 	}
-	}
-	return v
+	return nil //一直没查到，统一返回nil
 }
 
-func JsonCompare(left, right map[string]interface{} ,extBool map[string]bool, n int) (string, bool) {
+func JsonCompare(left, right map[string]interface{}, extBool map[string]bool, n int) (string, bool) {
 	diff := &JsonDiff{HasDiff: false, Result: ""}
-	jsonDiffDict(left, right, extBool,1, diff)
+	jsonDiffDict(left, right, extBool, 1, diff)
 	if diff.HasDiff {
 		if n < 0 {
 			return diff.Result, diff.HasDiff
@@ -260,7 +280,7 @@ func jsonDiffDict(json1, json2 map[string]interface{}, extBool map[string]bool, 
 					diff.HasDiff = true
 					diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 map[string]interface{} " + marshal(json2[key])
 				} else {
-					jsonDiffDict(value.(map[string]interface{}), json2[key].(map[string]interface{}),extBool, depth+1, diff)
+					jsonDiffDict(value.(map[string]interface{}), json2[key].(map[string]interface{}), extBool, depth+1, diff)
 				}
 			case []interface{}:
 				if _, ok2 := json2[key].([]interface{}); !ok2 {
@@ -277,9 +297,9 @@ func jsonDiffDict(json1, json2 map[string]interface{}, extBool map[string]bool, 
 			}
 		} else {
 			diff.HasDiff = true
-			if extBool[key] == true{
+			if extBool[key] == true {
 				diff.Result = diff.Result + "\n 键不存在：" + key + "(是)"
-			}else{
+			} else {
 				diff.Result = diff.Result + "\n 键不存在：" + key + "(否)"
 			}
 		}
@@ -299,13 +319,13 @@ func jsonDiffList(json1, json2 []interface{}, extBool map[string]bool, depth int
 				jsonDiffDict(json1[i].(map[string]interface{}), json2[i].(map[string]interface{}), extBool, depth+1, diff)
 			} else {
 				diff.HasDiff = true
-				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
+				diff.Path = diff.Path + "[" + strconv.Itoa(i) + "]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 map[string]interface{} " + marshal(json2[i])
 			}
 		case []interface{}:
 			if _, ok2 := json2[i].([]interface{}); !ok2 {
 				diff.HasDiff = true
-				diff.Path =  diff.Path + "["+ strconv.Itoa(i) +"]"
+				diff.Path = diff.Path + "[" + strconv.Itoa(i) + "]"
 				diff.Result = diff.Result + "\n path:" + diff.Path + ";实际值类型非 interface{} -- " + marshal(json2[i])
 			} else {
 				jsonDiffList(json1[i].([]interface{}), json2[i].([]interface{}), extBool, depth+1, diff)
