@@ -151,6 +151,7 @@ func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 		l["extdata"] = newExtended
 		fmt.Println(l)
 		// 开始获取真实入库数据
+
 		r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
 		if r == nil {
 			resultMsg = append(resultMsg, []string{
