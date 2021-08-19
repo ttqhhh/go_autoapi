@@ -59,17 +59,17 @@ func (a *RtDetailAlertMongo) Insert(rtDetailAlert RtDetailAlertMongo) error {
 func (a *RtDetailAlertMongo) GetOneWeekAlertInfo(page int, limit int) ([]RtDetailAlertMongo, int, error) {
 	query := bson.M{}
 
-	//timestamp := time.Now().Unix()
-	//queryCond := []interface{}{}
+	timestamp := time.Now().Unix()
+	queryCond := []interface{}{}
 	//查询过去7天该点的响应时间，不包括今天
-	//for i := 0; i < 7; i++ {
-	//	one := timestamp - 60*60*24
-	//	oneDate := time.Unix(one, 0).Format(Time_format)[:11]
-	//	queryOr := bson.M{}
-	//	queryOr["created_at"] = bson.M{"$regex": oneDate}
-	//	queryCond = append(queryCond, queryOr)
-	//}
-	//query["$or"] = queryCond
+	for i := 0; i < 7; i++ {
+		one := timestamp - 60*60*24
+		oneDate := time.Unix(one, 0).Format(Time_format)[:11]
+		queryOr := bson.M{}
+		queryOr["created_at"] = bson.M{"$regex": oneDate}
+		queryCond = append(queryCond, queryOr)
+	}
+	query["$or"] = queryCond
 
 	queryList := []RtDetailAlertMongo{}
 	ms, db := db_proxy.Connect("auto_api", "rt_detail_alert")
