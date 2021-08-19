@@ -89,6 +89,38 @@ func (a *RtDetailAlertMongo) GetOneWeekAlertInfo(page int, limit int) ([]RtDetai
 	return queryList, intol, err
 }
 
+//查一周内的警报记录
+func (a *RtDetailAlertMongo) GetAllOneWeekAlertInfo(page int, limit int) ([]RtDetailAlertMongo, int, error) {
+	query := bson.M{}
+	queryList := []RtDetailAlertMongo{}
+	ms, db := db_proxy.Connect("auto_api", "rt_detail_alert")
+	defer ms.Close()
+	//err := db.Find(query).All(&queryList)
+	err := db.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&queryList)
+	if err != nil {
+		if err.Error() == "not found" {
+			return nil, 0, nil
+		}
+		logs.Error("分页查询警报出错 ", err)
+	}
+	intol, err := db.Find(query).Count()
+	if err != nil {
+		logs.Info("取得全部警报出错")
+	}
+	queryList2 := []RtDetailAlertMongo{}
+	for _, query := range queryList { //遍历list
+		reportCreateStringTime := query.CreatedAt                                               //取出报警时间
+		const Layout = "2006-01-02 15:04:05"                                                    //时间常量
+		reportCreateTime, _ := time.ParseInLocation(Layout, reportCreateStringTime, time.Local) //转换为date类型
+		if reportCreateTime.After(time.Now().AddDate(0, 0, -7)) {                               //如果报告时间在一周内
+			queryList2 = append(queryList2, query)
+
+		}
+	}
+
+	return queryList2, intol, err
+}
+
 //通过id查询警报详情
 func (a *RtDetailAlertMongo) GetOneAlertById(id int64) (RtDetailAlertMongo, error) {
 

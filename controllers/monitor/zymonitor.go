@@ -101,7 +101,7 @@ func (c *ZYMonitorController) ThisWeekAlert() {
 	mongo := models.RtDetailAlertMongo{}
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
-	alertInfos, count, err := mongo.GetOneWeekAlertInfo(page, limit)
+	alertInfos, count, err := mongo.GetAllOneWeekAlertInfo(page, limit)
 	if err != nil {
 		//logs.Error("获取本周报警数据报错, err: ", err)
 		c.ErrorJson(-1, "获取本周报警数据报错", nil)
