@@ -151,112 +151,105 @@ func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 		l["extdata"] = newExtended
 		fmt.Println(l)
 		// 开始获取真实入库数据
-		j := 0
-		for j < 5 {
-			did := pdList[j].Did
-			if did == "" { //传值为"" 不操作
-				j++
-				continue
 
-			} else if did != "" { //不为空  拿到真实point
-				r := GetRealPoints(did, types+"_"+stype, appName, frominfo)
-				if r == nil { //返回结果为空 说明没查到 继续查下一个did
-					j++
-					continue
-
-				} else { //返回结果不为空，说明查到了，终止循环 并进行compare对比  并返回结果
-					var result1 string
-					var result2 bool
-					result1, result2 = JsonCompare(l, v, m, -1)
-					if result2 == true {
-						resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-							"检查结果 : 结构异常", "异常信息：" + result1,
-							"实际结果：" + marshal(v)})
-						fmt.Println("检查到异常，事件:" + types + "_" + stype)
-						fmt.Println(result1)
-						return resultMsg
-						break
-					} else {
-						resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-							"检查结果 : 结构正常"})
-						fmt.Println("检查通过，事件:" + types + "_" + stype)
-						return resultMsg
-						break
-					}
-				}
+		r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
+		if r == nil {
+			resultMsg = append(resultMsg, []string{
+				"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
+				"检查结果 : 无数据"})
+			logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
+		} else {
+			var result1 string
+			var result2 bool
+			result1, result2 = JsonCompare(l, r, m, -1)
+			if result2 == true {
+				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+					"检查结果 : 结构异常", "异常信息：" + result1,
+					"实际结果：" + marshal(r)})
+				fmt.Println("检查到异常，事件:" + types + "_" + stype)
+				fmt.Println(result1)
+			} else {
+				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+					"检查结果 : 结构正常"})
+				fmt.Println("检查通过，事件:" + types + "_" + stype)
 			}
 		}
-		resultMsg = append(resultMsg, []string{ //全部为空 没有did查到 返回结果
-			"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
-			"检查结果 : 无数据"})
-		logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
 	}
 	return resultMsg
-
 }
 
-func GetRealPoints(did, event, appName, fromInfo string) map[string]interface{} {
-	fmt.Println("准备拉取数据，action:" + event)
-	//时间是空位NaN
-	now := time.Now().Unix()
-	var oneMonth int64 = 2626560
-	lastOneMonth := now - oneMonth
-	lastonemonthS := strconv.FormatInt(lastOneMonth, 10)
-	fmt.Println(lastonemonthS)
-	urls := ""
-	if appName != "omg" {
-		urls = "http://172.16.2.217:8090/search?user=" + did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
-	} else {
-		urls = "http://10.12.44.53:9090//search?user=" + did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
-	}
-	req, err := http.NewRequest("GET", urls, nil)
-	if err != nil {
-		logs.Error("请求失败，err: ", err)
-	}
-	client := &http.Client{}
-	response, err := client.Do(req)
-	if err != nil {
-		logs.Error("请求失败, err:", err)
-	}
-	var reader io.ReadCloser
-	reader = response.Body
-	body, _ := ioutil.ReadAll(reader)
-	//Sbody := string(body)
-	var result []string
-	_ = json.Unmarshal(body, &result)
-	if len(result) == 0 {
-		logs.Error("当前did下没有发现行为埋点：", event)
-		return nil
-	}
-	v := make(map[string]interface{})
-	if fromInfo == "$old$" {
-		arr := strings.Fields(result[len(result)-1])
-		realJson := arr[len(arr)-1]
-		_ = json.Unmarshal([]byte(realJson), &v)
-		ext := make(map[string]interface{})
-		_ = json.Unmarshal([]byte(v["extdata"].(string)), &ext)
-		v["extdata"] = ext
-	} else {
-		num := 0
-	loop:
-		for _, val := range result {
-			arr := strings.Fields(val)
-			realJson := arr[len(arr)-1]
-			_ = json.Unmarshal([]byte(realJson), &v)
-			if v["frominfo"].(string) == fromInfo {
-				num += 1
+func GetRealPoints(didList [5]pointData, event, appName, fromInfo string) map[string]interface{} {
+	for i := 0; i < 5; i++ { //进行5次循环
+		if didList[i].Did == "" {
+			continue
+		} else { // 访问获得realpoint
+			fmt.Println("准备拉取数据，action:" + event)
+			//时间是空位NaN
+			now := time.Now().Unix()
+			var oneMonth int64 = 2626560
+			lastOneMonth := now - oneMonth
+			lastonemonthS := strconv.FormatInt(lastOneMonth, 10)
+			fmt.Println(lastonemonthS)
+			urls := ""
+			if appName != "omg" {
+				urls = "http://172.16.2.217:8090/search?user=" + didList[i].Did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
+			} else {
+				urls = "http://10.12.44.53:9090//search?user=" + didList[i].Did + "&event=" + event + "&time_begin=" + lastonemonthS + "&time_end=NaN"
+			}
+			req, err := http.NewRequest("GET", urls, nil)
+			if err != nil {
+				logs.Error("请求失败，err: ", err)
+			}
+			client := &http.Client{}
+			response, err := client.Do(req)
+			if err != nil {
+				logs.Error("请求失败, err:", err)
+			}
+			var reader io.ReadCloser
+			reader = response.Body
+			body, _ := ioutil.ReadAll(reader)
+			//Sbody := string(body)
+			var result []string
+			_ = json.Unmarshal(body, &result)
+			if len(result) == 0 {
+				logs.Error("当前did下没有发现行为埋点：", event)
+				//没查到 继续循环
+				continue
+			}
+			v := make(map[string]interface{})
+			if fromInfo == "$old$" {
+				arr := strings.Fields(result[len(result)-1])
+				realJson := arr[len(arr)-1]
+				_ = json.Unmarshal([]byte(realJson), &v)
 				ext := make(map[string]interface{})
 				_ = json.Unmarshal([]byte(v["extdata"].(string)), &ext)
 				v["extdata"] = ext
-				break loop
+			} else {
+				num := 0
+			loop:
+				for _, val := range result {
+					arr := strings.Fields(val)
+					realJson := arr[len(arr)-1]
+					_ = json.Unmarshal([]byte(realJson), &v)
+					if v["frominfo"].(string) == fromInfo {
+						num += 1
+						ext := make(map[string]interface{})
+						_ = json.Unmarshal([]byte(v["extdata"].(string)), &ext)
+						v["extdata"] = ext
+						break loop
+					}
+				}
+				if num == 0 {
+					logs.Error("当前did下没有发现行为埋点（none frominfo）：", event)
+					//没查到，继续循环
+					continue
+				}
 			}
-		}
-		if num == 0 {
-			logs.Error("当前did下没有发现行为埋点（none frominfo）：", event)
-			return nil
+			return v
+			//查到了 直接跳出循环 return 结果
 		}
 	}
-	return v
+	return nil //一直没查到，统一返回nil
 }
 
 func JsonCompare(left, right map[string]interface{}, extBool map[string]bool, n int) (string, bool) {

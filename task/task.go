@@ -14,7 +14,7 @@ const IS_OPEN_INSPECTION_TASK = true
 const IS_OPEN_RT_MONITOR_TASK = true
 
 //是否开启定期删除任务
-const IS_OPEN_REGULAR_DELETE_TASK= true
+const IS_OPEN_REGULAR_DELETE_TASK = false
 
 func init() {
 	// new一个线上巡检的定时任务定时任务
@@ -48,7 +48,7 @@ func init() {
 		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)
 		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
 	}
-	if IS_OPEN_REGULAR_DELETE_TASK{ //新增，每周一执行一次的定时删除报告任务
+	if IS_OPEN_REGULAR_DELETE_TASK { //新增，每周一执行一次的定时删除报告任务
 		Delete1Week := toolbox.NewTask("Delete_Date_1Week", inspection.ONE_WEEK_EXPRESSION, inspection_strategy.Delete1Week)
 		toolbox.AddTask("Delete_Date_1Week", Delete1Week)
 
