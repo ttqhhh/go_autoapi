@@ -220,8 +220,10 @@ func Excute(serviceCode string, timestamp int64) {
 					} else {
 						mongo.AvgRt = thresholdRt
 					}
+					mongo.AvgThresholdRt = thresholdRt //历史平均时间 用于数据库展示
 					mongo.Rt = rtInt
 					mongo.CreatedAt = taskTime
+					mongo.Reason = models.QUICK_INCREASE_RT_ALERT_REASON //警报原因 用于数据库展示
 					mongo.Insert(mongo)
 					if MONITOR_DING_SEND_IS_OPEN {
 						content := fmt.Sprintf("【性能监控-线上巡检Alert】: 接口响应时间大幅度高出近两周平均值，请及时关注！\n【业务线】: 最右\n【网关服务】: %s\n【URI】: %s\n【当前响应时间】: %v\n【历史平均响应时间】: %v\n", serviceCode, uri, rtInt, thresholdRt)
@@ -266,6 +268,7 @@ func Excute(serviceCode string, timestamp int64) {
 				//}
 				mongo.Rt = rtInt
 				mongo.CreatedAt = taskTime
+				mongo.Reason = models.SLOW_INCREASE_RT_ALERT_REASON
 				mongo.Insert(mongo)
 				// todo 发送钉钉出去
 				if MONITOR_DING_SEND_IS_OPEN {

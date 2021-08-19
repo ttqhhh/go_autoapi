@@ -46,7 +46,8 @@ func (c *ZYMonitorController) Post() {
 	switch do {
 	case "set_rt_threshold":
 		c.setRtThreshold()
-
+	case "query_alert_by_id": //暂时不使用
+		c.queryAlertById()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -98,10 +99,12 @@ func (c *ZYMonitorController) ThisWeekAlert() {
 	//todayZoreTimestamp := GetTodayZeroClock()
 	//last14DateMap := GetLast14DaysDate(todayZoreTimestamp)
 	mongo := models.RtDetailAlertMongo{}
-	alertInfos, err := mongo.GetOneWeekAlertInfo()
+	page, _ := strconv.Atoi(c.GetString("page"))
+	limit, _ := strconv.Atoi(c.GetString("limit"))
+	alertInfos, count, err := mongo.GetOneWeekAlertInfo(page, limit)
 	if err != nil {
-	    //logs.Error("获取本周报警数据报错, err: ", err)
-	    c.ErrorJson(-1, "获取本周报警数据报错", nil)
+		//logs.Error("获取本周报警数据报错, err: ", err)
+		c.ErrorJson(-1, "获取本周报警数据报错", nil)
 	}
 	//alertMap := map[string]models.RtDetailAlertMongo{}
 	alertList := []interface{}{}
@@ -110,11 +113,34 @@ func (c *ZYMonitorController) ThisWeekAlert() {
 		oneAlert["service_code"] = alert.ServiceCode
 		oneAlert["uri"] = alert.Uri
 		oneAlert["create_at"] = alert.CreatedAt
+		oneAlert["id"] = alert.Id
+		oneAlert["threshold_rt"] = alert.ThresholdRt
+		oneAlert["avg_rt"] = alert.AvgRt
+		oneAlert["type"] = alert.Type
+		oneAlert["business"] = alert.Business
+		oneAlert["rt"] = alert.Rt
+		oneAlert["avg_threshold_rt"] = alert.AvgThresholdRt //历史平均响应时间
+		oneAlert["reason"] = alert.Reason
 		alertList = append(alertList, oneAlert)
 	}
-	c.SuccessJson(alertList)
+	c.FormSuccessJson(int64(count), alertList)
 }
+func (c *ZYMonitorController) queryAlertById() {
+	idstr := c.GetString("id")
+	fmt.Printf(idstr)
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		logs.Error("请求参数类型转换报错， err:", err)
+		c.ErrorJson(-1, "请求参数转换异常", nil)
+	}
+	mongo := models.RtDetailAlertMongo{}
+	alert, err := mongo.GetOneAlertById(int64(id))
+	if err != nil {
+		logs.Info("通过id查询警报错误")
+	}
+	c.SuccessJson(alert)
 
+}
 func (c *ZYMonitorController) Last2WeekTrend() {
 	serviceCode := c.GetString("service_code")
 	uri := c.GetString("uri")
@@ -123,61 +149,60 @@ func (c *ZYMonitorController) Last2WeekTrend() {
 	todayZoreTimestamp := GetTodayZeroClock()
 	last14DateMap := GetLast14DaysDate(todayZoreTimestamp)
 
-
 	rtDetail := &models.RtDetailMongo{}
 	rtDetail, err := rtDetail.GetByServiceAndUri(serviceCode, uri)
 	if err != nil {
-	    logs.Error("查询接口响应数据详情报错, err: ", err)
-	    c.ErrorJson(-1, "查询接口响应数据详情报错", nil)
+		logs.Error("查询接口响应数据详情报错, err: ", err)
+		c.ErrorJson(-1, "查询接口响应数据详情报错", nil)
 	}
 
 	times := []string{}
 	rts := []int{}
 	times = append(times, last14DateMap[-14]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last14DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last14DayRt, oclock))
 
 	times = append(times, last14DateMap[-13]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-12]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-11]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-10]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-9]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-8]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-7]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-6]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-5]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-4]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-3]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-2]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	times = append(times, last14DateMap[-1]+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last13DayRt, oclock))
 
 	todayDate := time.Now().Format(models.Time_format)[:10]
 	times = append(times, todayDate+" "+oclock)
-	rts = append(rts, getRtByOclock(rtDetail.Last0DayRt, oclock),)
+	rts = append(rts, getRtByOclock(rtDetail.Last0DayRt, oclock))
 
 	result := map[string]interface{}{}
 	result["times"] = times
@@ -185,7 +210,7 @@ func (c *ZYMonitorController) Last2WeekTrend() {
 	c.SuccessJson(&result)
 }
 
-func getRtByOclock(rtStr string, oclock string) (rt  int) {
+func getRtByOclock(rtStr string, oclock string) (rt int) {
 	rtMap := map[string]int{}
 	json.Unmarshal([]byte(rtStr), &rtMap)
 	rt = rtMap[oclock]
