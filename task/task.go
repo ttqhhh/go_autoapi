@@ -8,13 +8,13 @@ import (
 )
 
 // 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_INSPECTION_TASK = false
+const IS_OPEN_INSPECTION_TASK = true
 
 // 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_RT_MONITOR_TASK = false
+const IS_OPEN_RT_MONITOR_TASK = true
 
 //是否开启定期删除任务
-const IS_OPEN_REGULAR_DELETE_TASK = false
+const IS_OPEN_REGULAR_DELETE_TASK = true
 
 func init() {
 	// new一个线上巡检的定时任务定时任务

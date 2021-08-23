@@ -29,7 +29,7 @@ const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b
 const CE_SHI_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
 
 // todo 上线or正常使用时，需要设为true进行开启
-const IS_OPEN_SENDDING_MSG = false
+const IS_OPEN_SENDDING_MSG = true
 
 // 执行线上巡检Case
 func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, restrainMsgChannel chan string, strategy int64) (err error) {
