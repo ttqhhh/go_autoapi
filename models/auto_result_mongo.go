@@ -31,7 +31,7 @@ type AutoResult struct {
 	Author       string `json:"author" bson:"author"`
 	Response     string `json:"response,omitempty" bson:"response"`
 	// 0705新增codeStatus
-	StatusCode   int 	`json:"status_code" bson:"status_code"`
+	StatusCode int `json:"status_code" bson:"status_code"`
 	// omitempty 表示该字段为空时，不返回
 	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
 	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
@@ -77,7 +77,7 @@ func GetResultByRunId(id string) (ar []*AutoResult, err error) {
 	query := bson.M{"run_id": id}
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
-	err = db.Find(query).Select(bson.M{"status_code":1, "case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
+	err = db.Find(query).Select(bson.M{"status_code": 1, "case_id": 1, "is_inspection": 1, "reason": 1, "result": 1, "author": 1, "response": 1, "created_at": 1}).All(&ar)
 	fmt.Println(ar)
 	if err != nil {
 		logs.Error(1024, err)
@@ -122,13 +122,14 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	failCount = int64(count)
 	return
 }
+
 //删(直接删除库中数据)
 func (a *AutoResult) DeleteResult(id string) error {
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	// 处理更新时间字段
 	data := bson.M{
-		"run_id":id,
+		"run_id": id,
 	}
 	err := db.Remove(data)
 	if err != nil {
@@ -136,11 +137,16 @@ func (a *AutoResult) DeleteResult(id string) error {
 	}
 	return err
 }
-//查询所有的报告结果
+
+//查询一周之前的的报告结果
 func (a *AutoResult) QueryResult() ([]AutoResult, error) {
+	nowTimeStr := time.Now().AddDate(0, 0, -8).Format("2006-01-02 15:04:0")
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	query := bson.M{
+		"created_at": bson.M{
+			"$lt": nowTimeStr,
+		},
 	}
 	autoResultList := []AutoResult{}
 	err := db.Find(query).All(&autoResultList)
