@@ -144,6 +144,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		for caseId, autoResultList := range case2ResultMap {
 			if len(autoResultList) > 2 {
 				//todo 此时该条巡检Case有问题，进行对外通知
+				logs.Info("监测到有问题的case，caseID:" + strconv.FormatInt(caseId, 10))
 				//testCaseMongo := models.TestCaseMongo{}
 				//testCaseMongo = testCaseMongo.GetOneCase(caseId)
 				icm := models.InspectionCaseMongo{}
@@ -171,6 +172,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}
 		}
 		if msg != "" {
+			logs.Info("开始向通道发送消息")
 			totalMsg := baseMsg + msg
 			msgChannel <- totalMsg
 		}
