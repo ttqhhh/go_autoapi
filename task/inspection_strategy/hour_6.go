@@ -52,6 +52,7 @@ func Strategy6Hour() error {
 	if len(msgList) > 0 {
 		logs.Info("打印钉钉消息日志：\n" + dingMsg)
 		if IS_OPEN_SENDDING_MSG {
+			logs.Info("开始发送叮叮消息，【巡检次数6小时/次】")
 			DingSend(dingMsg)
 		}
 	}
