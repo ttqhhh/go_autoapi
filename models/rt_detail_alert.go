@@ -56,7 +56,7 @@ func (a *RtDetailAlertMongo) Insert(rtDetailAlert RtDetailAlertMongo) error {
 	return db.Insert(rtDetailAlert)
 }
 
-//通过id删除
+//通过id删除性能报告
 func (a *RtDetailAlertMongo) DeleteById(id int64) error {
 	ms, db := db_proxy.Connect("auto_api", "rt_detail_alert")
 	defer ms.Close()
@@ -68,6 +68,29 @@ func (a *RtDetailAlertMongo) DeleteById(id int64) error {
 		logs.Info("根据id删除错误")
 	}
 	return err
+}
+
+//查询一周之前的性能监控报告
+func (a *RtDetailAlertMongo) QueryResult() ([]RtDetailAlertMongo, error) {
+	nowTimeStr := time.Now().AddDate(0, 0, -7).Format("2006-01-02 15:04:0")
+	ms, db := db_proxy.Connect("auto_api", "rt_detail_alert")
+	defer ms.Close()
+	query := bson.M{
+		"created_at": bson.M{
+			"$lt": nowTimeStr,
+		},
+	}
+	RtDetailAlertList := []RtDetailAlertMongo{}
+	err := db.Find(query).All(&RtDetailAlertList)
+	if err != nil {
+		if err.Error() == "not found" {
+			err = nil
+			//return nil, nil
+			return nil, nil
+		}
+		logs.Error("查询错误: %v", err)
+	}
+	return RtDetailAlertList, err
 }
 
 func (a *RtDetailAlertMongo) GetOneWeekAlertInfo(page int, limit int) ([]RtDetailAlertMongo, int, error) {
