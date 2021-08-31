@@ -99,6 +99,15 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				isContinue := true
 				for isContinue {
 					isOk := libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+					if isOk == true { //如果是成功执行的case
+						mongo := models.InspectionCaseMongo{}
+						succseeCase := mongo.GetOneCase(caseId)
+						if succseeCase.WarningNumber != 0 {
+							//监测它的警报次数 ，不等于0的话修改为0
+							mongo.ClearWarningTimes(caseId, succseeCase)
+							logs.Info("修改该case的警报次数 caseid：" + strconv.FormatInt(caseId, 10))
+						}
+					}
 					if retryTimes >= 2 || isOk {
 						isContinue = false
 					}
