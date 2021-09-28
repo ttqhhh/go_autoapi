@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 const uploadDir = "/home/work/efficiency/upload/tuijian"
@@ -54,6 +55,8 @@ func (c *FlowReplayController) Post() {
 		c.ReplayCycle()
 	case "collect_flow_file":
 		c.collectFlowFile()
+	case "pressure_measurement":
+		c.pressure_Measurement()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -163,7 +166,7 @@ func (c *FlowReplayController) update() {
 	if err != nil {
 		logs.Error("流量回放添加时, 验证serviceName唯一性时报错")
 	}
-	if temp != nil && temp.Id != flowreplay.Id{
+	if temp != nil && temp.Id != flowreplay.Id {
 		c.ErrorJson(-1, "存在服务名相同的流量", nil)
 	}
 	flowreplay.UpdateBy = userId
@@ -378,3 +381,102 @@ func (c *FlowReplayController) showAllFlowFiles() {
 	}
 	c.SuccessJson(fileNames)
 }
+
+func (c *FlowReplayController) pressure_Measurement() {
+	times, err := c.GetInt64("test_times")
+	if err != nil {
+		logs.Info(err, "取得压测次数报错")
+	}
+	concurrent, err := c.GetInt64("concurrent", 10)
+	if err != nil {
+		logs.Info(err, "取得并发数错误")
+	}
+	RequestMode := c.GetString("request_mode")
+	URL := c.GetString("url")
+	ServiceName := c.GetString("service_name")
+	Apiname := c.GetString("api_name")
+	Args := c.GetString("args")
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("hey -n %v -c %v -t 3000 -m %s -T \"application/x-www-form-urlencoded\" %s/%s/%s -d '%s' ", times, concurrent, RequestMode, URL, ServiceName, Apiname, Args))
+	fmt.Println(cmd)
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		logs.Info("请求接口错误 err：", err)
+	}
+	fmt.Println(string(out))
+	stringOut := string(out)
+	//解析数据并封装
+	stringList := strings.Split(stringOut, "\n")
+	fmt.Printf(stringList[0])
+	data := make(map[string]interface{})
+	data["Total"] = stringList[2]
+	data["Slowest"] = stringList[3]
+	data["Fastest"] = stringList[4]
+	data["Average"] = stringList[5]
+	data["Requests/sec"] = stringList[6]
+	data["histogram1"] = stringList[12] //响应直方图
+	data["histogram2"] = stringList[13]
+	data["histogram3"] = stringList[14]
+	data["histogram4"] = stringList[15]
+	data["histogram5"] = stringList[16]
+	data["histogram6"] = stringList[17]
+	data["histogram7"] = stringList[18]
+	data["histogram8"] = stringList[19]
+	data["histogram9"] = stringList[20]
+	data["histogram10"] = stringList[21]
+	data["histogram11"] = stringList[22]
+	data["distribution1"] = stringList[26] //http请求时延分布
+	data["distribution2"] = stringList[27]
+	data["distribution3"] = stringList[28]
+	data["distribution4"] = stringList[29]
+	data["distribution5"] = stringList[30]
+	data["distribution6"] = stringList[31]
+	data["distribution7"] = stringList[32]
+	data["status"] = stringList[42]
+
+	c.Data["resp"] = data
+	c.TplName = "show_testdata.html"
+}
+
+//Summary:
+//Total:	0.0554 secs
+//Slowest:	0.0094 secs
+//Fastest:	0.0041 secs
+//Average:	0.0055 secs
+//Requests/sec:	180.4073
+//
+//Total data:	22830 bytes
+//Size/request:	2283 bytes
+//
+//Response time histogram:
+//0.004 [1]	|■■■■■■■■■■■■■
+//0.005 [3]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+//0.005 [1]	|■■■■■■■■■■■■■
+//0.006 [2]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■
+//0.006 [1]	|■■■■■■■■■■■■■
+//0.007 [0]	|
+//0.007 [1]	|■■■■■■■■■■■■■
+//0.008 [0]	|
+//0.008 [0]	|
+//0.009 [0]	|
+//0.009 [1]	|■■■■■■■■■■■■■
+//
+//
+//Latency distribution:
+//10% in 0.0042 secs
+//25% in 0.0045 secs
+//50% in 0.0052 secs
+//75% in 0.0070 secs
+//90% in 0.0094 secs
+//0% in 0.0000 secs
+//0% in 0.0000 secs
+//
+//Details (average, fastest, slowest):
+//DNS+dialup:	0.0001 secs, 0.0000 secs, 0.0005 secs
+//DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0000 secs
+//req write:	0.0000 secs, 0.0000 secs, 0.0001 secs
+//resp wait:	0.0027 secs, 0.0021 secs, 0.0035 secs
+//resp read:	0.0001 secs, 0.0001 secs, 0.0002 secs
+//
+//Status code distribution:
+//[200]	10 responses
