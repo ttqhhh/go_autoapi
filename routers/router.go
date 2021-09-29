@@ -9,6 +9,7 @@ import (
 	"go_autoapi/controllers/health"
 	"go_autoapi/controllers/inspection"
 	"go_autoapi/controllers/monitor"
+	"go_autoapi/controllers/presstest"
 	"go_autoapi/controllers/report"
 	"go_autoapi/controllers/tuijian"
 	"go_autoapi/controllers/web_report"
@@ -29,4 +30,6 @@ func init() {
 	beego.Router("/flowreplay/*", &tuijian.FlowReplayController{})
 	beego.Router("/monitor/*", &monitor.ZYMonitorController{})
 	beego.Router("/health/*", &health.HealthController{})
+	beego.Router("/presstest/*", &presstest.PressTestController{})
+
 }
