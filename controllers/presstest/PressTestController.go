@@ -109,6 +109,9 @@ func (c *PressTestController) add() {
 		}
 		c.Redirect("/presstest/index", http.StatusFound)
 	}
+	if err1 == nil {
+		c.update()
+	}
 
 }
 
@@ -182,7 +185,7 @@ func (c *PressTestController) pressureMeasurement() {
 	ServiceName := pressTestModel.ServiceName
 	Apiname := pressTestModel.ApiName
 	Args := pressTestModel.Args
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("hey -n %v -c %v -t 3000 -m %s -T \"application/x-www-form-urlencoded\" %s/%s/%s -d '%s' ", times, concurrent, RequestMode, URL, ServiceName, Apiname, Args))
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("hey -n %v -c %v -t 3000 -m %s -T \"application/x-www-form-urlencoded\" %s%s%s -d %s ", times, concurrent, RequestMode, URL, ServiceName, Apiname, Args))
 	fmt.Println(cmd)
 
 	out, err := cmd.CombinedOutput()
