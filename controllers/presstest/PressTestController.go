@@ -197,33 +197,33 @@ func (c *PressTestController) pressureMeasurement() {
 	//解析数据并封装
 	stringList := strings.Split(stringOut, "\n")
 	fmt.Printf(stringList[0])
-	data := make(map[string]interface{})
-	data["Total"] = stringList[2]
-	data["Slowest"] = stringList[3]
-	data["Fastest"] = stringList[4]
-	data["Average"] = stringList[5]
-	data["Requests/sec"] = stringList[6]
-	data["histogram1"] = stringList[12] //响应直方图
-	data["histogram2"] = stringList[13]
-	data["histogram3"] = stringList[14]
-	data["histogram4"] = stringList[15]
-	data["histogram5"] = stringList[16]
-	data["histogram6"] = stringList[17]
-	data["histogram7"] = stringList[18]
-	data["histogram8"] = stringList[19]
-	data["histogram9"] = stringList[20]
-	data["histogram10"] = stringList[21]
-	data["histogram11"] = stringList[22]
-	data["distribution1"] = stringList[26] //http请求时延分布
-	data["distribution2"] = stringList[27]
-	data["distribution3"] = stringList[28]
-	data["distribution4"] = stringList[29]
-	data["distribution5"] = stringList[30]
-	data["distribution6"] = stringList[31]
-	data["distribution7"] = stringList[32]
-	data["status"] = stringList[42]
+	//data := make(map[string]interface{})
+	//data["Total"] = stringList[2]
+	//data["Slowest"] = stringList[3]
+	//data["Fastest"] = stringList[4]
+	//data["Average"] = stringList[5]
+	//data["Requests/sec"] = stringList[6]
+	//data["histogram1"] = stringList[12] //响应直方图
+	//data["histogram2"] = stringList[13]
+	//data["histogram3"] = stringList[14]
+	//data["histogram4"] = stringList[15]
+	//data["histogram5"] = stringList[16]
+	//data["histogram6"] = stringList[17]
+	//data["histogram7"] = stringList[18]
+	//data["histogram8"] = stringList[19]
+	//data["histogram9"] = stringList[20]
+	//data["histogram10"] = stringList[21]
+	//data["histogram11"] = stringList[22]
+	//data["distribution1"] = stringList[26] //http请求时延分布
+	//data["distribution2"] = stringList[27]
+	//data["distribution3"] = stringList[28]
+	//data["distribution4"] = stringList[29]
+	//data["distribution5"] = stringList[30]
+	//data["distribution6"] = stringList[31]
+	//data["distribution7"] = stringList[32]
+	//data["status"] = stringList[42]
 
-	c.Data["resp"] = data
+	c.Data["resp"] = stringList
 	c.TplName = "show_test_data.html"
 	fmt.Printf("跳转页面")
 }

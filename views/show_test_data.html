@@ -15,33 +15,11 @@
 <fieldset class="layui-elem-field" style="margin: 2%">
     <legend>压测结果展示：</legend>
     <div class="layui-field-box" style="background-color: oldlace">
-        运行总时常：{{index .resp "Total"}}<br>
-        最慢运行：{{index .resp "Slowest"}}<br>
-        最快运行：{{index .resp "Fastest"}}<br>
-        平均运行时常：{{index .resp "Average"}}<br>
-        每秒响应数：{{index .resp "Requests/sec"}}<br>
-        响应直方图：<br><br>
-        {{index .resp "histogram1"}}<br>
-        {{index .resp "histogram2"}}<br>
-        {{index .resp "histogram3"}}<br>
-        {{index .resp "histogram4"}}<br>
-        {{index .resp "histogram5"}}<br>
-        {{index .resp "histogram6"}}<br>
-        {{index .resp "histogram7"}}<br>
-        {{index .resp "histogram8"}}<br>
-        {{index .resp "histogram9"}}<br>
-        {{index .resp "histogram10"}}<br>
-        {{index .resp "histogram11"}}<br>
-        http请求时延分布：<br><br>
-        {{index .resp "distribution1"}}<br>
-        {{index .resp "distribution2"}}<br>
-        {{index .resp "distribution3"}}<br>
-        {{index .resp "distribution4"}}<br>
-        {{index .resp "distribution5"}}<br>
-        {{index .resp "distribution6"}}<br>
-        {{index .resp "distribution7"}}<br>
-        响应状态码分布：<br><br>
-        {{index .resp "status"}}<br>
+
+        {{range .resp }}<br>
+            {{.}}
+
+        {{end}}
 
     </div>
 </fieldset>
