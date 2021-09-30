@@ -1,0 +1,28 @@
+<head>
+    <meta charset="utf-8">
+    <title>测试平台</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon"
+          href="https://h5.izuiyou.com/favicon.ico"
+          type="image/x-icon"/>
+    <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+</head>
+<body>
+
+<fieldset class="layui-elem-field" style="margin: 2%">
+    <legend>压测结果展示：</legend>
+    <div class="layui-field-box" style="background-color: oldlace">
+
+        {{range .resp }}<br>
+            {{.}}
+
+        {{end}}
+
+    </div>
+</fieldset>
+
+</body>
+</html>
