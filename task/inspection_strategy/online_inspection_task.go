@@ -91,6 +91,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				defer func() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
+						logs.Error("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl)
+
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
@@ -227,3 +230,8 @@ func DingSend(content string) {
 //	}
 //	logs.Info("调用钉钉发送通知接口返回: res:", string(res))
 //}
+func DingSendWrongCase(content string) {
+	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
+}
