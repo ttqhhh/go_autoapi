@@ -27,6 +27,8 @@ func init() {
 	//	return
 	//}
 	if IS_OPEN_INSPECTION_TASK {
+		Inspection1M := toolbox.NewTask("Inspection_Task_5min", inspection.ONE_MIN_EXPRESSION, inspection_strategy.Strategy1Min)
+		toolbox.AddTask("Inspection_Task_1min", Inspection1M)
 		Inspection5M := toolbox.NewTask("Inspection_Task_5min", inspection.FIVE_MIN_EXPRESSION, inspection_strategy.Strategy5Min)
 		toolbox.AddTask("Inspection_Task_5min", Inspection5M)
 		Inspection10M := toolbox.NewTask("Inspection_Task_10min", inspection.TEN_MIN_EXPRESSION, inspection_strategy.Strategy10Min)
