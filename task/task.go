@@ -8,7 +8,7 @@ import (
 )
 
 // 是否开启线上巡检任务(测试环境关闭)
-const IS_OPEN_INSPECTION_TASK = false
+const IS_OPEN_INSPECTION_TASK = true
 
 // 是否开启线上巡检任务(测试环境关闭)
 const IS_OPEN_RT_MONITOR_TASK = false
@@ -27,6 +27,8 @@ func init() {
 	//	return
 	//}
 	if IS_OPEN_INSPECTION_TASK {
+		Inspection1M := toolbox.NewTask("Inspection_Task_5min", inspection.ONE_MIN_EXPRESSION, inspection_strategy.Strategy1Min)
+		toolbox.AddTask("Inspection_Task_1min", Inspection1M)
 		Inspection5M := toolbox.NewTask("Inspection_Task_5min", inspection.FIVE_MIN_EXPRESSION, inspection_strategy.Strategy5Min)
 		toolbox.AddTask("Inspection_Task_5min", Inspection5M)
 		Inspection10M := toolbox.NewTask("Inspection_Task_10min", inspection.TEN_MIN_EXPRESSION, inspection_strategy.Strategy10Min)

@@ -20,6 +20,7 @@ type CaseController struct {
 
 // 巡检策略常量集合，以分钟为基础单位
 const (
+	ONE_MIN_CODE     = 1
 	FIVE_MIN_CODE    = 5
 	TEN_MIN_CODE     = 10
 	ONE_QUARTER_CODE = 15
@@ -31,6 +32,7 @@ const (
 )
 
 const (
+	ONE_MIN     = "1分钟"
 	FIVE_MIN    = "5分钟"
 	TEN_MIN     = "10分钟"
 	ONE_QUARTER = "15分钟"
@@ -42,6 +44,7 @@ const (
 )
 
 const (
+	ONE_MIN_EXPRESSION     = "0 0/1 * * * *"
 	FIVE_MIN_EXPRESSION    = "0 0/5 * * * *"
 	TEN_MIN_EXPRESSION     = "0 0/10 * * * *"
 	ONE_QUARTER_EXPRESSION = "0 0/15 * * * *"
@@ -52,11 +55,12 @@ const (
 	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
 )
 const (
-	ONE_WEEK_EXPRESSION    = "0 0 8 * * 1"  //每周一早上8点
+	ONE_WEEK_EXPRESSION = "0 0 8 * * 1" //每周一早上8点
 
 )
 
 var StrategyCode2Name = map[int]string{
+	ONE_MIN_CODE:     ONE_MIN,
 	FIVE_MIN_CODE:    FIVE_MIN,
 	TEN_MIN_CODE:     TEN_MIN,
 	ONE_QUARTER_CODE: ONE_QUARTER,
@@ -68,6 +72,7 @@ var StrategyCode2Name = map[int]string{
 }
 
 var StrategyCode2Expression = map[int]string{
+	ONE_MIN_CODE:     ONE_MIN_EXPRESSION,
 	FIVE_MIN_CODE:    FIVE_MIN_EXPRESSION,
 	TEN_MIN_CODE:     TEN_MIN_EXPRESSION,
 	ONE_QUARTER_CODE: ONE_QUARTER_EXPRESSION,
@@ -159,7 +164,7 @@ func (c *CaseController) updateCaseByID() {
 	icm.Parameter = string(paramByte)
 	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
 	//InspectionCaseMongo := icm.GetOneCase(caseId)
-	icm.IsInspection =1
+	icm.IsInspection = 1
 	icm, err = icm.UpdateCase(caseId, icm)
 	if err != nil {
 		logs.Error("更新Case报错，err: ", err)
@@ -254,7 +259,7 @@ func (c *CaseController) AddOneCase() {
 	acm.UpdatedAt = now
 	acm.Status = 0
 	business := acm.BusinessCode
-	acm.IsInspection =models.INSPECTION
+	acm.IsInspection = models.INSPECTION
 	//if business == "0" {
 	//	acm.BusinessName = "最右"
 	//} else if business == "1" {
@@ -298,6 +303,7 @@ func (c *CaseController) AddOneCase() {
 	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
 	c.Ctx.Redirect(302, "/case/close_windows")
 }
+
 //更改一个线上巡航case的状态为不巡航
 func (c *CaseController) ChanceCaseInspectionClose() {
 	caseID := c.GetString("id")
@@ -307,11 +313,12 @@ func (c *CaseController) ChanceCaseInspectionClose() {
 		logs.Error("请求参数类型转换报错， err:", err)
 		c.ErrorJson(-1, "请求参数转换异常", nil)
 	}
-	InspectionCaseMongo :=ac.GetOneCase(int64(id))
-	InspectionCaseMongo.SetInspection(int64(id),models.NOT_INSPECTION)
+	InspectionCaseMongo := ac.GetOneCase(int64(id))
+	InspectionCaseMongo.SetInspection(int64(id), models.NOT_INSPECTION)
 
 	c.SuccessJson(InspectionCaseMongo)
 }
+
 //更改一个线上巡航case的状态为巡航
 func (c *CaseController) ChanceCaseInspectionOpen() {
 	caseID := c.GetString("id")
@@ -321,10 +328,10 @@ func (c *CaseController) ChanceCaseInspectionOpen() {
 		logs.Error("请求参数类型转换报错， err:", err)
 		c.ErrorJson(-1, "请求参数转换异常", nil)
 	}
-	InspectionCaseMongo :=ac.GetOneCase(int64(id))
+	InspectionCaseMongo := ac.GetOneCase(int64(id))
 	//InspectionCaseMongo.ClearWarningTimeById(int64(id),ac)
-	InspectionCaseMongo.ClearWarningTimes(int64(id),InspectionCaseMongo) //将case的情报次数清零
-	InspectionCaseMongo.SetInspection(int64(id),models.INSPECTION)
+	InspectionCaseMongo.ClearWarningTimes(int64(id), InspectionCaseMongo) //将case的情报次数清零
+	InspectionCaseMongo.SetInspection(int64(id), models.INSPECTION)
 
 	c.SuccessJson(InspectionCaseMongo)
 }
