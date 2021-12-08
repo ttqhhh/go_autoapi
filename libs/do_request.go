@@ -13,7 +13,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -260,7 +259,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 
 	for path, checkRule := range verify {
 		//fmt.Println(path, checkRule, verify, reflect.TypeOf(verify))
-		logs.Error("path,checkRule is ", path, checkRule, reflect.TypeOf(path))
+		//logs.Error("path,checkRule is ", path, checkRule, reflect.TypeOf(path))
 		valueInResp, err := jsonpath.JSONPath([]byte(response), path)
 		// 提前检查jsonpath是否存在，不存在就报错
 		if err != nil {
