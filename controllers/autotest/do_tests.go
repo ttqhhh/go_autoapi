@@ -170,7 +170,7 @@ func (c *AutoTestController) performTests() {
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy, 2)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
@@ -265,7 +265,7 @@ func (c *AutoTestController) performInspectTests() {
 	}
 	format := "20060102/150405"
 	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
-	runReport.CreateBy = userId+"线上巡检"
+	runReport.CreateBy = userId + "线上巡检"
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
 	runReport.IsPass = models.RUNNING
@@ -289,7 +289,7 @@ func (c *AutoTestController) performInspectTests() {
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy, 2)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
