@@ -119,7 +119,7 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string, retryTimes int) (isPass bool) {
+func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
 	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -192,7 +192,7 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	isPass = doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy, retryTimes)
+	isPass = doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
 	return
 }
 
@@ -223,16 +223,14 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 //}
 
 // 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string, retryTimes int) (isPass bool) {
+func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
 	isPass = true
 	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
-		if retryTimes == 2 {
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
-		}
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 		isPass = false
 		return
 	}
@@ -350,9 +348,7 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		}
 		isPass = false
 	}
-	if retryTimes == 2 {
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
-	}
+	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	return
 }
 
