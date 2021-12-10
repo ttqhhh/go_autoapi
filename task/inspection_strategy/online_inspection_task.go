@@ -140,8 +140,6 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				}
 				autoResultList = append(autoResultList, result)
 				case2ResultMap[caseId] = autoResultList
-
-				isPass = models.FAIL
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
 				//msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.20.20.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				// 将报告错误消息写进channel
@@ -156,6 +154,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		restrainMsg := ""
 		for caseId, autoResultList := range case2ResultMap {
 			if len(autoResultList) > 2 {
+				isPass = models.FAIL
 				//todo 此时该条巡检Case有问题，进行对外通知
 				logs.Info("监测到有问题的case，caseID:" + strconv.FormatInt(caseId, 10))
 				//testCaseMongo := models.TestCaseMongo{}
