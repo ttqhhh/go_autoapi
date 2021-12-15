@@ -7,8 +7,8 @@ import (
 	"go_autoapi/models"
 )
 
-func Strategy5Min() error {
-	logs.Info("【5分钟】级别的定时任务启动执行...")
+func Strategy1Min() error {
+	logs.Info("【1分钟】级别的定时任务启动执行...")
 	//msgList := make([]string, 5)
 	msgChannel := make(chan string)
 	restrainMsgChannel := make(chan string)
@@ -40,20 +40,20 @@ func Strategy5Min() error {
 		}
 		// 遍历服务下边所有的巡检Case
 		for _, service := range serviceMongos {
-			PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.FIVE_MIN_CODE)
+			PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.ONE_MIN_CODE)
 			logs.Info("5分钟巡检执行完毕，如果监测到问题开始发送叮叮--------")
 		}
 
 	}
 	// dingMsg中的「线上巡检」为消息关键字，不可变更
-	dingMsg := "小钻风【5分钟】级别线上巡检发现异样, 快去排查一下吧。\n"
+	dingMsg := "小钻风【1分钟】级别线上巡检发现异样, 快去排查一下吧。\n"
 	for _, msg := range msgList {
 		dingMsg += msg
 	}
 	if len(msgList) > 0 {
 		logs.Info("打印钉钉消息日志：\n" + dingMsg)
 		if IS_OPEN_SENDDING_MSG {
-			logs.Info("开始发送叮叮消息，【巡检次数5分钟/次】")
+			logs.Info("开始发送叮叮消息，【巡检次数1分钟/次】")
 			DingSend(dingMsg)
 		}
 	} else {

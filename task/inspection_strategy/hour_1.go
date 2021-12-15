@@ -41,6 +41,7 @@ func Strategy1Hour() error {
 		// 遍历服务下边所有的巡检Case
 		for _, service := range serviceMongos {
 			PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.ONE_HOUR_CODE)
+			logs.Info("1小时巡检执行完毕，如果监测到问题开始发送叮叮--------")
 		}
 
 	}
@@ -55,6 +56,8 @@ func Strategy1Hour() error {
 			logs.Info("开始发送叮叮消息，【巡检次数60分钟/次】")
 			DingSend(dingMsg)
 		}
+	} else {
+		logs.Info("本次巡检无异常，无需发送叮叮")
 	}
 	// dingMsg中的「线上巡检」为消息关键字，不可变更
 	// dingMsg := fmt.Sprintf("【报警抑制-线上巡检】：当前Case报警次数已达3次且未得到有效解决，系统已默认将Case巡检状态置为关闭。请相关同学尽快处理！编辑或打开该Case均可恢复巡检状态。\n" + "\n" + "【业务线】：" + icm.BusinessName + "\n" + "【网关服务】：" + serviceName + "\n" + "【URI】:" + dingUri + "\n" + "【Caseid】:" + caseId)

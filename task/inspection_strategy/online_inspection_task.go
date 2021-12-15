@@ -91,6 +91,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				defer func() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						//DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
+						logs.Error("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl)
+						wgInner.Done() //执行或defer后触发线程关闭！！！！！
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
 				}()
@@ -122,6 +125,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
 		wgInner.Wait()
+		logs.Info("线程执行完毕，开始执行父线程")
 		autoResult, _ := models.GetResultByRunId(uuid)
 		var isPass int8 = models.SUCCESS
 		//用来盛放同一个Case多次执行的结果
@@ -136,8 +140,6 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				}
 				autoResultList = append(autoResultList, result)
 				case2ResultMap[caseId] = autoResultList
-
-				isPass = models.FAIL
 				//logs.Warn("巡检任务失败，发送一条钉钉通知消息")
 				//msg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.20.20.86:8080/report/run_report_detail?id=%d;\n", businessName, serviceName, id)
 				// 将报告错误消息写进channel
@@ -152,6 +154,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 		restrainMsg := ""
 		for caseId, autoResultList := range case2ResultMap {
 			if len(autoResultList) > 2 {
+				isPass = models.FAIL
 				//todo 此时该条巡检Case有问题，进行对外通知
 				logs.Info("监测到有问题的case，caseID:" + strconv.FormatInt(caseId, 10))
 				//testCaseMongo := models.TestCaseMongo{}
@@ -227,3 +230,8 @@ func DingSend(content string) {
 //	}
 //	logs.Info("调用钉钉发送通知接口返回: res:", string(res))
 //}
+func DingSendWrongCase(content string) {
+	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
+}
