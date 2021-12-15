@@ -18,7 +18,7 @@ func (a *MainController) Get() {
 	if isLogined != false {
 		// 当前用户为登录状态时，直接跳转Case列表页
 		// 默认跳转到第一个有权限的业务线case页面
-		redirectUrl := "/report/goto_allview"
+		redirectUrl := "/allview/jump"
 		a.Redirect(redirectUrl, 302)
 	}
 	a.TplName = "login.html"

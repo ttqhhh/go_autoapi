@@ -31,5 +31,5 @@ func init() {
 	beego.Router("/monitor/*", &monitor.ZYMonitorController{})
 	beego.Router("/health/*", &health.HealthController{})
 	beego.Router("/presstest/*", &presstest.PressTestController{})
-
+	beego.Router("/allview/*", &auto.AllviewController{})
 }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加~</title>
+
+  <!--layui的核心JS文件（采用模块化引入）-->
+  <script src="/static/layui/layui.js" type="text/javascript" charset="utf-8"></script>
+  <!--layui的核心CSS文件-->
+  <link rel="stylesheet" type="text/css" href="/static/layui/css/layui.css" />
+
+</head>
+
+<body>
+
+<br>
+
+<form id="replay" class="layui-form" action="/views/allview.html" method="post">
+  <div class="layui-form-item">
+    <label class="layui-form-label">平台链接：</label>
+    <div class="layui-input-block">
+      <input type="text" name="link" lay-verify="title" autocomplete="off" placeholder="请输入链接"
+             class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">平台名称：</label>
+    <div class="layui-input-block">
+      <input type="text" name="name" lay-verify="title" autocomplete="off" placeholder="请输入名称"
+             class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn" lay-submit="">立即提交</button>
+    </div>
+  </div>
+</form>
+
+
+</body>
+
+</html>
