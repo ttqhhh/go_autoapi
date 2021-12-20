@@ -347,8 +347,8 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason = string(resultDescRune[1:])
 		}
 		isPass = false
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	}
-	saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	return
 }
 
