@@ -16,7 +16,8 @@ import (
 const cookie = "99BFD42401E3660BFE97D2268BB1EC5A"
 
 type pointData struct {
-	Limit    int    `form:"limit" json:"limit"`
+	Limit_start    int    `form:"limit" json:"limit_start"`
+	Limit_end    int    `form:"limit" json:"limit_end"`
 	Business string `form:"business" json:"business"`
 	Did      string `form:"did" json:"did"`
 }
@@ -33,14 +34,15 @@ func (c *AutoTestController) checkPoints() {
 		pdList[k].Did = c.GetString(didString)
 		if pdList[k].Did != "" {
 			pdList[k].Business = c.GetString("business")
-			pdList[k].Limit, _ = c.GetInt("limit")
+			pdList[k].Limit_start, _ = c.GetInt("limit_start")
+			pdList[k].Limit_end, _ = c.GetInt("limit_end")
 			k++
 		} else if pdList[k].Did == "" {
 			k++
 			continue
 		}
 	}
-	resultMsg := GetBasePoints(pdList[0].Limit, pdList[0].Business, pdList)
+	resultMsg := GetBasePoints(pdList[0].Limit_start, pdList[0].Limit_end,pdList[0].Business, pdList)
 	c.Data["result"] = resultMsg
 	c.TplName = "check_points.html"
 }
@@ -85,12 +87,17 @@ type JsonDiff struct {
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
+func GetBasePoints(limit_start int,limit_end int, business string, pdList [5]pointData) [][]string {
 	var resultMsg [][]string
 	fmt.Println("第一次执行获取total总数")
-	limits := strconv.Itoa(limit)
+	limitstart := strconv.Itoa(limit_start)
+	limitend := strconv.Itoa(limit_end)
+	if limitend < limitstart{
+		resultMsg = append(resultMsg, []string{"结束个数不得小于开始个数"})
+		return resultMsg
+	}
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": 0,"limit": ` + limits + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": ` + limitstart + `,"limit": ` + limitend + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
 	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list", postData)
 	if err != nil {
