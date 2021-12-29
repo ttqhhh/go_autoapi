@@ -97,7 +97,7 @@ func GetBasePoints(limit_start int,limit_end int, business string, pdList [5]poi
 		return resultMsg
 	}
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": ` + limitstart + `,"limit": ` + limitend + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": 0,"limit": ` + limitend + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
 	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list", postData)
 	if err != nil {
@@ -111,60 +111,62 @@ func GetBasePoints(limit_start int,limit_end int, business string, pdList [5]poi
 	if err != nil {
 		logs.Error("请求失败, err:", err)
 	}
-	var reader io.ReadCloser
-	reader = response.Body
-	body, _ := ioutil.ReadAll(reader)
-	v := make(map[string]interface{})
-	_ = json.Unmarshal(body, &v)
-	records := v["data"].(map[string]interface{})["records"].([]interface{})
-	for _, val := range records {
-		fmt.Println("循环获取event_detail")
-		vals := val.(map[string]interface{})
-		appName := vals["app_name"].(string)
-		types := vals["type"].(string)
-		stype := vals["stype"].(string)
-		frominfo := vals["frominfo"].(string)
-		postBody2 := `{"app_name": "` + appName + `","frominfo":"` + frominfo + `","is_approval": "false","type":"` + types + `","stype":"` + stype + `"}`
-		postData2 := bytes.NewReader([]byte(postBody2))
-		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
-		req2.Header.Add("Cookie", "JSESSIONID="+cookies)
-		req2.Header.Add("Content-Type", "application/json")
-		if err != nil {
-			logs.Error("请求失败，err: ", err)
-		}
-		client2 := &http.Client{}
-		response2, err := client2.Do(req2)
-		if err != nil {
-			logs.Error("请求失败, err:", err)
-		}
-		var reader2 io.ReadCloser
-		reader2 = response2.Body
-		body2, _ := ioutil.ReadAll(reader2)
-		v2 := make(map[string]interface{})
-		_ = json.Unmarshal(body2, &v2)
-		// 主要获取拓展字段自定义字段
-		newExtended := make(map[string]interface{})
-		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
-		// m 是存储拓展自定义字段中的是否必选的bool
-		m := make(map[string]bool)
-		for _, valss := range extendedCustom {
-			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
-			m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
-		}
-		fmt.Println(m)
-		l := make(map[string]interface{})
-		newExtended["cur_page"] = "none"
-		newExtended["from_page"] = "none"
-		l["extdata"] = newExtended
-		fmt.Println(l)
-		// 开始获取真实入库数据
+			var reader io.ReadCloser
+			reader = response.Body
+			body, _ := ioutil.ReadAll(reader)
+			v := make(map[string]interface{})
+			_ = json.Unmarshal(body, &v)
+			fmt.Println(v)
+			records := v["data"].(map[string]interface{})["records"].([]interface{})
+			for k, val := range records {
+				fmt.Println("循环获取event_detail")
+				if k>=limit_start-1 {
+				vals := val.(map[string]interface{})
+				appName := vals["app_name"].(string)
+				types := vals["type"].(string)
+				stype := vals["stype"].(string)
+				frominfo := vals["frominfo"].(string)
+				postBody2 := `{"app_name": "` + appName + `","frominfo":"` + frominfo + `","is_approval": "false","type":"` + types + `","stype":"` + stype + `"}`
+				postData2 := bytes.NewReader([]byte(postBody2))
+				req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
+				req2.Header.Add("Cookie", "JSESSIONID="+cookies)
+				req2.Header.Add("Content-Type", "application/json")
+				if err != nil {
+					logs.Error("请求失败，err: ", err)
+				}
+				client2 := &http.Client{}
+				response2, err := client2.Do(req2)
+				if err != nil {
+					logs.Error("请求失败, err:", err)
+				}
+				var reader2 io.ReadCloser
+				reader2 = response2.Body
+				body2, _ := ioutil.ReadAll(reader2)
+				v2 := make(map[string]interface{})
+				_ = json.Unmarshal(body2, &v2)
+				// 主要获取拓展字段自定义字段
+				newExtended := make(map[string]interface{})
+				extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
+				// m 是存储拓展自定义字段中的是否必选的bool
+				m := make(map[string]bool)
+				for _, valss := range extendedCustom {
+					newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
+					m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
+				}
+				fmt.Println(m)
+				l := make(map[string]interface{})
+				newExtended["cur_page"] = "none"
+				newExtended["from_page"] = "none"
+				l["extdata"] = newExtended
+				fmt.Println(l)
+				// 开始获取真实入库数据
 
-		r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
-		if r == nil {
-			resultMsg = append(resultMsg, []string{
-				"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
-				"检查结果 : 无数据"})
-			logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
+				r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
+				if r == nil {
+					resultMsg = append(resultMsg, []string{
+						"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
+						"检查结果 : 无数据"})
+					logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
 		} else {
 			var result1 string
 			var result2 bool
@@ -181,6 +183,7 @@ func GetBasePoints(limit_start int,limit_end int, business string, pdList [5]poi
 				fmt.Println("检查通过，事件:" + types + "_" + stype)
 			}
 		}
+			}
 	}
 	return resultMsg
 }
