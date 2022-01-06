@@ -265,7 +265,7 @@ func (c *AutoTestController) performInspectTests() {
 	}
 	format := "20060102/150405"
 	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
-	runReport.CreateBy = userId+"线上巡检"
+	runReport.CreateBy = userId + "线上巡检"
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
 	runReport.IsPass = models.RUNNING

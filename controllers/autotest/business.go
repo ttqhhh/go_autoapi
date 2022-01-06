@@ -39,6 +39,7 @@ var userBusinessMap = map[string][]int{
 	"yangjingfang":  {constant.ShangYeHua, constant.ZuiyYou},
 	"chengxiaojing": {constant.ZuiyYou},
 	"zhaoxiaodong":  {constant.ShangYeHua},
+	"geliuyi":       {constant.ZuiyYou},
 }
 
 var businessCodeNameMap = map[int]string{

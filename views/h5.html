@@ -1,0 +1,224 @@
+{{template "head.html" .}}
+
+
+<form class="layui-form" action="" id="test_service" style="display: none">
+    <div class="layui-form-item" id="test_service_list">
+        <!--        <div class="layui-input-inline"><input type="checkbox" name="" title="写作" checked></div>-->
+    </div>
+</form>
+<!-- 构建form表单 -->
+<div id="add-main" style="display: none">
+    <form id="replay" class="layui-form" method="post" action="/h5listen/add_one_h5_data">
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="text" id="id" name="id" hidden value="{{ .id }}">
+            </div>
+        </div>
+        <div class="layui-form-item" style="width: 350px">
+            <label class="layui-form-label">页面名称</label>
+            <div class="layui-input-block">
+                <input type="text" id="data_name" name="data_name" required lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="width: 350px">
+            <label class="layui-form-label">URL</label>
+            <div class="layui-input-block">
+                <input type="text" id="data_url" name="data_url" required lay-verify="required"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="width: 350px">
+            <label class="layui-form-label">所属业务</label>
+            <div class="layui-input-block">
+                <select name="business" id="business" lay-filter="aihao">
+                    <option value=""></option>
+                    <option value="0">最右</option>
+                    <option value="1">皮皮</option>
+                    <option value="2">海外</option>
+                    <option value="3">中东</option>
+                    <option value="4">妈妈社区</option>
+                    <option value="5">商业话</option>
+                    <option value="6">海外-US</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+<div style="margin:1%">
+    <div>
+        <div class="layui-form layui-inline">
+
+        </div>
+        <div class="layui-inline" style="float: right">
+            <button class="layui-btn layui-btn-sm " id="add_h5">添加h5链接</button>
+            <button class="layui-btn layui-btn-sm " id="test_h5" >测试h5返回</button>
+        </div>
+    </div>
+
+    <table class="layui-table" lay-filter="demo" id="h5data"></table>
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <script src="/static/js/public.js" charset="utf-8"></script>
+    <script>
+
+        layui.use(['table', 'laytpl', 'form'], function () {
+            const table = layui.table;
+            var form = layui.form;
+            $ = layui.jquery
+            // 获取service的方法
+            $(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: '/h5listen/show_h5_data?business={{.business}}',
+                    success: function (data) {
+                        var date = data.data
+                        var html = ""
+                        $.each(date, function (n, val) {
+                            const option1 = '<div class="layui-input-inline">' +
+                                '<input type="checkbox" name="service" value=' + val["id"] + ' title=' + val["service_name"] + '></div>';
+                            html = html + option1
+                            $("#search_service").append('<option value=' + val["service_name"] + '>' + val["service_name"] + '</option>');
+                        })
+                        $("#test_service_list").append(html);
+                        form.render();
+                    }
+                })
+            })
+
+            //表格渲染
+            table.render({
+                elem: '#h5data'
+                , url: '/h5listen/show_h5_data?business={{.business}}'
+                , page: true
+                , cols: [[
+                    {type: "checkbox", fixed: 'left'},
+                    {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
+                    {title: '业务线', field: 'business_name', width: 200},
+                    {title: '页面名称', field: 'data_name', width: 200},
+                    {title: 'url', field: 'data_url', width: 900},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
+                ]]
+            })
+
+            //监听工具条
+            table.on('tool(demo)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'del') {
+                    layer.confirm('真的删除行么', function (index) {
+                        // obj.del();
+                        $.ajax({
+                            type: 'POST',
+                            url: "/h5listen/del_one_h5_data",
+                            async: false,
+                            timeout: 500000,
+                            data: {
+                                "id": data.id,
+                            }
+                        });
+                        layer.close(index);
+                        window.location.reload()
+                    });
+                } else if (obj.event === 'edit') {
+                    $("#id").val(obj.data.id)
+                    const  mf = $("#add-main");
+                    mf.attr("action","/update_one_h5_data")
+                    $("#data_name").val(obj.data.data_name)
+                    $("#data_url").val(obj.data.data_url)
+                    $("#business").val(obj.data.business)
+                    form.render("select")
+
+
+                    layer.open({
+                        title: "新增",
+                        type: 1,
+                        content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                        area: ['800px', '600px'],
+                        btn: ['保存', '取消'],
+                        success: function () {
+                        },
+                        yes: function (index) {
+                            console.log($("#data_name")[0].value)
+                            $.ajax({
+                                type: 'POST',
+                                url: '/h5listen/update_one_h5_data',
+                                data: {
+                                    "id": obj.data.id,
+                                    "data_name": $("#data_name")[0].value,
+                                    "data_url":$("#data_url")[0].value,
+                                    "business":$("#business")[0].value,
+
+                                },
+                            });
+                            $("#replay").hide();
+                            layer.close(index)
+                            window.location.reload()
+
+                        },
+                        btn2: function (index) {
+                            // 取消按钮的回调
+                            $("#add-main").css("display", "none")
+                            layer.close(index)
+                        },
+
+                    });
+                }
+                layui.close(obj);
+            });
+
+
+            $('.demoTable .layui-btn').on('click', function () {
+                var type = $(this).data('type');
+                active[type] ? active[type].call(this) : '';
+            });
+
+
+            //测试h5返回
+            $("#test_h5").on("click",function (){
+                $.ajax({
+                    type: 'POST',
+                    url: '/h5listen/StrategyH5',
+                })
+
+            });
+
+            // 弹出浮层
+            $("#add_h5").on("click", function () {
+                layer.open({
+                    title: "新增",
+                    type: 1,
+                    content: $('#add-main'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+                    area: ['800px', '600px'],
+                    btn: ['保存', '取消'],
+                    success: function () {
+                    },
+                    yes: function (index) {
+                        $("#replay").submit();
+                        $("#replay").hide();
+                    },
+                    btn2: function (index) {
+                        // 取消按钮的回调
+                        $("#add-main").css("display", "none")
+                        layer.close(index)
+                    },
+
+                });
+            });
+
+
+        });
+    </script>
+</div>
+</body>
+</html>
+
+<style>
+    .layui-table-grid-down {
+        display: none;
+    }
+</style>
