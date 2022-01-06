@@ -53,6 +53,7 @@ const (
 	SIX_HOUR_EXPRESSION    = "0 0 0/6 * * *"
 	HALF_DAY_EXPRESSION    = "0 0 0/12 * * *"
 	ONE_DAY_EXPRESSION     = "0 0 0 * * *"
+	H5_EXPRESSION          = "0 0/5 * * * *"
 )
 const (
 	ONE_WEEK_EXPRESSION = "0 0 8 * * 1" //每周一早上8点
