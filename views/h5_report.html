@@ -38,21 +38,22 @@
       var form = layui.form;
       $ = layui.jquery
       // 获取service的方法
-      $(function () {
-        $.ajax({
-          type: 'POST',
-          url: '/h5report/show_h5_report?business={{.business}}',
-          dataType:'json',
-          success: function () {
-
-          }
-        })
-      })
+      // $(function () {
+      //   $.ajax({
+      //     type: 'POST',
+      //     url: '/h5report/show_h5_report',
+      //     dataType:'json',
+      //     success: function () {
+      //
+      //     }
+      //   })
+      // })
       //表格渲染
       table.render({
         elem: '#h5report'
         , url: '/h5report/show_h5_report'
         , page: true
+        , method: 'get'
         , cols: [[
           {type: "checkbox", fixed: 'left'},
           {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
@@ -64,72 +65,7 @@
           {title: '状态', field: 'status', width: 100},
         ]]
       })
-      //监听工具条
-      // table.on('tool(demo)', function(obj){
-      //   var data = obj.data;
-      //   if(obj.event === 'detail'){
-      //     layer.msg('ID：'+ data.id + ' 的查看操作');
-      //   } else if(obj.event === 'del'){
-      //     layer.confirm('真的删除行么', function(index){
-      //       // obj.del();
-      //       $.ajax({
-      //         type: 'POST',
-      //         url: "/case/del_one_case",
-      //         async:false,
-      //         timeout : 500000,
-      //         data: {
-      //           "id": data.id,
-      //         }
-      //       });
-      //       layer.close(index);
-      //       window.location.reload()
-      //     });
-      //   } else if(obj.event === 'edit'){
-      //     window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
-      //   } else if(obj.event === "run"){
-      //     var arr = new Array()
-      //     arr.push(data.id)
-      //     // alert(arr.toString())
-      //     $.ajax({
-      //       type: 'POST',
-      //       url: "/case/do_test",
-      //       async:false,
-      //       timeout : 500000,
-      //       data: {
-      //         "case_id": arr.toString(),
-      //       }
-      //     })
-      //   }
-      // });
 
-      // var $ = layui.$, active = {
-      //   getCheckData: function(){ //获取选中数据
-      //     var checkStatus = table.checkStatus('idTest'),
-      //             data = checkStatus.data,
-      //             arr_id = [];
-      //     for(var i = 0;i<data.length;i++){
-      //       arr_id.push(data[i].id);
-      //     }
-      //     // 提交列表形式的id
-      //     // $.ajax({
-      //     //     url:
-      //     // })
-      //   }
-      //   ,getCheckLength: function(){ //获取选中数目
-      //     var checkStatus = table.checkStatus('idTest')
-      //             ,data = checkStatus.data;
-      //     layer.msg('选中了：'+ data.length + ' 个');
-      //   }
-      //   ,isAll: function(){ //验证是否全选
-      //     var checkStatus = table.checkStatus('idTest');
-      //     layer.msg(checkStatus.isAll ? '全选': '未全选')
-      //   }
-      // };
-      //
-      // $('.demoTable .layui-btn').on('click', function(){
-      //   var type = $(this).data('type');
-      //   active[type] ? active[type].call(this) : '';
-      // });
     });
   </script>
 </div>

@@ -35,7 +35,7 @@ const CE_SHI_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffb
 const H5_CE_SHI_QUN_TOKEN = "a58914cf2bbf23f5e830954e093d84fbec00f0712832d0be3ca67477b2203546"
 
 // todo 上线or正常使用时，需要设为true进行开启
-const IS_OPEN_SENDDING_MSG = true
+const IS_OPEN_SENDDING_MSG = false
 
 // 执行线上巡检Case
 func PerformInspection(businessId int8, serviceId int64, msgChannel chan string, restrainMsgChannel chan string, strategy int64) (err error) {

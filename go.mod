@@ -15,6 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/lib/pq v1.10.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/common v0.10.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shopspring/decimal v1.2.0
