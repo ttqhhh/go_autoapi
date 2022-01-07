@@ -28,7 +28,7 @@ func StrategyH5() error {
 		if status != "200 OK" {
 			msg := fmt.Sprintf("业务名称：" + h5data.DataName + "       错误码:" + status + "     链接：" + h5_url)
 			fmt.Println(resp.Status)
-			msgs := "服务平台异常" + msg
+			msgs := "线上巡检--" + msg
 			logs.Info("报错信息：", msgs)
 			DingSend(msgs)
 			fmt.Println(status)
