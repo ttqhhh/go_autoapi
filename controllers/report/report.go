@@ -19,8 +19,6 @@ type ReportController struct {
 func (c *ReportController) Get() {
 	do := c.GetMethodName()
 	switch do {
-	case "goto_allview":
-		c.gotoAllview()
 	case "show_run_record":
 		c.ShowRunReport()
 	case "run_record_list":
@@ -35,10 +33,6 @@ func (c *ReportController) Get() {
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
 	}
-}
-
-func (c *ReportController) gotoAllview() {
-	c.TplName = "allview.html"
 }
 
 func (c *ReportController) ShowRunReport() {

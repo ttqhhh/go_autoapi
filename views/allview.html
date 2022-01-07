@@ -1,168 +1,208 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 
 <head>
-  <meta charset="utf-8" />
+    <meta charset="utf-8"/>
 
-  <title>首页</title>
+    <title>首页</title>
 
-  <!--layui的核心JS文件（采用模块化引入）-->
-  <script src="/static/layui/layui.js" type="text/javascript" charset="utf-8"></script>
-  <!--layui的核心CSS文件-->
-  <link rel="stylesheet" type="text/css" href="/static/layui/css/layui.css" />
+    <!--layui的核心JS文件（采用模块化引入）-->
+    <script src="/static/layui/layui.js" type="text/javascript" charset="utf-8"></script>
+    <!--layui的核心CSS文件-->
+    <link rel="stylesheet" type="text/css" href="/static/layui/css/layui.css"/>
 
-  <!--引入bootstrap和jquery：-->
-  <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
-
-
-  <script src="https://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
-  <script src="https://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="/static/js/jqthumb.min.js"></script>
+    <!--引入bootstrap和jquery：-->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
 
-  <!--
-  <style>
-      body {
-          background-attachment: fixed;
-          background-image: url(img/bgpic.jpg);
-      }
-  </style>
--->
+    <script type="application/javascript" src="https://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/jqthumb.min.js"></script>
 
+    <!-- 引入自己写的css样式文件： -->
+    <link rel="stylesheet" href="../static/css/allview.css" charset="utf-8">
 
 </head>
 
 <body>
-<!--  style="z-index:-1;"  在文本的后面出现(背景)  -->
-<!--  style="position:absolute;"  元素定位是绝对的  -->
-<div style="position:absolute;z-index:-1;width:100%;height:100%;top:0px;left:0px;">
-  <img src="/static/img/bgpic.jpg" width="100%" height="100%">
+
+<!--最右标志图片-->
+<img id="sign" src="https://public-cdn.mokahr.com/5c52f1f1-824b-402d-972a-f2196c8ee3be.png">
+
+
+<div class="layui-btn-container" style="position:absolute;left:70px;top:150px">
+    <button id="add" type="button" class="layui-btn layui-btn-sm layui-btn-normal"><i class="layui-icon"></i>添加</button>
+    <button id="rem" type="button" class="layui-btn layui-btn-sm layui-btn-normal"><i class="layui-icon"></i>删除</button>
 </div>
 
-<br>
-<br>
-<img src="https://public-cdn.mokahr.com/5c52f1f1-824b-402d-972a-f2196c8ee3be.png"
-     style="position:absolute;left:30px;width:350px;height:80px">
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
+<!--<div id="buttons">-->
+<!--    &lt;!&ndash;添加按钮&ndash;&gt;-->
+<!--    &lt;!&ndash;<button id="add" type='button' class='layui-btn layui-btn-lg layui-btn-primary' style="padding: 15px 32px;cursor: pointer;">&ndash;&gt;-->
+<!--    <button id="add" type='button'>-->
+<!--        <img src="https://pngimg.com/uploads/plus/plus_PNG85.png" alt="添加~" width="40">-->
+<!--    </button>-->
 
-<div class="container">
+<!--    &lt;!&ndash;删除按钮&ndash;&gt;-->
+<!--    &lt;!&ndash;<button id="rem" type='button' class='layui-btn layui-btn-lg layui-btn-primary' style="padding: 15px 32px;cursor: pointer;">&ndash;&gt;-->
+<!--    <button id="rem" type='button'>-->
+<!--        <img src="http://pngimg.com/uploads/minus/minus_PNG48.png" alt="删除~" width="40">-->
+<!--    </button>-->
+<!--</div>-->
 
-  <div class="row">
-    <div class="col-sm-6 col-md-4 col-lg-3 col-md-offset-2">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 85%);">
-          <a href="http://172.16.2.86:8080/case/show_cases?business=0" title="最右测试平台" target="_blank">
-            <div style="text-align:center;">
-              <img src="http://172.16.2.86:8080/static/img/zuiyouicon.png" alt="最右测试平台" width="40">
-              <a href="http://172.16.2.86:8080/case/show_cases?business=0" title="最右测试平台"
-                 target="_blank" style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">最右测试平台</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-md-4 col-lg-3">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 85%);">
-          <a href="https://git.ixiaochuan.cn" title="最右gitlab" target="_blank">
-            <div style="text-align:center;">
-              <img src="https://git.ixiaochuan.cn/assets/touch-icon-iphone-5a9cee0e8a51212e70b90c87c12f382c428870c0ff67d1eb034d884b78d2dae7.png"
-                   alt="最右gitlab" width="44">
-              <a href="https://git.ixiaochuan.cn" title="最右gitlab" target="_blank"
-                 style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">最右gitlab</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-md-4 col-lg-3">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 85%);">
-          <a href="https://www.tapd.cn/37606053/bugtrace/bugreports/my_view?left_tree=1" title="最右TAPD平台"
-             target="_blank">
-            <div style="text-align:center;">
-              <img src="http://172.16.2.86:8080/static/img/zuiyouicon.png" alt="最右TAPD平台" width="40">
-              <a href="https://www.tapd.cn/37606053/bugtrace/bugreports/my_view?left_tree=1"
-                 title="最右TAPD平台" target="_blank" style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">最右TAPD平台</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <br>
-  <br>
-
-  <div class="row">
-    <div class="col-sm-6 col-md-4 col-lg-3 col-md-offset-2">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 85%);">
-          <a href="http://192.168.11.123:8777/ios_case_manager/?type=zuiyou&sel=all" title="最右UI自动化平台" target="_blank">
-            <div style="text-align:center;">
-              <img src="http://172.16.2.86:8080/static/img/zuiyouicon.png" alt="最右UI自动化平台" width="40">
-              <a href="http://192.168.11.123:8777/ios_case_manager/?type=zuiyou&sel=all" title="最右UI自动化平台" target="_blank"
-                 style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">UI自动化平台</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-6 col-md-4 col-lg-3">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 90%);">
-          <a href="https://op.ixiaochuan.cn/op/recommend/abtestexp/60e3fa17ab9bad551c82d547/zy_transmit_button/strategies"
-             title="最右线上op" target="_blank">
-            <div style="text-align:center;">
-              <img src="http://172.16.2.86:8080/static/img/zuiyouicon.png" alt="最右线上op" width="40">
-              <a href="https://op.ixiaochuan.cn/op/recommend/abtestexp/60e3fa17ab9bad551c82d547/zy_transmit_button/strategies"
-                 title="最右线上op" target="_blank" style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">最右线上op</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-sm-6 col-md-4 col-lg-3 ">
-      <div class="col-sm-8 col-md-8 col-lg-8">
-        <div class="thumbnail" style="background-color: rgba(216, 216, 216, 90%);">
-          <a href="https://op-test.ixiaochuan.cn/op/recommend/abtestexp/60e3fa17ab9bad551c82d547/zy_transmit_button/strategies"
-             title="最右测试op" target="_blank">
-            <div style="text-align:center;">
-              <img src="http://172.16.2.86:8080/static/img/zuiyouicon.png" alt="最右测试op" width="40">
-              <a href="https://op-test.ixiaochuan.cn/op/recommend/abtestexp/60e3fa17ab9bad551c82d547/zy_transmit_button/strategies"
-                 title="最右测试op" target="_blank" style="color: rgb(0, 0, 0); line-height: 30px;">
-                <font size="3">最右测试op</font>
-              </a>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<div id="thumbnails" class="container">
 </div>
+
+
+<!--更新页面，jQuery的ready()方法-->
+<script  type="text/javascript">
+    // jQuery代码：
+    $(document).ready(function() {
+        $.ajax({
+            url: "/allview/check",
+            type: 'POST',
+            async: "false",
+            data: null,
+            datatype: "json",
+            success: function (data) {
+                var flag=-2;
+                $.each(data.data,function (index,obj){
+                    var html="";
+                    if (flag === -2){
+                        flag=index;
+                    }
+                    if (index % 3 === 0) {
+                        html += '<div class=\\"row\\">' + '<div class="col-sm-6 col-md-4 col-lg-3 col-md-offset-2">'
+                    } else {
+                        html += '<div class=\"col-sm-6 col-md-4 col-lg-3\">'
+                    }
+                    html+='<div class="col-sm-8 col-md-8 col-lg-8">';
+                    html+='<div class="thumbnail">';
+                    html+='<a href="'+obj.link+'" title="'+obj.name+'" target="_blank">';
+                    html+='<div style="text-align:center;">';
+                    html+='<img src="'+obj.imglink+'" alt="'+obj.name+'" width="60">';
+                    html+='<div id="fontsize">'+obj.name+'</div>';
+                    html+='</div>'+'</a>'+'</div>';
+                    html+='</div>';
+                    $(".container").append(html);
+                })
+            },
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    var $=layui.jquery;  // 此处引用layui的jQuery，因为引用上面的jQuery会出现重复引用的问题，导致页面和弹出层都出现输入框信息。
+    $("#add").on("click", function () {
+        layer.open({
+            title: "添加平台：",
+            type: 1,  // 页面层
+            content: $('#add-link'), //这里content是一个DOM，注意：最好该元素要存放在body最外层，否则可能被其它的相对元素所影响
+            area: '500px',
+            shadeClose: true,  //点击空白处关闭弹窗
+
+            yes: function () {
+                $("#replay-form").submit();
+                $("#replay-form").hide();
+            }
+            // cancel:function(index){
+            //     layer.close(layer.index);
+            // }
+        });
+    });
+</script>
+
+<!--删除按钮-->
+<script type="text/javascript">
+    $("#rem").on("click", function(){
+        layer.open({
+            title: "删除平台的名称：",
+            type: 1,
+            content: $('#rem-link'),
+            area: '500px',
+            shadeClose: true,
+            // data: JSON.stringify(obj),//将对象转为json字符串
+            yes: function(){
+                $("#rem-form").submit();
+                $("#rem-form").hide();
+            }
+        });
+    });
+</script>
+
+
+<!-- 构建form表单 -->
+
+<!-- 构建添加form表单 -->
+<div id="add-link" style="display: none">
+    <form id="replay-form" class="layui-form" action="/allview/save" method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">链接：</label>
+            <div class="layui-input-block">
+                <input id="inputlink" type="text" name="link" lay-verify="title" autocomplete="off" placeholder="请输入平台链接"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-block">
+                <input id="inputname" type="text" name="name" lay-verify="title" autocomplete="off" placeholder="请输入平台名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">图片：</label>
+            <div class="layui-input-block">
+                <input id="inputimglink" type="text" name="imglink" lay-verify="title" autocomplete="off" placeholder="请输入图片链接"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button id="butsub" type="submit" class="layui-btn" lay-submit="">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    $('#replay-form').submit(function(){
+        var link=$('#inputlink').val();
+        var name=$('#inputname').val();
+        var imglink=$('#inputimglink').val();
+        if (link=="" || name=="" || imglink==""){
+            alert("表单不能为空哦，请重新填写~");
+            return false;
+        }
+    });
+</script>
+
+<!-- 构建删除form表单 -->
+<div id="rem-link" style="display: none">
+    <form id="rem-form" class="layui-form" action="/allview/remove" method="post">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-block">
+                <input id="reminputlink" type="text" name="name" lay-verify="title" autocomplete="off" placeholder="请输入需要删除平台的名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button id="rembutsub" type="submit" class="layui-btn" lay-submit="">立即提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    $('#rem-form').submit(function(){
+        var remlink=$('#reminputlink').val();
+        if (remlink==""){
+            alert("表单不能为空哦，请重新填写~");
+            return false;
+        }
+    });
+</script>
 
 </body>
 

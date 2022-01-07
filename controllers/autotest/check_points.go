@@ -16,9 +16,10 @@ import (
 const cookie = "99BFD42401E3660BFE97D2268BB1EC5A"
 
 type pointData struct {
-	Limit    int    `form:"limit" json:"limit"`
-	Business string `form:"business" json:"business"`
-	Did      string `form:"did" json:"did"`
+	Limit_start int    `form:"limit" json:"limit_start"`
+	Limit_end   int    `form:"limit" json:"limit_end"`
+	Business    string `form:"business" json:"business"`
+	Did         string `form:"did" json:"did"`
 }
 
 func (c *AutoTestController) showCheckPoints() {
@@ -33,14 +34,15 @@ func (c *AutoTestController) checkPoints() {
 		pdList[k].Did = c.GetString(didString)
 		if pdList[k].Did != "" {
 			pdList[k].Business = c.GetString("business")
-			pdList[k].Limit, _ = c.GetInt("limit")
+			pdList[k].Limit_start, _ = c.GetInt("limit_start")
+			pdList[k].Limit_end, _ = c.GetInt("limit_end")
 			k++
 		} else if pdList[k].Did == "" {
 			k++
 			continue
 		}
 	}
-	resultMsg := GetBasePoints(pdList[0].Limit, pdList[0].Business, pdList)
+	resultMsg := GetBasePoints(pdList[0].Limit_start, pdList[0].Limit_end, pdList[0].Business, pdList)
 	c.Data["result"] = resultMsg
 	c.TplName = "check_points.html"
 }
@@ -85,12 +87,17 @@ type JsonDiff struct {
 
 // todo 输入的参数有：limit(查询的个数)；
 
-func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
+func GetBasePoints(limit_start int, limit_end int, business string, pdList [5]pointData) [][]string {
 	var resultMsg [][]string
 	fmt.Println("第一次执行获取total总数")
-	limits := strconv.Itoa(limit)
+	limitstart := strconv.Itoa(limit_start)
+	limitend := strconv.Itoa(limit_end)
+	if limitend < limitstart {
+		resultMsg = append(resultMsg, []string{"结束个数不得小于开始个数"})
+		return resultMsg
+	}
 	// 当前是按照时间倒序查询，limit限制查询总数
-	postBody := `{"offset": 0,"limit": ` + limits + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
+	postBody := `{"offset": 0,"limit": ` + limitend + `,"app_name": "` + business + `","sort_field":"update_time","sort_flag":"desc"}`
 	postData := bytes.NewReader([]byte(postBody))
 	req, err := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_list", postData)
 	if err != nil {
@@ -109,69 +116,72 @@ func GetBasePoints(limit int, business string, pdList [5]pointData) [][]string {
 	body, _ := ioutil.ReadAll(reader)
 	v := make(map[string]interface{})
 	_ = json.Unmarshal(body, &v)
+	fmt.Println(v)
 	records := v["data"].(map[string]interface{})["records"].([]interface{})
-	for _, val := range records {
+	for k, val := range records {
 		fmt.Println("循环获取event_detail")
-		vals := val.(map[string]interface{})
-		appName := vals["app_name"].(string)
-		types := vals["type"].(string)
-		stype := vals["stype"].(string)
-		frominfo := vals["frominfo"].(string)
-		postBody2 := `{"app_name": "` + appName + `","frominfo":"` + frominfo + `","is_approval": "false","type":"` + types + `","stype":"` + stype + `"}`
-		postData2 := bytes.NewReader([]byte(postBody2))
-		req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
-		req2.Header.Add("Cookie", "JSESSIONID="+cookies)
-		req2.Header.Add("Content-Type", "application/json")
-		if err != nil {
-			logs.Error("请求失败，err: ", err)
-		}
-		client2 := &http.Client{}
-		response2, err := client2.Do(req2)
-		if err != nil {
-			logs.Error("请求失败, err:", err)
-		}
-		var reader2 io.ReadCloser
-		reader2 = response2.Body
-		body2, _ := ioutil.ReadAll(reader2)
-		v2 := make(map[string]interface{})
-		_ = json.Unmarshal(body2, &v2)
-		// 主要获取拓展字段自定义字段
-		newExtended := make(map[string]interface{})
-		extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
-		// m 是存储拓展自定义字段中的是否必选的bool
-		m := make(map[string]bool)
-		for _, valss := range extendedCustom {
-			newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
-			m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
-		}
-		fmt.Println(m)
-		l := make(map[string]interface{})
-		newExtended["cur_page"] = "none"
-		newExtended["from_page"] = "none"
-		l["extdata"] = newExtended
-		fmt.Println(l)
-		// 开始获取真实入库数据
+		if k >= limit_start-1 {
+			vals := val.(map[string]interface{})
+			appName := vals["app_name"].(string)
+			types := vals["type"].(string)
+			stype := vals["stype"].(string)
+			frominfo := vals["frominfo"].(string)
+			postBody2 := `{"app_name": "` + appName + `","frominfo":"` + frominfo + `","is_approval": "false","type":"` + types + `","stype":"` + stype + `"}`
+			postData2 := bytes.NewReader([]byte(postBody2))
+			req2, _ := http.NewRequest("POST", "http://et.ixiaochuan.cn/proxy/api/event_detail", postData2)
+			req2.Header.Add("Cookie", "JSESSIONID="+cookies)
+			req2.Header.Add("Content-Type", "application/json")
+			if err != nil {
+				logs.Error("请求失败，err: ", err)
+			}
+			client2 := &http.Client{}
+			response2, err := client2.Do(req2)
+			if err != nil {
+				logs.Error("请求失败, err:", err)
+			}
+			var reader2 io.ReadCloser
+			reader2 = response2.Body
+			body2, _ := ioutil.ReadAll(reader2)
+			v2 := make(map[string]interface{})
+			_ = json.Unmarshal(body2, &v2)
+			// 主要获取拓展字段自定义字段
+			newExtended := make(map[string]interface{})
+			extendedCustom := v2["data"].(map[string]interface{})["extended_custom"].([]interface{})
+			// m 是存储拓展自定义字段中的是否必选的bool
+			m := make(map[string]bool)
+			for _, valss := range extendedCustom {
+				newExtended[valss.(map[string]interface{})["field_name"].(string)] = "none"
+				m[valss.(map[string]interface{})["field_name"].(string)] = valss.(map[string]interface{})["is_necessary"].(bool)
+			}
+			fmt.Println(m)
+			l := make(map[string]interface{})
+			newExtended["cur_page"] = "none"
+			newExtended["from_page"] = "none"
+			l["extdata"] = newExtended
+			fmt.Println(l)
+			// 开始获取真实入库数据
 
-		r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
-		if r == nil {
-			resultMsg = append(resultMsg, []string{
-				"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
-				"检查结果 : 无数据"})
-			logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
-		} else {
-			var result1 string
-			var result2 bool
-			result1, result2 = JsonCompare(l, r, m, -1)
-			if result2 == true {
-				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-					"检查结果 : 结构异常", "异常信息：" + result1,
-					"实际结果：" + marshal(r)})
-				fmt.Println("检查到异常，事件:" + types + "_" + stype)
-				fmt.Println(result1)
+			r := GetRealPoints(pdList, types+"_"+stype, appName, frominfo)
+			if r == nil {
+				resultMsg = append(resultMsg, []string{
+					"埋点事件：" + types + "_" + stype + "; frominfo:" + frominfo,
+					"检查结果 : 无数据"})
+				logs.Error("没有查询到数据，已跳过：" + types + "_" + stype)
 			} else {
-				resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
-					"检查结果 : 结构正常"})
-				fmt.Println("检查通过，事件:" + types + "_" + stype)
+				var result1 string
+				var result2 bool
+				result1, result2 = JsonCompare(l, r, m, -1)
+				if result2 == true {
+					resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+						"检查结果 : 结构异常", "异常信息：" + result1,
+						"实际结果：" + marshal(r)})
+					fmt.Println("检查到异常，事件:" + types + "_" + stype)
+					fmt.Println(result1)
+				} else {
+					resultMsg = append(resultMsg, []string{"埋点事件:" + types + "_" + stype + "; frominfo:" + frominfo,
+						"检查结果 : 结构正常"})
+					fmt.Println("检查通过，事件:" + types + "_" + stype)
+				}
 			}
 		}
 	}

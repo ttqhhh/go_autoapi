@@ -1,0 +1,35 @@
+@charset "utf-8";
+
+body{
+    background-image:url("/static/img/bgpic.jpg");
+    background-attachment:fixed;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:100% 100%;
+    overflow:hidden;
+}
+
+#sign{
+    position:absolute;
+    left:50px;
+    width:350px;
+    top:50px;
+}
+
+#thumbnails{
+    margin-top: 100px;
+    line-height:100px;
+}
+
+.thumbnail{
+    background-color: rgba(216, 216, 216, 0.85);
+}
+
+#fontsize{
+    color: rgb(0, 0, 0);
+    line-height: 30px;
+    font-size:16px;
+}
+
+
+

@@ -35,5 +35,5 @@ func init() {
 	beego.Router("/presstest/*", &presstest.PressTestController{})
 	beego.Router("/h5listen/*", &h5listen.H5ListenController{})
 	beego.Router("/h5report/*", &h5report.H5ReportController{})
-
+	beego.Router("/allview/*", &auto.AllviewController{})
 }
