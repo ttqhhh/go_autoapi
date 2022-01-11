@@ -20,8 +20,14 @@ func StrategyH5() error {
 	for _, h5data := range h5Mongos {
 		//PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.ONE_MIN_CODE)
 		h5_url := h5data.DataUrl
-		resp, _ := http.Get(h5_url)
-		defer resp.Body.Close()
+		resp, _err := http.Get(h5_url)
+		if _err != nil {
+			//fmt.Println("链接不对:",h5_url)
+			logs.Info("链接不对:", h5_url)
+			//这里你看下要不要处理请求失败的情况
+			continue
+		}
+
 		// 200 OK
 		status := resp.Status
 		logs.Info("返回信息是：", status)
@@ -66,6 +72,9 @@ func StrategyH5() error {
 
 		}
 
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
 		logs.Info("h5巡检执行完毕，如果监测到问题开始发送叮叮--------")
 	}
 	return nil
