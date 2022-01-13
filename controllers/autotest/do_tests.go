@@ -4,14 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/blinkbean/dingtalk"
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
+
+const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
 // 请求demo，如何传递jsonpath
 //{
@@ -88,6 +92,9 @@ func (c *AutoTestController) performTests() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &param); err != nil {
 		logs.Error("请求参数解析错误， err: ", err)
 		c.ErrorJson(-1, "请求参数错误", nil)
+	}
+	if userId == "" {
+		userId = "上线前自动巡检"
 	}
 	// 进行必要的参数验证
 	performType := param.Type
@@ -168,6 +175,7 @@ func (c *AutoTestController) performTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						wg.Done()
 					}
 				}()
 				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
@@ -195,7 +203,16 @@ func (c *AutoTestController) performTests() {
 			runReport.UpdateIsPass(id, isPass, failCount, userId)
 		}()
 	}()
-	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
+	if userId == "上线前自动巡检" {
+		nowtime := time.Now().String()
+		nowtimestring := strings.Split(nowtime, ".")
+		baseMsg := "【线上巡检：上线通知】：" + "【" + businessName + "】" + "有新项目上线" + "\n" + "【上线时间】：" + nowtimestring[0]
+		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		//fmt.Print(baseMsg+"\n"+msg)
+		DingSendShangXian(baseMsg + "\n" + msg)
+	}
+	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
 func (c *AutoTestController) performInspectTests() {
@@ -287,6 +304,7 @@ func (c *AutoTestController) performInspectTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						wg.Done()
 					}
 				}()
 				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
@@ -315,4 +333,10 @@ func (c *AutoTestController) performInspectTests() {
 		}()
 	}()
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
+}
+
+func DingSendShangXian(content string) {
+	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
 }
