@@ -94,7 +94,7 @@ func (c *AutoTestController) performTests() {
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	if userId == "" {
-		userId = "上线前自动巡检"
+		userId = "回归测试"
 	}
 	// 进行必要的参数验证
 	performType := param.Type
@@ -203,12 +203,11 @@ func (c *AutoTestController) performTests() {
 			runReport.UpdateIsPass(id, isPass, failCount, userId)
 		}()
 	}()
-	if userId == "上线前自动巡检" {
+	if userId == "回归测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【线上巡检：上线通知】：" + "【" + businessName + "】" + "有新项目上线" + "\n" + "【上线时间】：" + nowtimestring[0]
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-		//fmt.Print(baseMsg+"\n"+msg)
 		DingSendShangXian(baseMsg + "\n" + msg)
 	}
 	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
