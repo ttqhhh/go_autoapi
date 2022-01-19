@@ -16,6 +16,7 @@ import (
 )
 
 const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
+const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e38eab18a"
 
 // 请求demo，如何传递jsonpath
 //{
@@ -75,6 +76,8 @@ type performParam struct {
 	Business    int8    `json:"business" form:"business"`     // 必填
 	ServiceList []int64 `json:"serviceIds" form:"serviceIds"` // 非必填。type=1时，必填
 	CaseList    []int64 `json:"ids" form:"ids" `              // 非必填
+	User        string  `json:"user" form:"user"`
+	Project     string  `json:"project" form:"project"`
 }
 
 // 执行case的维度类型，performTests接口使用
@@ -99,6 +102,8 @@ func (c *AutoTestController) performTests() {
 	// 进行必要的参数验证
 	performType := param.Type
 	business := param.Business
+	user := param.User
+	project := param.Project
 	if performType != BUSINESS_TYPE && performType != SERVICE_TYPE && performType != CASE_TYPE {
 		c.ErrorJson(-1, "请求参数中type为不支持的类型", nil)
 	}
@@ -206,7 +211,8 @@ func (c *AutoTestController) performTests() {
 	if userId == "回归测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
-		baseMsg := "【线上巡检：上线通知】：" + "【" + businessName + "】" + "有新项目上线" + "\n" + "【上线时间】：" + nowtimestring[0]
+		baseMsg := "【检测到" + businessName + "服务上线】：" + "线上环境/测试环境" + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
+			"【测试结果】：" + "成功/失败"
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		DingSendShangXian(baseMsg + "\n" + msg)
 	}
@@ -335,7 +341,7 @@ func (c *AutoTestController) performInspectTests() {
 }
 
 func DingSendShangXian(content string) {
-	var dingToken = []string{XIAO_NENG_QUN_TOKEN}
+	var dingToken = []string{PUBLISH_TOKEN}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }
