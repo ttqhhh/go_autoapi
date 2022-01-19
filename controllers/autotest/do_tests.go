@@ -17,6 +17,11 @@ import (
 
 const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e38eab18a"
+const (
+	ALL       = 0
+	IS_TEST   = 1
+	IS_ONLINE = 2
+)
 
 // 请求demo，如何传递jsonpath
 //{
@@ -114,10 +119,19 @@ func (c *AutoTestController) performTests() {
 	mongo := models.TestCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
 	var caseList []*models.TestCaseMongo
+	kind := strings.Split(project, "_")[0]
 	if performType == BUSINESS_TYPE {
 		var err error
 		// 查询该业务线下所有的Case
-		caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
+		if kind == "test" {
+			userId = "测试环境回归测试"
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_TEST)
+		} else if kind == "online" {
+			userId = "线上环境监控测试"
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_ONLINE)
+		} else {
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), ALL)
+		}
 		if err != nil {
 			logs.Error("获取测试用例列表失败, err: ", err)
 			c.ErrorJson(-1, "业务线维度执行Case时，获取测试用例失败", nil)
@@ -208,11 +222,21 @@ func (c *AutoTestController) performTests() {
 			runReport.UpdateIsPass(id, isPass, failCount, userId)
 		}()
 	}()
-	if userId == "回归测试" {
+	time.Sleep(5 * time.Second)
+	autoResultMongo := &models.AutoResult{}
+	failCount, _ := autoResultMongo.GetFailCount(uuid)
+	var isPass string
+	if failCount == 0 {
+		isPass = "成功"
+	} else {
+		isPass = "失败"
+	}
+
+	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
-		baseMsg := "【检测到" + businessName + "服务上线】：" + "线上环境/测试环境" + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
-			"【测试结果】：" + "成功/失败"
+		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
+			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		DingSendShangXian(baseMsg + "\n" + msg)
 	}
