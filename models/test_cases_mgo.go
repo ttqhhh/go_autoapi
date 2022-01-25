@@ -21,8 +21,7 @@ const (
 	INSPECTION            // 线上巡检接口
 )
 const (
-	SHANG_YE_HUA_TEST   = "test.izuiyou.com"  //测试环境域名
-	SHANG_YE_HUA_ONLINE = "adapi.izuiyou.com" // 线上环境域名
+	SHANG_YE_HUA_TEST = "test" //测试环境域名
 )
 
 type TestCaseMongo struct {
@@ -253,7 +252,9 @@ func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result
 	}
 	if kind == 2 { //线上环境
 		for _, one := range result {
-			if strings.Contains(one.Domain, SHANG_YE_HUA_ONLINE) {
+			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
+				//什么都不做
+			} else {
 				onlineList = append(onlineList, one)
 			}
 

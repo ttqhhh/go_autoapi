@@ -232,7 +232,7 @@ func (c *AutoTestController) performTests() {
 		isPass = "失败"
 	}
 
-	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
+	if userId == "测试环境回归测试" || userId == "线上环境监控测试" || userId == "回归测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
