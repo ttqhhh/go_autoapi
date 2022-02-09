@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/beego/beego/v2/server/web"
@@ -45,9 +44,8 @@ type User struct {
 
 func (c *ApiController) login() {
 	u := User{}
-	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &u); err != nil {
-		c.ErrorJson(-1, "请求错误", nil)
-	}
+	u.UserName = c.GetString("user_name")
+	u.Passwrod = c.GetString("password")
 	addr, _ := web.AppConfig.String("addr")
 	searchDn, _ := web.AppConfig.String("searchDn")
 	conn, err := ldap.Dial("tcp", addr)
@@ -97,3 +95,16 @@ func (c *ApiController) login() {
 
 	c.SuccessJsonWithMsg(nil, "登录成功")
 }
+
+//func (c *ApiController) OtherPrepare(){
+//	//0不需要登录 1需要登录
+//	one, err := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
+//	fmt.Print(one)
+//	isNeedCheck:="1"
+//	if err == false && one!="" {
+//		isNeedCheck:="0"
+//		c.Ctx.WriteString(isNeedCheck)
+//	}else{
+//		c.Ctx.WriteString(isNeedCheck)
+//		}
+//	}
