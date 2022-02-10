@@ -27,7 +27,7 @@ func init() {
 	//	return
 	//}
 	if IS_OPEN_INSPECTION_TASK {
-		Inspection1M := toolbox.NewTask("Inspection_Task_5min", inspection.ONE_MIN_EXPRESSION, inspection_strategy.Strategy1Min)
+		Inspection1M := toolbox.NewTask("Inspection_Task_1min", inspection.ONE_MIN_EXPRESSION, inspection_strategy.Strategy1Min)
 		toolbox.AddTask("Inspection_Task_1min", Inspection1M)
 		Inspection5M := toolbox.NewTask("Inspection_Task_5min", inspection.FIVE_MIN_EXPRESSION, inspection_strategy.Strategy5Min)
 		toolbox.AddTask("Inspection_Task_5min", Inspection5M)
@@ -45,6 +45,8 @@ func init() {
 		toolbox.AddTask("Inspection_Task_12hour", InspectionHalfD)
 		Inspection1D := toolbox.NewTask("Inspection_Task_1day", inspection.ONE_DAY_EXPRESSION, inspection_strategy.Strategy1Day)
 		toolbox.AddTask("Inspection_Task_1day", Inspection1D)
+		InspectionH5 := toolbox.NewTask("Inspection_Task_h5", inspection.H5_EXPRESSION, inspection_strategy.StrategyH5)
+		toolbox.AddTask("Inspection_Task_h5", InspectionH5)
 	}
 	if IS_OPEN_RT_MONITOR_TASK {
 		RtMonitorTask := toolbox.NewTask("Rt_Monitor_Task", monitor.MONITOR_TASK_EXPRESSION, monitor.MonitorTask)

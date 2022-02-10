@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
+	"strings"
 	"time"
 )
 
@@ -18,6 +19,9 @@ const (
 const (
 	NOT_INSPECTION = iota // 非线上巡检接口
 	INSPECTION            // 线上巡检接口
+)
+const (
+	SHANG_YE_HUA_TEST = "test" //测试环境域名
 )
 
 type TestCaseMongo struct {
@@ -164,9 +168,9 @@ func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
-	query := bson.M{"api_url":acm.ApiUrl,"domain":acm.Domain,"parameter":acm.Parameter,"status":0}
+	query := bson.M{"api_url": acm.ApiUrl, "domain": acm.Domain, "parameter": acm.Parameter, "status": 0}
 	err := db.Find(query).One(&acm)
-	if err == nil{
+	if err == nil {
 		return errors.New("用例已经存在")
 	}
 	err = db.Insert(acm)
@@ -225,7 +229,9 @@ func (t *TestCaseMongo) DelCase(id int64) {
 }
 
 // 获取指定业务线下所有Case
-func (t *TestCaseMongo) GetAllCasesByBusiness(business string) (result []*TestCaseMongo, err error) {
+func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
+	var testList []*TestCaseMongo
+	var onlineList []*TestCaseMongo
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
@@ -235,7 +241,27 @@ func (t *TestCaseMongo) GetAllCasesByBusiness(business string) (result []*TestCa
 		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
 		return nil, err
 	}
-	return
+	if kind == 1 { //测试环境 通过域名筛选
+		for _, one := range result {
+			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
+				testList = append(testList, one)
+			}
+
+		}
+		return testList, err
+	}
+	if kind == 2 { //线上环境
+		for _, one := range result {
+			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
+				//什么都不做
+			} else {
+				onlineList = append(onlineList, one)
+			}
+
+		}
+		return onlineList, err
+	}
+	return result, err
 }
 
 // 获取指定服务集合下所有Case

@@ -20,6 +20,9 @@ import (
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 
+//【服务端平台监控】群web_hook-用来测试
+const SERVER_QUN_TOKEN = "5d8a1de9fbf4b87ef01ccf38b65fc4bbf5029cf1e403411fec0cb0baef057503"
+
 // 「测试管理群」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
 //const XIAO_NENG_QUN_TOKEN = "a822521c37e0d566563652452a1fdd692f27f1746d59c4229dd91047ba52f325"
@@ -27,6 +30,9 @@ const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b
 // 「测试群」群web_hook-用来测试
 //const XIAO_NENG_QUN = "https://oapi.dingtalk.com/robot/send?access_token=60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
 const CE_SHI_QUN_TOKEN = "60ee4a400b625f8bb3284f12a2a5b8e6bf9eabb76fd23982359ffbb23e591a4d"
+
+//【测试群】群h5监控——web_hook-用来测试
+const H5_CE_SHI_QUN_TOKEN = "a58914cf2bbf23f5e830954e093d84fbec00f0712832d0be3ca67477b2203546"
 
 // todo 上线or正常使用时，需要设为true进行开启
 const IS_OPEN_SENDDING_MSG = false

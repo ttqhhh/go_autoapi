@@ -6,6 +6,8 @@ import (
 	"go_autoapi/controllers"
 	auto "go_autoapi/controllers/autotest"
 	casemanage "go_autoapi/controllers/casemanage"
+	"go_autoapi/controllers/h5listen"
+	"go_autoapi/controllers/h5report"
 	"go_autoapi/controllers/health"
 	"go_autoapi/controllers/inspection"
 	"go_autoapi/controllers/monitor"
@@ -31,5 +33,7 @@ func init() {
 	beego.Router("/monitor/*", &monitor.ZYMonitorController{})
 	beego.Router("/health/*", &health.HealthController{})
 	beego.Router("/presstest/*", &presstest.PressTestController{})
+	beego.Router("/h5listen/*", &h5listen.H5ListenController{})
+	beego.Router("/h5report/*", &h5report.H5ReportController{})
 	beego.Router("/allview/*", &auto.AllviewController{})
 }

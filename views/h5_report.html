@@ -1,0 +1,73 @@
+{{template "head.html" .}}
+
+<div style="margin:1%">
+<!--  <div class="layui-btn-group demoTable">-->
+<!--    <button class="layui-btn layui-bg-blue" data-type="getCheckData">获取选中行数据</button>-->
+<!--    <button class="layui-btn layui-bg-blue" data-type="getCheckLength">获取选中数目</button>-->
+<!--    <button class="layui-btn layui-bg-blue"  data-type="isAll">验证是否全选</button>-->
+<!--  </div>-->
+  <table class="layui-table" lay-filter="demo" id="h5report"></table>
+
+<!--  <table class="layui-table" lay-data="{url:'/case/get_all_report', page:true, limit:20 ,id:'idTest'}" lay-filter="demo">-->
+<!--    <thead>-->
+<!--    <tr>-->
+<!--      <th lay-data="{type:'checkbox', fixed: 'left'}"></th>-->
+<!--      <th lay-data="{field:'id', width:80, sort: true, fixed: true}">ID</th>-->
+<!--      <th lay-data="{field:'case_id'}">业务线</th>-->
+<!--      <th lay-data="{field:'created_at'}">h5页面名称</th>-->
+<!--      <th lay-data="{field:'run_id'}">页面链接</th>-->
+<!--      <th lay-data="{field:'response'}">错误信息</th>-->
+<!--      <th lay-data="{field:'case_id'}">执行时间</th>-->
+<!--      <th lay-data="{field:'reason'}">状态</th>-->
+<!--    </tr>-->
+<!--    </thead>-->
+<!--  </table>-->
+
+<!--  <script type="text/html" id="barDemo">-->
+<!--    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+<!--  </script>-->
+
+  <script src="/static/layui/layui.js" charset="utf-8"></script>
+
+  <script>
+    // const  showreport = () => {
+    //   window.location.href = '/h5report/show_report'
+    // }
+    layui.use('table', function(){
+      const table = layui.table;
+      var form = layui.form;
+      $ = layui.jquery
+      // 获取service的方法
+      // $(function () {
+      //   $.ajax({
+      //     type: 'POST',
+      //     url: '/h5report/show_h5_report',
+      //     dataType:'json',
+      //     success: function () {
+      //
+      //     }
+      //   })
+      // })
+      //表格渲染
+      table.render({
+        elem: '#h5report'
+        , url: '/h5report/show_h5_report'
+        , page: true
+        , method: 'get'
+        , cols: [[
+          {type: "checkbox", fixed: 'left'},
+          {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
+          {title: '业务线', field: 'business_name', width: 100},
+          {title: 'h5页面名称', field: 'data_name', width: 100},
+          {title: 'url', field: 'data_url', width: 400},
+          {title: '错误信息', field: 'error_code', width: 200},
+          {title: '执行时间', field: 'created_at', width: 200},
+          {title: '状态', field: 'status', width: 100},
+        ]]
+      })
+
+    });
+  </script>
+</div>
+</body>
+</html>

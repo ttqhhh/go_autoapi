@@ -4,13 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/blinkbean/dingtalk"
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+)
+
+const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
+const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e38eab18a"
+const (
+	ALL       = 0
+	IS_TEST   = 1
+	IS_ONLINE = 2
 )
 
 // 请求demo，如何传递jsonpath
@@ -71,6 +81,8 @@ type performParam struct {
 	Business    int8    `json:"business" form:"business"`     // 必填
 	ServiceList []int64 `json:"serviceIds" form:"serviceIds"` // 非必填。type=1时，必填
 	CaseList    []int64 `json:"ids" form:"ids" `              // 非必填
+	User        string  `json:"user" form:"user"`
+	Project     string  `json:"project" form:"project"`
 }
 
 // 执行case的维度类型，performTests接口使用
@@ -89,9 +101,14 @@ func (c *AutoTestController) performTests() {
 		logs.Error("请求参数解析错误， err: ", err)
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
+	if userId == "" {
+		userId = "回归测试"
+	}
 	// 进行必要的参数验证
 	performType := param.Type
 	business := param.Business
+	user := param.User
+	project := param.Project
 	if performType != BUSINESS_TYPE && performType != SERVICE_TYPE && performType != CASE_TYPE {
 		c.ErrorJson(-1, "请求参数中type为不支持的类型", nil)
 	}
@@ -102,10 +119,19 @@ func (c *AutoTestController) performTests() {
 	mongo := models.TestCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
 	var caseList []*models.TestCaseMongo
+	kind := strings.Split(project, "_")[0]
 	if performType == BUSINESS_TYPE {
 		var err error
 		// 查询该业务线下所有的Case
-		caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
+		if kind == "test" {
+			userId = "测试环境回归测试"
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_TEST)
+		} else if kind == "online" {
+			userId = "线上环境监控测试"
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_ONLINE)
+		} else {
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), ALL)
+		}
 		if err != nil {
 			logs.Error("获取测试用例列表失败, err: ", err)
 			c.ErrorJson(-1, "业务线维度执行Case时，获取测试用例失败", nil)
@@ -168,6 +194,7 @@ func (c *AutoTestController) performTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						wg.Done()
 					}
 				}()
 				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
@@ -195,7 +222,26 @@ func (c *AutoTestController) performTests() {
 			runReport.UpdateIsPass(id, isPass, failCount, userId)
 		}()
 	}()
-	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
+	time.Sleep(5 * time.Second)
+	autoResultMongo := &models.AutoResult{}
+	failCount, _ := autoResultMongo.GetFailCount(uuid)
+	var isPass string
+	if failCount == 0 {
+		isPass = "成功"
+	} else {
+		isPass = "失败"
+	}
+
+	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
+		nowtime := time.Now().String()
+		nowtimestring := strings.Split(nowtime, ".")
+		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
+			"【测试结果】：" + isPass
+		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		DingSendShangXian(baseMsg + "\n" + msg)
+	}
+	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
 func (c *AutoTestController) performInspectTests() {
@@ -287,6 +333,7 @@ func (c *AutoTestController) performInspectTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						wg.Done()
 					}
 				}()
 				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
@@ -315,4 +362,10 @@ func (c *AutoTestController) performInspectTests() {
 		}()
 	}()
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
+}
+
+func DingSendShangXian(content string) {
+	var dingToken = []string{PUBLISH_TOKEN}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
 }

@@ -41,7 +41,7 @@ func Strategy1Min() error {
 		// 遍历服务下边所有的巡检Case
 		for _, service := range serviceMongos {
 			PerformInspection(businessId, service.Id, msgChannel, restrainMsgChannel, inspection.ONE_MIN_CODE)
-			logs.Info("5分钟巡检执行完毕，如果监测到问题开始发送叮叮--------")
+			logs.Info("1分钟巡检执行完毕，如果监测到问题开始发送叮叮--------")
 		}
 
 	}
