@@ -79,8 +79,8 @@ func (c *AutoTestController) login() {
 			c.ErrorJson(-1, "登录失败", nil)
 		}
 	}
-	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName)
-	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business))
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_id", u.UserName, 31536000)
+	c.Ctx.SetSecureCookie(constant.CookieSecretKey, "user_type", string(loginUser.Business), 31536000)
 	var ul []*models.AutoUser
 	for i := 0; i < 10; i++ {
 		ul = append(ul, &au)
