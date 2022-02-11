@@ -33,6 +33,7 @@ var withoutLoginApi = []string{
 	"/health/check",
 	"/flowreplay/collect_flow_file",
 	"/api/prepare",
+	"/auto/perform_tests",
 }
 
 //// todo 该方法不要注释掉，不然登录功能就没意义了
