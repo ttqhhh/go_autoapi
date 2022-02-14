@@ -113,13 +113,14 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	defer ms.Close()
 
 	var query interface{} = bson.M{"run_id": uuid, "result": AUTO_RESULT_FAIL}
+	var allFail = []AutoResult{}
 	// 查询分页列表数据
-	count, err := db.Find(query).Count()
+	err = db.Find(query).All(allFail)
+	noReapetFail := RemoveRepeatedElement(allFail)
 	if err != nil {
-		logs.Error("查询失败用例条数失败, err: ", err)
-		return 0, err
+		logs.Error("获取全部数据出错，err:", err)
 	}
-	failCount = int64(count)
+	failCount = int64(len(noReapetFail))
 	return
 }
 
@@ -159,4 +160,22 @@ func (a *AutoResult) QueryResult() ([]AutoResult, error) {
 		logs.Error("查询错误: %v", err)
 	}
 	return autoResultList, err
+}
+
+//去重
+func RemoveRepeatedElement(arr []AutoResult) (newArr []AutoResult) {
+	newArr = make([]AutoResult, 0)
+	for i := 0; i < len(arr); i++ {
+		repeat := false
+		for j := i + 1; j < len(arr); j++ {
+			if arr[i] == arr[j] {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			newArr = append(newArr, arr[i])
+		}
+	}
+	return
 }
