@@ -113,15 +113,14 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	defer ms.Close()
 
 	var query interface{} = bson.M{"run_id": uuid, "result": AUTO_RESULT_FAIL}
-	var allFail = []AutoResult{}
-	// 查询分页列表数据
-	err = db.Find(query).All(allFail)
-	noReapetFail := RemoveRepeatedElement(allFail)
+	count, err := db.Find(query).Count()
 	if err != nil {
-		logs.Error("获取全部数据出错，err:", err)
+		logs.Error("查询失败用例条数失败, err: ", err)
+		return 0, err
 	}
-	failCount = int64(len(noReapetFail))
+	failCount = int64(count)
 	return
+
 }
 
 //删(直接删除库中数据)
