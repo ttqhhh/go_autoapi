@@ -8,47 +8,28 @@ import (
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
 	"strings"
-	"time"
 )
 
-const (
-	status = 0
-	del_   = 1
-)
-
-const (
-	NOT_INSPECTION = iota // 非线上巡检接口
-	INSPECTION            // 线上巡检接口
-)
-const (
-	SHANG_YE_HUA_TEST = "test" //测试环境域名
-)
-
-type TestCaseMongo struct {
-	Id           int64  `form:"id" json:"id" bson:"_id"`
-	ApiName      string `form:"api_name" json:"api_name" bson:"api_name"`
-	CaseName     string `form:"case_name" json:"case_name" bson:"case_name"`
-	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
-	Description  string `form:"description" json:"description" bson:"description"`
-	Method       string `form:"method" json:"method" bson:"method"`
-	CreatedAt    string `json:"created_at"`
-	UpdatedAt    string `json:"updated_at"`
+type SetCaseMongo struct {
+	Id          int64  `form:"id" json:"id" bson:"_id"`
+	SetId       int64  `form:"set_id" json:"set_id" bson:"set_id"`
+	CaseName    string `form:"case_name" json:"case_name" bson:"case_name"`
+	Description string `form:"description" json:"description" bson:"description"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 	//zen
-	Author string `form:"author" json:"author" bson:"author"`
-	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
+	Author        string `form:"author" json:"author" bson:"author"`
 	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
 	BusinessCode  string `form:"business_code" json:"business_code" bson:"business_code"`
 	ServiceId     int64  `form:"service_id" json:"service_id" bson:"service_id"`
 	ServiceName   string `form:"service_name" json:"service_name" bson:"service_name"`
 	ApiUrl        string `form:"api_url" json:"api_url" bson:"api_url"`
-	TestEnv       string `form:"test_env" json:"test_env" bson:"test_env"`
-	Mock          string `form:"mock" json:"mock" bson:"mock"`
 	RequestMethod string `form:"request_method" json:"request_method" bson:"request_method"`
 	Parameter     string `form:"parameter" json:"parameter" bson:"parameter"`
+	ExtractResp   string `form:"extract_resp" json:"extract_resp" bson:"extract_resp"` // 	用于从响应中提取值的配置
 	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
 	SmokeResponse string `form:"smoke_response" json:"smoke_response,omitempty" bson:"smoke_response"`
-	Level         string `form:"level" json:"level" bson:"level"`
 	Status        int64  `json:"status" bson:"status"`
 }
 
@@ -60,7 +41,7 @@ type TestCaseMongo struct {
 
 // 获取指定server下的所有case
 
-func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error) {
+func (t *TestCaseMongo) GetSetCaseByQuery(query interface{}) (TestCaseMongo, error) {
 	//query := TestCaseMongo{}
 	var acm = TestCaseMongo{}
 	ms, c := db_proxy.Connect("auto_api", "case")
@@ -87,7 +68,7 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error
 //	return caseList
 //}
 
-func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
+func (t *TestCaseMongo) GetSetCaseByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	var query = bson.M{}
@@ -122,7 +103,7 @@ func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, 
 }
 
 // 获取指定业务线下的指定页面case
-func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {
+func (t *TestCaseMongo) GetAllSetCase(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {
 	//acm := TestCaseMongo{}
 	//result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
@@ -147,7 +128,7 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []
 
 // 通过id获取指定case
 
-func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
+func (t *TestCaseMongo) GetOneSetCase(id int64) TestCaseMongo {
 
 	fmt.Println(id)
 	query := bson.M{"_id": id, "status": status}
@@ -165,7 +146,7 @@ func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
 
 // 添加一条case
 
-func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
+func (t *TestCaseMongo) AddSetCase(acm TestCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"api_url": acm.ApiUrl, "domain": acm.Domain, "parameter": acm.Parameter, "status": 0}
@@ -182,7 +163,7 @@ func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 
 // 通过id修改case（全更新）
 
-func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
+func (t *TestCaseMongo) UpdateSetCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -196,27 +177,27 @@ func (t *TestCaseMongo) UpdateCase(id int64, acm TestCaseMongo) (TestCaseMongo, 
 }
 
 //
-func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
-	ms, db := db_proxy.Connect("auto_api", "case")
-	defer ms.Close()
-
-	data := bson.M{
-		"$set": bson.M{
-			"is_inspection": is_inspection,
-			"updated_at":    time.Now().Format(Time_format),
-		},
-	}
-	changeInfo, err := db.UpsertId(id, data)
-	if err != nil {
-		logs.Error("设置巡检状态错误: err: ", err)
-	}
-	logs.Info("upsert函数返回的响应为：%v", changeInfo)
-	return err
-}
+//func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
+//	ms, db := db_proxy.Connect("auto_api", "case")
+//	defer ms.Close()
+//
+//	data := bson.M{
+//		"$set": bson.M{
+//			"is_inspection": is_inspection,
+//			"updated_at":    time.Now().Format(Time_format),
+//		},
+//	}
+//	changeInfo, err := db.UpsertId(id, data)
+//	if err != nil {
+//		logs.Error("设置巡检状态错误: err: ", err)
+//	}
+//	logs.Info("upsert函数返回的响应为：%v", changeInfo)
+//	return err
+//}
 
 // 修改status
 
-func (t *TestCaseMongo) DelCase(id int64) {
+func (t *TestCaseMongo) DelSetCase(id int64) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -229,7 +210,7 @@ func (t *TestCaseMongo) DelCase(id int64) {
 }
 
 // 获取指定业务线下所有Case
-func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
+func (t *TestCaseMongo) GetAllSetCaseByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
 	var testList []*TestCaseMongo
 	var onlineList []*TestCaseMongo
 	ms, c := db_proxy.Connect("auto_api", "case")
@@ -265,7 +246,7 @@ func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result
 }
 
 // 获取指定服务集合下所有Case
-func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*TestCaseMongo, err error) {
+func (t *TestCaseMongo) GetAllSetCaseByServiceList(serviceIds []int64) (result []*TestCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
@@ -290,21 +271,21 @@ func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*
 }
 
 // 获取指定服务集合下所有Case
-func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
-	ms, c := db_proxy.Connect("auto_api", "case")
-	defer ms.Close()
+//func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
+//	ms, c := db_proxy.Connect("auto_api", "case")
+//	defer ms.Close()
+//
+//	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
+//	// 获取指定业务线下全部case列表
+//	err = c.Find(query).All(&result)
+//	if err != nil {
+//		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
+//		return nil, err
+//	}
+//	return
+//}
 
-	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
-	// 获取指定业务线下全部case列表
-	err = c.Find(query).All(&result)
-	if err != nil {
-		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
-		return nil, err
-	}
-	return
-}
-
-func (t *TestCaseMongo) GetCasesByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
+func (t *TestCaseMongo) GetSetCaseByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 

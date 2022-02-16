@@ -29,7 +29,6 @@ func (c *CaseManageController) GetCasesByQuery() {
 	c.SuccessJson(result)
 }
 
-
 func (c *CaseManageController) GetCaseIdByService() {
 	services := c.GetStrings("service")
 	ids := libs.GetCasesByServices(services)
@@ -42,7 +41,11 @@ func (c *CaseManageController) GetCaseByCondition() {
 	service := c.GetString("service")
 	case_name := c.GetString("case_name")
 
+	mongo := models.TestCaseMongo{}
+	caseList, err := mongo.GetCasesByCondition(business_code, service, case_name)
+	if err != nil {
+		c.ErrorJson(-1, "指定条件获取测试用例失败", nil)
+	}
 
-
-	c.SuccessJson(nil)
+	c.SuccessJson(caseList)
 }

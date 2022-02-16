@@ -29,6 +29,8 @@ func (c *CaseManageController) Get() {
 		c.GetAllCases()
 	case "search_case":
 		c.SearchCase()
+	case "get_case_by_condition":
+		c.GetCaseByCondition()
 	case "show_report":
 		c.ShowReport()
 	case "get_all_report":
