@@ -5,6 +5,7 @@ import (
 	"go_autoapi/api"
 	"go_autoapi/controllers"
 	auto "go_autoapi/controllers/autotest"
+	"go_autoapi/controllers/case_set"
 	casemanage "go_autoapi/controllers/casemanage"
 	"go_autoapi/controllers/h5listen"
 	"go_autoapi/controllers/h5report"
@@ -36,4 +37,5 @@ func init() {
 	beego.Router("/h5listen/*", &h5listen.H5ListenController{})
 	beego.Router("/h5report/*", &h5report.H5ReportController{})
 	beego.Router("/allview/*", &auto.AllviewController{})
+	beego.Router("/case_set/*", &case_set.CaseSetController{})
 }

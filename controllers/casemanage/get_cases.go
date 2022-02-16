@@ -35,3 +35,14 @@ func (c *CaseManageController) GetCaseIdByService() {
 	ids := libs.GetCasesByServices(services)
 	c.SuccessJson(ids)
 }
+
+// CaseSet添加Case时，筛选Case接口
+func (c *CaseManageController) GetCaseByCondition() {
+	business_code := c.GetString("business_code") // 必填
+	service := c.GetString("service")
+	case_name := c.GetString("case_name")
+
+
+
+	c.SuccessJson(nil)
+}

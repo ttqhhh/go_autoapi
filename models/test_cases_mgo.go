@@ -303,3 +303,41 @@ func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result 
 	}
 	return
 }
+
+/**
+
+service := c.GetString("service")
+business_code := c.GetString("business_code")
+case_name := c.GetString("case_name")
+
+*/
+func GetCasesByCondition(business_code string, service_code string, case_name string)(acms []*TestCaseMongo, err error){
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	var query = bson.M{"status": status}
+
+	if business_code != "" {
+		query["business_code"] = business_code
+	}
+	if service_code != "" {
+		query["service"] = service_code
+	}
+	if case_name != "" {
+		query["case_name"] = bson.M{"$regex": bson.RegEx{Pattern: case_name, Options: "im"}}
+	}
+
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).Sort("-_id").All(&acms)
+	if err != nil {
+		logs.Error("查询分页列表数据报错, err: ", err)
+		return nil, err
+	}
+
+	if err != nil {
+		logs.Error("数据库查询指定业务线下case数量报错, err: ", err)
+		return nil, err
+	}
+
+	return
+}
