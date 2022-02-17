@@ -305,6 +305,7 @@ func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result 
 }
 
 func (t *TestCaseMongo) GetCasesByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
+	//todo 分页处理 xueyibing
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
@@ -321,7 +322,7 @@ func (t *TestCaseMongo) GetCasesByCondition(business_code string, service_code s
 	}
 
 	// 获取指定业务线下全部case列表
-	err = c.Find(query).Select(bson.M{"_id": 1, "case_name": 1, "api_url": 1}).Sort("-_id").All(&acms)
+	err = c.Find(query).Select(bson.M{"_id": 1, "case_name": 1, "api_url": 1, "business_name": 1, "service_name": 1}).Sort("-_id").All(&acms)
 	if err != nil {
 		logs.Error("数据库按指定条件查询用例数据报错, err: ", err)
 		return nil, err

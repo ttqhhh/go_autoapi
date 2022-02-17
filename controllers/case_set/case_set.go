@@ -109,6 +109,7 @@ func (c *CaseSetController) addCaseSet() {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
+	//todo xueyibing 返回增加author字段
 	caseSet.Id = caseSetId
 	caseSet.CreatedAt = now
 	caseSet.UpdatedAt = now
