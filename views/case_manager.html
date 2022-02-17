@@ -84,7 +84,7 @@
             window.open("/case/show_inspection_case?id=" + id + "&business={{.business}}","_blank");
         } else {
             // 直接更改巡检Case状态和测试Case关联的巡检Case字段
-            layer.msg("请去「巡检用例管理」页面删除该巡检Case")
+            layer.msg("请去「线上监控」页面删除该巡检Case")
             $(obj).html('<input type="checkbox" lay-skin="switch" lay-text="是|否" lay-filter="ifNullDemo" checked="" disabled=""><div class="layui-unselect layui-form-switch layui-form-onswitch layui-checkbox-disbaled layui-disabled" lay-skin="_switch"><em>是</em><i></i></div>')
         }
     }
