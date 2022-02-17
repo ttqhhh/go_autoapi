@@ -1,0 +1,174 @@
+{{template "head.html" .}}
+
+<div style="margin:1%">
+    <div>
+        <div class="layui-form layui-inline" style="margin-right:10%">
+            <div class="layui-inline">
+                <select name="" id="search_service">
+                    <option value="">请选择服务</option>
+                </select>
+            </div>
+            <div class="layui-inline">
+                <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
+            </div>
+        </div>
+        <div class="layui-inline" style="float: right">
+            <button class="layui-btn" id="add_compose_case">添加组合case</button>
+        </div>
+    </div>
+    <table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+</div>
+
+<form class="layui-form" style="display: none;padding: 10px" id="add_one_case"
+      action="/case_set/add_case_set/" readonly="readonly" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label">业务-服务</label>
+                <div class="layui-input-block">
+                    <select name="business_code" lay-filter="business" id="business">
+                        <option value="0">最右</option>
+                        <option value="1">皮皮</option>
+                        <option value="2">海外</option>
+                        <option value="3">中东</option>
+                        <option value="4">妈妈社区</option>
+                        <option value="5">商业化</option>
+                        <option value="6">海外-US</option>
+                    </select>
+                </div>
+            </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">case名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" required id="case_set_name" autocomplete="off" placeholder="请输入用例名"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">用例描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="description" required id="description" autocomplete="off" placeholder="请输入用例描述"
+                   class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item" style="float: right">
+        <button class="layui-btn" lay-submit="" lay-filter="demo2">保存数据</button>
+    </div>
+</form>
+
+<table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add">添加</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+
+
+
+    layui.use(['element', 'jquery',"layer"], function(){
+        var $ =layui.$;
+        var layer = layui.layer;
+        var table = layui.table;
+
+        function loadTable() {
+            //表格渲染
+            table.render({
+                elem: '#idTest'
+                , url: "/case_set/page"
+                , page: true
+                , where: {business: {{.business}}}
+                , cols: [[
+                    {type: "checkbox", fixed: 'left'},
+                    {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
+                    {title: '业务线', field: 'business_name', width: 100},
+                    {title: '用例名称', field: 'case_set_name', width: 150},
+                    {title: '用例描述', field: 'description'},
+                    {title: '添加人', field: 'author', width: 100},
+                    // {title: '请求方式', field: 'request_method', width: 100},
+                    // {title: '报警次数', field: 'warning_number', width: 100},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
+
+                ]]
+            });
+        }
+        loadTable();
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'add'){
+                window.location.href = '/case_set/one_case?business='+data.business_code+"&id="+data.id
+            } else if(obj.event === 'del'){
+                alert("删除")
+                    //todo
+            } else if(obj.event === 'edit'){
+                alert("编辑")
+                //todo
+            }else if (obj.event === "run") {
+                alert("运行")
+                //todo
+
+                {{/*var arr = new Array();*/}}
+                {{/*arr.push(data.id);*/}}
+                {{/*// alert(arr)*/}}
+                {{/*var needJump = true;*/}}
+                {{/*$.ajax({*/}}
+                {{/*    type: 'POST',*/}}
+                {{/*    contentType: "application/json",*/}}
+                {{/*    dataType: "json",*/}}
+                {{/*    url: "/auto/perform_inspect_tests",*/}}
+                {{/*    async: false,*/}}
+                {{/*    timeout: 500000,*/}}
+                {{/*    data: JSON.stringify({*/}}
+                {{/*        "ids": arr,*/}}
+                {{/*        "type": 2,*/}}
+                {{/*        "business": parseInt('{{.business}}'),*/}}
+                {{/*    }),*/}}
+                {{/*    success: function (data) {*/}}
+                {{/*        respCode = data.code*/}}
+                {{/*        if (respCode == -1) {*/}}
+                {{/*            needJump = false*/}}
+                {{/*            layer.msg(data.msg)*/}}
+                {{/*        }*/}}
+                {{/*    }*/}}
+                {{/*});*/}}
+                {{/*if (needJump) {*/}}
+                {{/*    window.location.href = "/report/show_run_record_inspection";*/}}
+                {{/*}*/}}
+            }
+            layui.close(obj);
+        });
+
+
+
+        $(document).on("click", "#add_compose_case", function () {
+            layer.open({
+                type: 1
+                , title: '新增组合case'
+                , area: ['440px', '300px']
+                , shade: 0
+                , maxmin: true
+                , offset: [100, 600]
+                , content: $("#add_one_case")
+                , end: function () {
+                    $("#add_one_case").hide();
+                }
+            });
+        });
+
+
+
+
+
+    });
+
+</script>
+</body>
+</html>

@@ -22,6 +22,8 @@ func (c *CaseSetController) Get() {
 	switch do {
 	case "index":
 		c.index()
+	case "one_case":
+		c.oneCase()
 	case "page":
 		c.page()
 	case "get_case_set_by_id":
@@ -61,10 +63,26 @@ func (c *CaseSetController) Post() {
 
 // 页面跳转 -- Done
 func (c *CaseSetController) index() {
+	business := c.GetString("business")
+	c.Data["business"] = business
 	c.TplName = "case_set_page.html"
 }
 
 // CaseSet列表页-分页查询 --Done
+
+func (c *CaseSetController) oneCase() {
+	business := c.GetString("business")
+	id, err := c.GetInt64("id")
+	if err != nil {
+		logs.Error("从前台获取数据id出错，err", err)
+	}
+	c.Data["id"] = id
+	c.Data["business"] = business
+	c.TplName = "case_one_set.html"
+}
+
+// CaseSet列表页-分页查询
+
 func (c *CaseSetController) page() {
 	acm := models.CaseSetMongo{}
 	business_code := c.GetString("business")
@@ -80,6 +98,7 @@ func (c *CaseSetController) page() {
 
 // Case集合添加（Form表单传参） -- Done
 func (c *CaseSetController) addCaseSet() {
+	//todo 获取author
 	now := time.Now().Format(constants.TimeFormat)
 	caseSet := models.CaseSetMongo{}
 	if err := c.ParseForm(&caseSet); err != nil { // 传入user指针
@@ -101,26 +120,26 @@ func (c *CaseSetController) addCaseSet() {
 	businessCode, _ := strconv.Atoi(business)
 	businessName := controllers.GetBusinessNameByCode(businessCode)
 	caseSet.BusinessName = businessName
-
-	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := caseSet.Parameter
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("保存Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	caseSet.Parameter = string(paramByte)
+	//
+	//// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	//param := caseSet.Parameter
+	//v := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("保存Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//caseSet.Parameter = string(paramByte)
 	if err := caseSet.AddCaseSet(caseSet); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
-	c.SuccessJson(nil)
-	//c.Ctx.Redirect(302, "/case_set/page?page=1&limit=10&business="+business)
+	//c.SuccessJson(nil)
+	c.Ctx.Redirect(302, "/case_set/index?business="+business)
 }
 
 type runparam struct {

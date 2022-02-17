@@ -70,13 +70,18 @@ func (t *CaseSetMongo) AddCaseSet(acm CaseSetMongo) error {
 	query := bson.M{"case_set_name": acm.CaseSetName, "status": status}
 	err := db.Find(query).One(&acm)
 
-	// todo 验证当前代码十分有效
-	if err == nil {
-		return errors.New("同名用例集已经存在，请更换其他名字")
-	}
+	//// todo 验证当前代码十分有效
+	//if err != nil {
+	//	if err != mgo.ErrNotFound {
+	//		return errors.New("同名用例集已经存在，请更换其他名字")
+	//	}
+	//	return err
+	//}
 	err = db.Insert(acm)
 	if err != nil {
 		logs.Error("插入测试用例集报错, err:", err)
+		err = errors.New("插入测试用例集报错")
+
 	}
 	return err
 }

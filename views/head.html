@@ -105,6 +105,26 @@
                 }
             })
         });
+        $(function () {
+            var url_id = window.location.pathname + window.location.search
+            $(document.getElementById(url_id)).addClass("layui-this");
+            $.ajax({
+                type: 'GET',
+                dataType:"json",
+                url: "/business/get_user_businesses",
+                async:false,
+                timeout : 500000,
+                success:function (data){
+                    var date = data.data.businesses
+                    var author = data.data.username
+                    $.each(date, function (n, val){
+                        var option1 = '<dd><a href="/case_set/index?business='+val["code"]+'" >'+val["name"]+'</a></dd>'
+                        $("#compose_business_list").append(option1);
+                        $(".author").text(author)
+                    })
+                }
+            })
+        });
     });
 </script>
 <script>
@@ -142,6 +162,11 @@
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
         <a href="javascript:;">巡检用例管理</a>
         <dl class="layui-nav-child" id="inspection_business_list">
+        </dl>
+    </li>
+    <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
+        <a href="javascript:;">组合用例管理</a>
+        <dl class="layui-nav-child" id="compose_business_list">
         </dl>
     </li>
     <!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
