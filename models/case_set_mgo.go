@@ -8,7 +8,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"strings"
 )
 
 type CaseSetMongo struct {
@@ -131,15 +130,19 @@ func (t *CaseSetMongo) AddCaseSet(acm CaseSetMongo) error {
 	query := bson.M{"case_set_name": acm.CaseSetName, "status": status}
 	err := db.Find(query).One(&acm)
 
-	// todo 验证当前代码十分有效
-	if err == nil {
-		return errors.New("同名用例集已经存在，请更换其他名字")
-	}
+	//// todo 验证当前代码十分有效
+	//if err != nil {
+	//	if err != mgo.ErrNotFound {
+	//		return errors.New("同名用例集已经存在，请更换其他名字")
+	//	}
+	//	return err
+	//}
 	err = db.Insert(acm)
 	if err != nil {
 		logs.Error("插入测试用例集报错, err:", err)
+		err = errors.New("插入测试用例集报错")
+
 	}
-	err = errors.New("插入测试用例集报错")
 	return err
 }
 
@@ -196,8 +199,7 @@ func (t *CaseSetMongo) DelCaseSet(id int64) error {
 
 // 获取指定业务线下所有Case
 func (t *CaseSetMongo) GetAllCaseSetByBusiness(business string, kind int) (result []*CaseSetMongo, err error) {
-	var testList []*CaseSetMongo
-	var onlineList []*CaseSetMongo
+
 	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
@@ -207,26 +209,7 @@ func (t *CaseSetMongo) GetAllCaseSetByBusiness(business string, kind int) (resul
 		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
 		return nil, err
 	}
-	if kind == 1 { //测试环境 通过域名筛选
-		for _, one := range result {
-			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
-				testList = append(testList, one)
-			}
 
-		}
-		return testList, err
-	}
-	if kind == 2 { //线上环境
-		for _, one := range result {
-			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
-				//什么都不做
-			} else {
-				onlineList = append(onlineList, one)
-			}
-
-		}
-		return onlineList, err
-	}
 	return result, err
 }
 
