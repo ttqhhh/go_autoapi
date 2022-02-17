@@ -117,20 +117,22 @@ func (c *AutoTestController) performTests() {
 	}
 
 	mongo := models.TestCaseMongo{}
+	InspectionMongo := models.InspectionCaseMongo{}
 	// 根据不同的执行维度，聚合需要执行的所有Case集合
-	var caseList []*models.TestCaseMongo
 	kind := strings.Split(project, "_")[0]
+	var caseList []*models.TestCaseMongo
+	var caseListInspection []*models.InspectionCaseMongo
 	if performType == BUSINESS_TYPE {
 		var err error
 		// 查询该业务线下所有的Case
 		if kind == "test" {
 			userId = "测试环境回归测试"
-			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_TEST)
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		} else if kind == "online" {
-			userId = "线上环境监控测试"
-			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), IS_ONLINE)
+			userId = "线上环境回归测试"
+			caseListInspection, err = InspectionMongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		} else {
-			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)), ALL)
+			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		}
 		if err != nil {
 			logs.Error("获取测试用例列表失败, err: ", err)
@@ -154,9 +156,14 @@ func (c *AutoTestController) performTests() {
 	}
 	count := len(caseList)
 	fmt.Println("case list is", caseList)
-	if len(caseList) == 0 {
-		logs.Error("没有用例")
-		c.ErrorJson(-1, "没有用例", nil)
+	if len(caseList) == 0{
+		if len(caseListInspection) == 0{
+			logs.Error("没有用例")
+			c.ErrorJson(-1, "没有用例", nil)
+		}else{
+			onlineCaseTest(caseListInspection,business,userId,uuid,kind,user,project)
+		}
+
 	}
 	// 对本次执行操作记录进行保存
 	totalCases := len(caseList)
@@ -242,6 +249,98 @@ func (c *AutoTestController) performTests() {
 	}
 	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
+}
+
+//自动化调用巡检case,线上发布系统触发回归
+func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userId string, uuid string, kind string, user string, project string){
+	count := len(caseList)
+	fmt.Println("case list is", caseList)
+	// 对本次执行操作记录进行保存
+	totalCases := len(caseList)
+	runReport := models.RunReportMongo{}
+	// 报告的名字：业务线-执行人-时间戳（日期）
+	businessMap := GetBusinesses(userId)
+	businessName := "未知"
+	for _, v := range businessMap {
+		if int8(v["code"].(int)) == business {
+			businessName = v["name"].(string)
+			break
+		}
+	}
+	format := "20060102/150405"
+	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
+	runReport.CreateBy = userId
+	runReport.RunId = uuid
+	runReport.TotalCases = totalCases
+	runReport.IsPass = models.RUNNING
+	runReport.Business = business
+	runReport.ServiceName = caseList[0].ServiceName
+
+	id, err := runReport.Insert(runReport)
+	if err != nil {
+		logs.Error("插入执行记录失败", err)
+		ac := AutoTestController{}
+		ac.ErrorJson(-1, "插入执行记录失败，请呼叫本平台相关负责同学", nil)
+	}
+
+	go func() {
+		wg := sync.WaitGroup{}
+		wg.Add(len(caseList))
+		for _, val := range caseList {
+			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
+				defer func() {
+					if err := recover(); err != nil {
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						wg.Done()
+					}
+				}()
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
+				// 获取用例执行进度时使用
+				r := utils.GetRedis()
+				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				wg.Done()
+			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
+		}
+		wg.Wait()
+
+		go func() {
+			autoResult, _ := models.GetResultByRunId(uuid)
+			var isPass int8 = models.SUCCESS
+			// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
+			for _, result := range autoResult {
+				if result.Result == models.AUTO_RESULT_FAIL {
+					isPass = models.FAIL
+					break
+				}
+			}
+			// 更新失败个数和本次执行记录状态
+			autoResultMongo := &models.AutoResult{}
+			failCount, _ := autoResultMongo.GetFailCount(uuid)
+			runReport.UpdateIsPass(id, isPass, failCount, userId)
+		}()
+	}()
+	time.Sleep(5 * time.Second)
+	autoResultMongo := &models.AutoResult{}
+	failCount, _ := autoResultMongo.GetFailCount(uuid)
+	var isPass string
+	if failCount == 0 {
+		isPass = "成功"
+	} else {
+		isPass = "失败"
+	}
+
+	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
+		nowtime := time.Now().String()
+		nowtimestring := strings.Split(nowtime, ".")
+		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
+			"【测试结果】：" + isPass
+		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		DingSendShangXian(baseMsg + "\n" + msg)
+	}
+	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	ac := AutoTestController{}
+	ac.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
 func (c *AutoTestController) performInspectTests() {

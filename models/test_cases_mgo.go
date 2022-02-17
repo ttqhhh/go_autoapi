@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
-	"strings"
 	"time"
 )
 
@@ -229,9 +228,7 @@ func (t *TestCaseMongo) DelCase(id int64) {
 }
 
 // 获取指定业务线下所有Case
-func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
-	var testList []*TestCaseMongo
-	var onlineList []*TestCaseMongo
+func (t *TestCaseMongo) GetAllCasesByBusiness(business string) (result []*TestCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
@@ -240,26 +237,6 @@ func (t *TestCaseMongo) GetAllCasesByBusiness(business string, kind int) (result
 	if err != nil {
 		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
 		return nil, err
-	}
-	if kind == 1 { //测试环境 通过域名筛选
-		for _, one := range result {
-			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
-				testList = append(testList, one)
-			}
-
-		}
-		return testList, err
-	}
-	if kind == 2 { //线上环境
-		for _, one := range result {
-			if strings.Contains(one.Domain, SHANG_YE_HUA_TEST) {
-				//什么都不做
-			} else {
-				onlineList = append(onlineList, one)
-			}
-
-		}
-		return onlineList, err
 	}
 	return result, err
 }
