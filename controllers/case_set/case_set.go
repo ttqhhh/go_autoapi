@@ -24,12 +24,10 @@ func (c *CaseSetController) Get() {
 		c.index()
 	case "page":
 		c.page()
-	case "getCaseSetById":
+	case "get_case_set_by_id":
 		c.getCaseSetById()
-	case "copy_case_by_id":
-		c.copyCaseById()
-	case "get_case_by_id":
-		c.getCaseById()
+	case "get_set_case_by_id":
+		c.getSetCaseById()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -49,8 +47,6 @@ func (c *CaseSetController) Post() {
 		c.deleteById()
 	case "add_set_case":
 		c.addSetCase()
-	case "copy_case_by_id":
-		c.copyCaseById()
 	case "save_edit_set_case":
 		c.saveEditSetCase()
 	default:
@@ -59,68 +55,53 @@ func (c *CaseSetController) Post() {
 	}
 }
 
-// 页面跳转
+// ==================================== 用例集 接口 ==========================================
+
+// 页面跳转 -- Done
 func (c *CaseSetController) index() {
 	c.TplName = "case_set_page.html"
 }
 
-// CaseSet列表页-分页查询
+// CaseSet列表页-分页查询 --Done
 func (c *CaseSetController) page() {
-	acm := models.TestCaseMongo{}
-	business := c.GetString("business")
-	url := c.GetString("url")
-	service := c.GetString("service")
+	acm := models.CaseSetMongo{}
+	business_code := c.GetString("business")
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
-	result, count, err := acm.GetCasesByConfusedUrl(page, limit, business, url, service)
+
+	result, count, err := acm.GetCaseSetByPage(page, limit, business_code)
 	if err != nil {
 		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
 	c.FormSuccessJson(count, result)
 }
 
-// Case集合添加
+// Case集合添加 -- Done
 func (c *CaseSetController) addCaseSet() {
 	now := time.Now().Format(constants.TimeFormat)
-	acm := models.TestCaseMongo{}
-	dom := models.Domain{}
-	if err := c.ParseForm(&acm); err != nil { // 传入user指针
+	caseSet := models.CaseSetMongo{}
+	if err := c.ParseForm(&caseSet); err != nil { // 传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
-	// 获取域名并确认是否执行
-	dom.Author = acm.Author
-	intBus, _ := strconv.Atoi(acm.BusinessCode)
-	dom.Business = int8(intBus)
-	dom.DomainName = acm.Domain
-	if err := dom.DomainInsert(dom); err != nil{
-		logs.Error("添加case的时候 domain 插入失败")
-	}
-	// service_id 和 service_name 在一起,需要分割后赋值
-	arr := strings.Split(acm.ServiceName, ";")
-	acm.ServiceName = arr[1]
-	id64, _ := strconv.ParseInt(arr[0], 10, 64)
-	acm.ServiceId = id64
-	//acm.Id = models.GetId("case")
+
 	r := utils.GetRedis()
-	testCaseId, err := r.Incr(constants.TEST_CASE_PRIMARY_KEY).Result()
+	caseSetId, err := r.Incr(constants.CASE_SET_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
-	acm.Id = testCaseId
-	acm.CreatedAt = now
-	acm.UpdatedAt = now
-	acm.Status = 0
-	business := acm.BusinessCode
+	caseSet.Id = caseSetId
+	caseSet.CreatedAt = now
+	caseSet.UpdatedAt = now
+	caseSet.Status = 0
+	business := caseSet.BusinessCode
 
 	businessCode, _ := strconv.Atoi(business)
 	businessName := controllers.GetBusinessNameByCode(businessCode)
-	acm.BusinessName = businessName
-	// 去除请求路径前后的空格
-	apiUrl := acm.ApiUrl
-	acm.ApiUrl = strings.TrimSpace(apiUrl)
+	caseSet.BusinessName = businessName
+
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := acm.Parameter
+	param := caseSet.Parameter
 	v := make(map[string]interface{})
 	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
 	if err != nil {
@@ -132,23 +113,126 @@ func (c *CaseSetController) addCaseSet() {
 		logs.Error("保存Case时，处理请求json报错， err:", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
-	acm.Parameter = string(paramByte)
-	if err := acm.AddCase(acm); err != nil {
-		logs.Error("保存Case报错，err: ", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
+	caseSet.Parameter = string(paramByte)
+	if err := caseSet.AddCaseSet(caseSet); err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
 	}
-	//c.SuccessJson("添加成功")
-	c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	c.SuccessJson(nil)
+	//c.Ctx.Redirect(302, "/case_set/page?page=1&limit=10&business="+business)
 }
 
-// 编辑后保存CaseSet
-func (c *CaseSetController) saveEditCaseSet() {
+type runparam struct {
+	id int64 `json:"id"`
+}
+
+// 通过Id运行指定CaseSet -- Doing
+func (c *CaseSetController) runById() {
+	runparam := runparam{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &runparam)
+	if err != nil {
+		logs.Error("解析运行指定测试用例集入参报错, err: ", err)
+		c.ErrorJson(-1, "请求参数错误", nil)
+	}
+
+	// todo 此处有非常非常重的逻辑，后面再写~~~
+	// todo 此处有非常非常重的逻辑，后面再写~~~
+	// todo 此处有非常非常重的逻辑，后面再写~~~
 
 	c.SuccessJson(nil)
 }
 
-// 获取指定CaseSet,初始化编辑页面（根据id）
+type delparam struct {
+	id int64 `json:"id"`
+}
+
+// 删除指定CaseSet -- Done
+func (c *CaseSetController) deleteById() {
+	delparam := delparam{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
+	if err != nil {
+		logs.Error("解析删除指定测试用例集入参报错, err: ", err)
+		c.ErrorJson(-1, "请求参数错误", nil)
+	}
+	caseSet := models.CaseSetMongo{}
+	err = caseSet.DelCaseSet(delparam.id)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	c.SuccessJson(nil)
+}
+
+// 获取指定SetCase,初始化编辑页面（根据id）-- Done
 func (c *CaseSetController) getCaseSetById() {
+	id, err := c.GetInt64("id")
+	if err != nil {
+		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
+	logs.Info("请求参数: id=%v", id)
+	//serviceMongo := models.CaseSetMgo{}
+	caseSetMongo := models.CaseSetMongo{}
+	caseSet, err := caseSetMongo.CaseSetById(id)
+	if err != nil {
+		c.ErrorJson(-1, "服务查询数据异常", nil)
+	}
+	c.SuccessJson(caseSet)
+}
+
+// 编辑后保存CaseSet
+func (c *CaseSetController) saveEditCaseSet() {
+	acm := models.CaseSetMongo{}
+	dom := models.Domain{}
+	if err := c.ParseForm(&acm); err != nil { //传入user指针
+		c.Ctx.WriteString("出错了！")
+	}
+	// 获取域名并确认是否执行
+	dom.Author = acm.Author
+	intBus, _ := strconv.Atoi(acm.BusinessCode)
+	dom.Business = int8(intBus)
+	//dom.DomainName = acm.Domain
+	if err := dom.DomainInsert(dom); err != nil {
+		logs.Error("添加case的时候 domain 插入失败")
+	}
+
+	caseId := acm.Id
+	business := acm.BusinessCode
+
+	businessCode, _ := strconv.Atoi(business)
+	businessName := controllers.GetBusinessNameByCode(businessCode)
+	acm.BusinessName = businessName
+	// 去除请求路径前后的空格
+
+	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	param := acm.Parameter
+	v := make(map[string]interface{})
+	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	if err != nil {
+		logs.Error("发送冒烟请求前，解码json报错，err：", err)
+		return
+	}
+	paramByte, err := json.Marshal(v)
+	if err != nil {
+		logs.Error("更新Case时，处理请求json报错， err:", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	acm.Parameter = string(paramByte)
+	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
+	testCaseMongo := acm.GetOneCase(caseId)
+	acm.IsInspection = testCaseMongo.IsInspection
+	acm, err = acm.UpdateCase(caseId, acm)
+	if err != nil {
+		logs.Error("更新Case报错，err: ", err)
+		c.ErrorJson(-1, "请求错误", nil)
+	}
+	//c.SuccessJson("更新成功")
+	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
+}
+
+// ==================================== 用例 接口 ==========================================
+
+// 获取指定CaseSet,初始化编辑页面（根据id）
+func (c *CaseSetController) getSetCaseById() {
 	id, err := c.GetInt64("id")
 	if err != nil {
 		logs.Warn("/service/getById接口 参数异常, err: %v", err)
@@ -161,18 +245,6 @@ func (c *CaseSetController) getCaseSetById() {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
 	c.SuccessJson(service)
-}
-
-// 通过Id运行指定CaseSet
-func (c *CaseSetController) runById() {
-
-	c.SuccessJson(nil)
-}
-
-// 删除指定CaseSet
-func (c *CaseSetController) deleteById() {
-
-	c.SuccessJson(nil)
 }
 
 // 向CaseSet新增Case
@@ -182,36 +254,20 @@ func (c *CaseSetController) addSetCase() {
 }
 
 // 获取指定SetCase,初始化编辑页面（根据id）
-func (c *CaseSetController) copyCaseById() {
-	id, err := c.GetInt64("id")
-	if err != nil {
-		logs.Warn("/service/getById接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数: id=%v", id)
-	serviceMongo := models.ServiceMongo{}
-	service, err := serviceMongo.QueryById(id)
-	if err != nil {
-		c.ErrorJson(-1, "服务查询数据异常", nil)
-	}
-	c.SuccessJson(service)
-}
-
-// 获取指定SetCase,初始化编辑页面（根据id）
-func (c *CaseSetController) getCaseById() {
-	id, err := c.GetInt64("id")
-	if err != nil {
-		logs.Warn("/service/getById接口 参数异常, err: %v", err)
-		c.ErrorJson(-1, "参数异常", nil)
-	}
-	logs.Info("请求参数: id=%v", id)
-	serviceMongo := models.ServiceMongo{}
-	service, err := serviceMongo.QueryById(id)
-	if err != nil {
-		c.ErrorJson(-1, "服务查询数据异常", nil)
-	}
-	c.SuccessJson(service)
-}
+//func (c *CaseSetController) copyCaseById() {
+//	id, err := c.GetInt64("id")
+//	if err != nil {
+//		logs.Warn("/service/getById接口 参数异常, err: %v", err)
+//		c.ErrorJson(-1, "参数异常", nil)
+//	}
+//	logs.Info("请求参数: id=%v", id)
+//	serviceMongo := models.ServiceMongo{}
+//	service, err := serviceMongo.QueryById(id)
+//	if err != nil {
+//		c.ErrorJson(-1, "服务查询数据异常", nil)
+//	}
+//	c.SuccessJson(service)
+//}
 
 // 编辑SetCase
 func (c *CaseSetController) saveEditSetCase() {

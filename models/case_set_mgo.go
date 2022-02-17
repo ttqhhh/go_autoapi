@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
+	"github.com/globalsign/mgo"
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
@@ -33,11 +34,9 @@ type CaseSetMongo struct {
 //result:查询到的结果
 
 // 获取指定server下的所有case
-
-func (t *TestCaseMongo) GetCaseSetByQuery(query interface{}) (TestCaseMongo, error) {
-	//query := TestCaseMongo{}
-	var acm = TestCaseMongo{}
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetCaseSetByQuery(query interface{}) (CaseSetMongo, error) {
+	var acm = CaseSetMongo{}
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	err := c.Find(query).All(&acm)
 	if err != nil {
@@ -48,8 +47,8 @@ func (t *TestCaseMongo) GetCaseSetByQuery(query interface{}) (TestCaseMongo, err
 
 //通过id list 获取用例
 
-//func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
-//	var caseList []TestCaseMongo
+//func (t *CaseSetMongo) GetCasesByIds(ids []string) []CaseSetMongo {
+//	var caseList []CaseSetMongo
 //	for _, i := range ids {
 //		id64, err := strconv.ParseInt(i, 10, 64)
 //		if err != nil {
@@ -61,31 +60,18 @@ func (t *TestCaseMongo) GetCaseSetByQuery(query interface{}) (TestCaseMongo, err
 //	return caseList
 //}
 
-func (t *TestCaseMongo) GetCaseSetByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetCaseSetByPage(page, limit int, business_code string) (result []CaseSetMongo, totalCount int64, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
-	var query = bson.M{}
-	if service == "" && url != "" {
-		query = bson.M{"status": status,
-			"business_code": business,
-			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
-	} else if service != "" && url == "" {
-		query = bson.M{"status": status, "business_code": business, "service_name": service}
-	} else if service != "" && url != "" {
-		query = bson.M{"status": status,
-			"business_code": business,
-			"service_name":  service,
-			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
-	} else {
-		query = bson.M{"status": status, "business_code": business}
-	}
-	// 获取指定业务线下全部case列表
+	var query = bson.M{"business_code": business_code, "status": status}
+
+	// 获取CaseSet列表
 	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
 	if err != nil {
 		logs.Error("查询分页列表数据报错, err: ", err)
 		return nil, 0, err
 	}
-	// 获取指定业务线下全部case数量
+	// 获取全部CaseSet数量
 	total, err := c.Find(query).Count()
 	if err != nil {
 		logs.Error("数据库查询指定业务线下case数量报错, err: ", err)
@@ -96,10 +82,10 @@ func (t *TestCaseMongo) GetCaseSetByConfusedUrl(page, limit int, business string
 }
 
 // 获取指定业务线下的指定页面case
-func (t *TestCaseMongo) GetAllCaseSet(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {
-	//acm := TestCaseMongo{}
-	//result := make([]TestCaseMongo, 0, 10)
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetAllCaseSet(page, limit int, business string) (result []CaseSetMongo, totalCount int64, err error) {
+	//acm := CaseSetMongo{}
+	//result := make([]CaseSetMongo, 0, 10)
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
 	// 获取指定业务线下全部case列表
@@ -121,44 +107,47 @@ func (t *TestCaseMongo) GetAllCaseSet(page, limit int, business string) (result 
 
 // 通过id获取指定case
 
-func (t *TestCaseMongo) GetOneCaseSet(id int64) TestCaseMongo {
-
-	fmt.Println(id)
+func (t *CaseSetMongo) CaseSetById(id int64) (CaseSetMongo, error) {
 	query := bson.M{"_id": id, "status": status}
-	acm := TestCaseMongo{}
-	ms, db := db_proxy.Connect("auto_api", "case")
+	acm := CaseSetMongo{}
+	ms, db := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	err := db.Find(query).One(&acm)
 	fmt.Println(acm)
 	if err != nil {
-		logs.Info("查询case失败")
-		logs.Error(1024, err)
+		if err == mgo.ErrNotFound {
+			return acm, nil
+		}
+		logs.Error("根据Id查询CaseSet报错, err: ", err)
 	}
-	return acm
+	return acm, err
 }
 
 // 添加一条case
-
-func (t *TestCaseMongo) AddCaseSet(acm TestCaseMongo) error {
-	ms, db := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) AddCaseSet(acm CaseSetMongo) error {
+	ms, db := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
-	query := bson.M{"api_url": acm.ApiUrl, "domain": acm.Domain, "parameter": acm.Parameter, "status": 0}
+
+	query := bson.M{"case_set_name": acm.CaseSetName, "status": status}
 	err := db.Find(query).One(&acm)
+
+	// todo 验证当前代码十分有效
 	if err == nil {
-		return errors.New("用例已经存在")
+		return errors.New("同名用例集已经存在，请更换其他名字")
 	}
 	err = db.Insert(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("插入测试用例集报错, err:", err)
 	}
+	err = errors.New("插入测试用例集报错")
 	return err
 }
 
 // 通过id修改case（全更新）
 
-func (t *TestCaseMongo) UpdateCaseSet(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
+func (t *CaseSetMongo) UpdateCaseSet(id int64, acm CaseSetMongo) (CaseSetMongo, error) {
 	query := bson.M{"_id": id}
-	ms, db := db_proxy.Connect("auto_api", "case")
+	ms, db := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	acm.Status = 0
 	err := db.Update(query, acm)
@@ -170,8 +159,8 @@ func (t *TestCaseMongo) UpdateCaseSet(id int64, acm TestCaseMongo) (TestCaseMong
 }
 
 //
-//func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
-//	ms, db := db_proxy.Connect("auto_api", "case")
+//func (t *CaseSetMongo) SetInspection(id int64, is_inspection int8) error {
+//	ms, db := db_proxy.Connect("auto_api", "case_set")
 //	defer ms.Close()
 //
 //	data := bson.M{
@@ -190,23 +179,26 @@ func (t *TestCaseMongo) UpdateCaseSet(id int64, acm TestCaseMongo) (TestCaseMong
 
 // 修改status
 
-func (t *TestCaseMongo) DelCaseSet(id int64) {
+func (t *CaseSetMongo) DelCaseSet(id int64) error {
 	query := bson.M{"_id": id}
-	ms, db := db_proxy.Connect("auto_api", "case")
+	ms, db := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
-	//err := db.Find(query).One(&acm)
+
 	err := db.Update(query, bson.M{"$set": bson.M{"status": del_}})
 	if err != nil {
-		logs.Error("删除case失败，更给状态为1失败")
-		logs.Error(err)
+		logs.Error("删除数据库测试用例集报错, err: ", err)
+		//logs.Error(err)
+		err = errors.New("删除数据库测试用例集报错")
+		return err
 	}
+	return nil
 }
 
 // 获取指定业务线下所有Case
-func (t *TestCaseMongo) GetAllCaseSetByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
-	var testList []*TestCaseMongo
-	var onlineList []*TestCaseMongo
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetAllCaseSetByBusiness(business string, kind int) (result []*CaseSetMongo, err error) {
+	var testList []*CaseSetMongo
+	var onlineList []*CaseSetMongo
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
 	// 获取指定业务线下全部case列表
@@ -239,8 +231,8 @@ func (t *TestCaseMongo) GetAllCaseSetByBusiness(business string, kind int) (resu
 }
 
 // 获取指定服务集合下所有Case
-func (t *TestCaseMongo) GetAllCaseSetByServiceList(serviceIds []int64) (result []*TestCaseMongo, err error) {
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetAllCaseSetByServiceList(serviceIds []int64) (result []*CaseSetMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 
 	query := bson.M{}
@@ -264,8 +256,8 @@ func (t *TestCaseMongo) GetAllCaseSetByServiceList(serviceIds []int64) (result [
 }
 
 // 获取指定服务集合下所有Case
-//func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
-//	ms, c := db_proxy.Connect("auto_api", "case")
+//func (t *CaseSetMongo) GetAllInspectionCasesByService(serviceId int64) (result []*CaseSetMongo, err error) {
+//	ms, c := db_proxy.Connect("auto_api", "case_set")
 //	defer ms.Close()
 //
 //	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
@@ -278,8 +270,8 @@ func (t *TestCaseMongo) GetAllCaseSetByServiceList(serviceIds []int64) (result [
 //	return
 //}
 
-func (t *TestCaseMongo) GetCaseSetByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
-	ms, c := db_proxy.Connect("auto_api", "case")
+func (t *CaseSetMongo) GetCaseSetByCondition(business_code string, service_code string, case_name string) (acms []*CaseSetMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 
 	var query = bson.M{"status": status}

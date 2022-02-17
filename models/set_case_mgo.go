@@ -41,9 +41,9 @@ type SetCaseMongo struct {
 
 // 获取指定server下的所有case
 
-func (t *TestCaseMongo) GetSetCaseByQuery(query interface{}) (TestCaseMongo, error) {
-	//query := TestCaseMongo{}
-	var acm = TestCaseMongo{}
+func (t *SetCaseMongo) GetSetCaseByQuery(query interface{}) (SetCaseMongo, error) {
+	//query := SetCaseMongo{}
+	var acm = SetCaseMongo{}
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	err := c.Find(query).All(&acm)
@@ -55,8 +55,8 @@ func (t *TestCaseMongo) GetSetCaseByQuery(query interface{}) (TestCaseMongo, err
 
 //通过id list 获取用例
 
-//func (t *TestCaseMongo) GetCasesByIds(ids []string) []TestCaseMongo {
-//	var caseList []TestCaseMongo
+//func (t *SetCaseMongo) GetCasesByIds(ids []string) []SetCaseMongo {
+//	var caseList []SetCaseMongo
 //	for _, i := range ids {
 //		id64, err := strconv.ParseInt(i, 10, 64)
 //		if err != nil {
@@ -68,7 +68,7 @@ func (t *TestCaseMongo) GetSetCaseByQuery(query interface{}) (TestCaseMongo, err
 //	return caseList
 //}
 
-func (t *TestCaseMongo) GetSetCaseByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
+func (t *SetCaseMongo) GetSetCaseByConfusedUrl(page, limit int, business string, url string, service string) (result []SetCaseMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	var query = bson.M{}
@@ -103,9 +103,9 @@ func (t *TestCaseMongo) GetSetCaseByConfusedUrl(page, limit int, business string
 }
 
 // 获取指定业务线下的指定页面case
-func (t *TestCaseMongo) GetAllSetCase(page, limit int, business string) (result []TestCaseMongo, totalCount int64, err error) {
-	//acm := TestCaseMongo{}
-	//result := make([]TestCaseMongo, 0, 10)
+func (t *SetCaseMongo) GetAllSetCase(page, limit int, business string) (result []SetCaseMongo, totalCount int64, err error) {
+	//acm := SetCaseMongo{}
+	//result := make([]SetCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
@@ -128,11 +128,11 @@ func (t *TestCaseMongo) GetAllSetCase(page, limit int, business string) (result 
 
 // 通过id获取指定case
 
-func (t *TestCaseMongo) GetOneSetCase(id int64) TestCaseMongo {
+func (t *SetCaseMongo) GetOneSetCase(id int64) SetCaseMongo {
 
 	fmt.Println(id)
 	query := bson.M{"_id": id, "status": status}
-	acm := TestCaseMongo{}
+	acm := SetCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	err := db.Find(query).One(&acm)
@@ -146,7 +146,7 @@ func (t *TestCaseMongo) GetOneSetCase(id int64) TestCaseMongo {
 
 // 添加一条case
 
-func (t *TestCaseMongo) AddSetCase(acm TestCaseMongo) error {
+func (t *SetCaseMongo) AddSetCase(acm SetCaseMongo) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"api_url": acm.ApiUrl, "domain": acm.Domain, "parameter": acm.Parameter, "status": 0}
@@ -163,7 +163,7 @@ func (t *TestCaseMongo) AddSetCase(acm TestCaseMongo) error {
 
 // 通过id修改case（全更新）
 
-func (t *TestCaseMongo) UpdateSetCase(id int64, acm TestCaseMongo) (TestCaseMongo, error) {
+func (t *SetCaseMongo) UpdateSetCase(id int64, acm SetCaseMongo) (SetCaseMongo, error) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -177,7 +177,7 @@ func (t *TestCaseMongo) UpdateSetCase(id int64, acm TestCaseMongo) (TestCaseMong
 }
 
 //
-//func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
+//func (t *SetCaseMongo) SetInspection(id int64, is_inspection int8) error {
 //	ms, db := db_proxy.Connect("auto_api", "case")
 //	defer ms.Close()
 //
@@ -197,7 +197,7 @@ func (t *TestCaseMongo) UpdateSetCase(id int64, acm TestCaseMongo) (TestCaseMong
 
 // 修改status
 
-func (t *TestCaseMongo) DelSetCase(id int64) {
+func (t *SetCaseMongo) DelSetCase(id int64) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
@@ -210,9 +210,9 @@ func (t *TestCaseMongo) DelSetCase(id int64) {
 }
 
 // 获取指定业务线下所有Case
-func (t *TestCaseMongo) GetAllSetCaseByBusiness(business string, kind int) (result []*TestCaseMongo, err error) {
-	var testList []*TestCaseMongo
-	var onlineList []*TestCaseMongo
+func (t *SetCaseMongo) GetAllSetCaseByBusiness(business string, kind int) (result []*SetCaseMongo, err error) {
+	var testList []*SetCaseMongo
+	var onlineList []*SetCaseMongo
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	query := bson.M{"status": status, "business_code": business}
@@ -246,7 +246,7 @@ func (t *TestCaseMongo) GetAllSetCaseByBusiness(business string, kind int) (resu
 }
 
 // 获取指定服务集合下所有Case
-func (t *TestCaseMongo) GetAllSetCaseByServiceList(serviceIds []int64) (result []*TestCaseMongo, err error) {
+func (t *SetCaseMongo) GetAllSetCaseByServiceList(serviceIds []int64) (result []*SetCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
@@ -271,7 +271,7 @@ func (t *TestCaseMongo) GetAllSetCaseByServiceList(serviceIds []int64) (result [
 }
 
 // 获取指定服务集合下所有Case
-//func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
+//func (t *SetCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*SetCaseMongo, err error) {
 //	ms, c := db_proxy.Connect("auto_api", "case")
 //	defer ms.Close()
 //
@@ -285,7 +285,7 @@ func (t *TestCaseMongo) GetAllSetCaseByServiceList(serviceIds []int64) (result [
 //	return
 //}
 
-func (t *TestCaseMongo) GetSetCaseByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
+func (t *SetCaseMongo) GetSetCaseByCondition(business_code string, service_code string, case_name string) (acms []*SetCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
