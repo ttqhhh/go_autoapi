@@ -151,9 +151,9 @@ func (t *CaseSetMongo) UpdateCaseSet(id int64, acm CaseSetMongo) (CaseSetMongo, 
 	defer ms.Close()
 	acm.Status = 0
 	err := db.Update(query, acm)
-	fmt.Println(acm)
+
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("数据库更新CaseSet报错，err: ", err)
 	}
 	return acm, err
 }

@@ -76,7 +76,7 @@ func (c *CaseSetController) page() {
 	c.FormSuccessJson(count, result)
 }
 
-// Case集合添加 -- Done
+// Case集合添加（Form表单传参） -- Done
 func (c *CaseSetController) addCaseSet() {
 	now := time.Now().Format(constants.TimeFormat)
 	caseSet := models.CaseSetMongo{}
@@ -125,7 +125,7 @@ type runparam struct {
 	id int64 `json:"id"`
 }
 
-// 通过Id运行指定CaseSet -- Doing
+// 通过Id运行指定CaseSet（application/json） -- Doing
 func (c *CaseSetController) runById() {
 	runparam := runparam{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &runparam)
@@ -145,7 +145,7 @@ type delparam struct {
 	id int64 `json:"id"`
 }
 
-// 删除指定CaseSet -- Done
+// 删除指定CaseSet（application/json） -- Done
 func (c *CaseSetController) deleteById() {
 	delparam := delparam{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
@@ -178,32 +178,21 @@ func (c *CaseSetController) getCaseSetById() {
 	c.SuccessJson(caseSet)
 }
 
-// 编辑后保存CaseSet
+// 编辑后保存CaseSet （Form表单传参） -- Done
 func (c *CaseSetController) saveEditCaseSet() {
-	acm := models.CaseSetMongo{}
-	dom := models.Domain{}
-	if err := c.ParseForm(&acm); err != nil { //传入user指针
+	csm := models.CaseSetMongo{}
+
+	if err := c.ParseForm(&csm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
-	// 获取域名并确认是否执行
-	dom.Author = acm.Author
-	intBus, _ := strconv.Atoi(acm.BusinessCode)
-	dom.Business = int8(intBus)
-	//dom.DomainName = acm.Domain
-	if err := dom.DomainInsert(dom); err != nil {
-		logs.Error("添加case的时候 domain 插入失败")
-	}
 
-	caseId := acm.Id
-	business := acm.BusinessCode
-
+	business := csm.BusinessCode
 	businessCode, _ := strconv.Atoi(business)
 	businessName := controllers.GetBusinessNameByCode(businessCode)
-	acm.BusinessName = businessName
-	// 去除请求路径前后的空格
+	csm.BusinessName = businessName
 
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := acm.Parameter
+	param := csm.Parameter
 	v := make(map[string]interface{})
 	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
 	if err != nil {
@@ -215,18 +204,13 @@ func (c *CaseSetController) saveEditCaseSet() {
 		logs.Error("更新Case时，处理请求json报错， err:", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
-	acm.Parameter = string(paramByte)
-	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
-	testCaseMongo := acm.GetOneCase(caseId)
-	acm.IsInspection = testCaseMongo.IsInspection
-	acm, err = acm.UpdateCase(caseId, acm)
+	csm.Parameter = string(paramByte)
+
+	csm, err = csm.UpdateCaseSet(csm.Id, csm)
 	if err != nil {
-		logs.Error("更新Case报错，err: ", err)
-		c.ErrorJson(-1, "请求错误", nil)
+		c.ErrorJson(-1, "更新测试用例集失败", nil)
 	}
-	//c.SuccessJson("更新成功")
-	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)
-	c.Ctx.Redirect(302, "/case/close_windows")
+	c.SuccessJson(nil)
 }
 
 // ==================================== 用例 接口 ==========================================
