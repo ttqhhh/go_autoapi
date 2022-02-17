@@ -175,7 +175,7 @@ func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	}
 	err = db.Insert(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("数据库保存测试用例报错, err: ", err)
 	}
 	return err
 }

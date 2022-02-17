@@ -24,7 +24,7 @@ func (c *CaseManageController) AddOneCase() {
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
 	dom.DomainName = acm.Domain
-	if err := dom.DomainInsert(dom); err != nil{
+	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
 	// service_id 和 service_name 在一起,需要分割后赋值
@@ -78,8 +78,7 @@ func (c *CaseManageController) AddOneCase() {
 	}
 	acm.Parameter = string(paramByte)
 	if err := acm.AddCase(acm); err != nil {
-		logs.Error("保存Case报错，err: ", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
+		c.ErrorJson(-1, err.Error(), nil)
 	}
 	//c.SuccessJson("添加成功")
 	c.Ctx.Redirect(302, "/case/show_cases?business="+business)
