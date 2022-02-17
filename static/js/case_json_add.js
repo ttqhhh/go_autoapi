@@ -57,7 +57,7 @@ first_pre = '        <div class="json-nb">\n' +
     '\n' +
     '            <div class="layui-inline" style="margin:0">\n' +
     '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="right_add" style="margin: 0">＋</button>\n' +
-    // '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+    '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="left_rm" style="margin: 0">－</button>\n' +
     '            </div>\n' +
     '\n' +
     '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
