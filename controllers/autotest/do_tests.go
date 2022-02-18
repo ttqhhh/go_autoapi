@@ -156,12 +156,12 @@ func (c *AutoTestController) performTests() {
 	}
 	count := len(caseList)
 	fmt.Println("case list is", caseList)
-	if len(caseList) == 0{
-		if len(caseListInspection) == 0{
+	if len(caseList) == 0 {
+		if len(caseListInspection) == 0 {
 			logs.Error("没有用例")
 			c.ErrorJson(-1, "没有用例", nil)
-		}else{
-			counts,msgs := onlineCaseTest(caseListInspection,business,userId,uuid,kind,user,project)
+		} else {
+			counts, msgs := onlineCaseTest(caseListInspection, business, userId, uuid, kind, user, project)
 			c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": counts, "report_msg": msgs}, "OK")
 		}
 
@@ -253,7 +253,7 @@ func (c *AutoTestController) performTests() {
 }
 
 //自动化调用巡检case,线上发布系统触发回归
-func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userId string, uuid string, kind string, user string, project string)(count int, msgs string){
+func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userId string, uuid string, kind string, user string, project string) (count int, msgs string) {
 	count = len(caseList)
 	fmt.Println("case list is", caseList)
 	// 对本次执行操作记录进行保存
@@ -296,7 +296,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
+				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
