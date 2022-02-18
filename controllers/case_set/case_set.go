@@ -98,6 +98,7 @@ func (c *CaseSetController) page() {
 
 // Case集合添加（Form表单传参） -- Done
 func (c *CaseSetController) addCaseSet() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 	//todo 获取author
 	now := time.Now().Format(constants.TimeFormat)
 	caseSet := models.CaseSetMongo{}
@@ -112,6 +113,7 @@ func (c *CaseSetController) addCaseSet() {
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	//todo xueyibing 返回增加author字段
+	caseSet.Author = userId
 	caseSet.Id = caseSetId
 	caseSet.CreatedAt = now
 	caseSet.UpdatedAt = now
@@ -256,6 +258,7 @@ func (c *CaseSetController) getSetCaseListByCaseSetId() {
 
 // 向CaseSet新增Case
 func (c *CaseSetController) addSetCase() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 	now := time.Now().Format(constants.TimeFormat)
 	scm := models.SetCaseMongo{}
 	dom := models.Domain{}
@@ -263,7 +266,7 @@ func (c *CaseSetController) addSetCase() {
 		c.Ctx.WriteString("出错了！")
 	}
 	// 获取域名并确认是否执行
-	dom.Author = scm.Author
+	dom.Author = userId
 	intBus, _ := strconv.Atoi(scm.BusinessCode)
 	dom.Business = int8(intBus)
 	dom.DomainName = scm.Domain
