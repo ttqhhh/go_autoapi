@@ -240,7 +240,7 @@ func (c *CaseSetController) saveEditCaseSet() {
 // 源Case筛选接口: /case/get_case_by_condition
 // 筛选出来源Case后，调起编辑源Case的页面接口为: /case/show_copy_case?id=750&business=0
 
-// 向CaseSet新增Case
+// 从一条caseset中获取全部case // todo xueyibing 分页
 func (c *CaseSetController) getSetCaseListByCaseSetId() {
 	caseSetId, err := c.GetInt64("case_set_id")
 	if err != nil {
@@ -253,7 +253,8 @@ func (c *CaseSetController) getSetCaseListByCaseSetId() {
 	if err != nil {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
-	c.SuccessJson(caseSet)
+	count := len(caseSet)
+	c.FormSuccessJson(int64(count), caseSet)
 }
 
 // 向CaseSet新增Case
@@ -313,7 +314,7 @@ func (c *CaseSetController) addSetCase() {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
 	//c.SuccessJson("添加成功")
-	c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case_set/one_case?business="+business+"&id="+strconv.FormatInt(scm.CaseSetId, 10))
 }
 
 func (c *CaseSetController) DelSetCaseByID() {

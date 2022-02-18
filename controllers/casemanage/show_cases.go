@@ -57,7 +57,7 @@ func (c *CaseManageController) GetAllCases() {
 	c.FormSuccessJson(count, result)
 }
 
-func (c *CaseManageController) SearchCase(){
+func (c *CaseManageController) SearchCase() {
 	acm := models.TestCaseMongo{}
 	business := c.GetString("business")
 	url := c.GetString("url")
@@ -97,6 +97,20 @@ func (c *CaseManageController) ShowCopyCase() {
 	c.Data["a"] = &res
 	//c.Data["services"] = services
 	c.TplName = "case_copy.html"
+}
+
+func (c *CaseManageController) ShowCopyCaseSet() {
+	id := c.GetString("id")
+	caseSetId, err := c.GetInt64("case_set_id", 10)
+	idInt, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		logs.Error("转换类型错误")
+	}
+	acm := models.TestCaseMongo{}
+	res := acm.GetOneCase(idInt)
+	c.Data["a"] = &res
+	c.Data["case_set_id"] = caseSetId
+	c.TplName = "case_copy_new.html"
 }
 
 func (c *CaseManageController) ShowInspectionCase() {

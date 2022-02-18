@@ -105,7 +105,7 @@
                 if(obj.event === 'detail'){
                     layer.msg('ID：'+ data.id + ' 的查看操作');
                 }else if(obj.event === 'copy'){
-                    window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+                    window.location.href="/case/show_copy_case_set?id="+data.id+"&business={{.business}}"+"&case_set_id="+{{.id}}
                     {{/*// window.open("/case/show_copy_case?id="+data.id+"&business={{.business}}","_blank");*/}}
                 }
                 layui.close(obj);
@@ -138,10 +138,11 @@
                 })
             });
 
+            //一条caseset所对应的case
             table.render({
                 elem:'#idTest2'
-                ,url:'/case/get_case_by_condition?business={{.business}}'
-                ,page:true
+                ,url:'/case_set/get_set_case_list_by_case_set_id?business={{.business}}'+"&case_set_id="+{{.id}} //接口未定
+                ,page:false
                 ,width :600
                 ,height :500
                 ,cols:[[
