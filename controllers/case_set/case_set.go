@@ -139,7 +139,6 @@ func (c *CaseSetController) addCaseSet() {
 	if err := caseSet.AddCaseSet(caseSet); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
-	//c.SuccessJson(nil)
 	c.Ctx.Redirect(302, "/case_set/index?business="+business)
 }
 

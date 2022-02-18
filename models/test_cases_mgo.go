@@ -304,8 +304,7 @@ func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result 
 	return
 }
 
-func (t *TestCaseMongo) GetCasesByCondition(business_code string, service_code string, case_name string) (acms []*TestCaseMongo, err error) {
-	//todo 分页处理 xueyibing
+func (t *TestCaseMongo) GetCasesByCondition(page, limit int, business_code string, service_code string, case_name string) (acms []*TestCaseMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
@@ -322,16 +321,19 @@ func (t *TestCaseMongo) GetCasesByCondition(business_code string, service_code s
 	}
 
 	// 获取指定业务线下全部case列表
-	err = c.Find(query).Select(bson.M{"_id": 1, "case_name": 1, "api_url": 1, "business_name": 1, "service_name": 1}).Sort("-_id").All(&acms)
+	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).Select(bson.M{"_id": 1, "case_name": 1, "api_url": 1, "business_name": 1, "service_name": 1}).All(&acms)
 	if err != nil {
 		logs.Error("数据库按指定条件查询用例数据报错, err: ", err)
-		return nil, err
+		return nil, 0, err
 	}
 
+	// 查询数据总条数用于分页
+	total, err := c.Find(query).Count()
 	if err != nil {
-		logs.Error("数据库按指定条件查询用例数据报错, err: ", err)
-		return nil, err
+		logs.Error("数据库按指定条件查询用例数据条数报错, err: ", err)
+		return nil, 0, err
 	}
 
+	totalCount = int64(total)
 	return
 }
