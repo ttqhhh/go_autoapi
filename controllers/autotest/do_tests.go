@@ -161,7 +161,8 @@ func (c *AutoTestController) performTests() {
 			logs.Error("没有用例")
 			c.ErrorJson(-1, "没有用例", nil)
 		}else{
-			onlineCaseTest(caseListInspection,business,userId,uuid,kind,user,project)
+			counts,msgs := onlineCaseTest(caseListInspection,business,userId,uuid,kind,user,project)
+			c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": counts, "report_msg": msgs}, "OK")
 		}
 
 	}
@@ -239,7 +240,7 @@ func (c *AutoTestController) performTests() {
 		isPass = "失败"
 	}
 
-	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
+	if userId == "测试环境回归测试" || userId == "线上环境回归测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
@@ -252,8 +253,8 @@ func (c *AutoTestController) performTests() {
 }
 
 //自动化调用巡检case,线上发布系统触发回归
-func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userId string, uuid string, kind string, user string, project string){
-	count := len(caseList)
+func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userId string, uuid string, kind string, user string, project string)(count int, msgs string){
+	count = len(caseList)
 	fmt.Println("case list is", caseList)
 	// 对本次执行操作记录进行保存
 	totalCases := len(caseList)
@@ -330,7 +331,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		isPass = "失败"
 	}
 
-	if userId == "测试环境回归测试" || userId == "线上环境监控测试" {
+	if userId == "测试环境回归测试" || userId == "线上环境回归测试" {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
@@ -338,9 +339,10 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		DingSendShangXian(baseMsg + "\n" + msg)
 	}
-	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-	ac := AutoTestController{}
-	ac.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
+	msgs = "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	return
+	//ac := AutoTestController{}
+	//ac.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
 func (c *AutoTestController) performInspectTests() {
