@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="layui-inline" style="float: right">
-            <button class="layui-btn" id="add_compose_case">添加组合case</button>
+            <button class="layui-btn layui-btn-radius layui-btn-warm" id="add_compose_case">添加组合case</button>
         </div>
     </div>
     <table class="layui-table" lay-filter="demo" id="idTest"></table>
@@ -58,13 +58,36 @@
     </div>
 </form>
 
+<form class="layui-form" method="post" style="display: none;padding: 10px" id="edit_set_case"
+      action="/case_set/save_edit_case_set/" readonly="readonly">
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="business_code" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用例名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" id="case_set_name" autocomplete="off" placeholder="请输入文件名称"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">用例描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="description" id="description" autocomplete="off" placeholder="请输入文件名称"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" style="float: right">
+        <button class="layui-btn" lay-submit="" lay-filter="demo2">保存数据</button>
+    </div>
+</form>
+
 <table class="layui-table" lay-filter="demo" id="idTest"></table>
 
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="add">添加</a>
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
+    <a class="layui-btn layui-btn-xs layui-btn-cyan" lay-event="add">添加</a>
     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
@@ -106,10 +129,48 @@
             if(obj.event === 'add'){
                 window.location.href = '/case_set/one_case?business='+data.business_code+"&id="+data.id
             } else if(obj.event === 'del'){
-                alert("删除")
-                    //todo
+                layer.confirm('真的删除行么', function(index){
+                    // obj.del();
+                    $.ajax({
+                        type: 'POST',
+                        url: "/case_set/delete_by_id",
+                        async:false,
+                        timeout : 500000,
+                        data:{
+                            "id": data.id,
+                        }
+                    });
+                    layer.close(index);
+                    window.location.reload()
+                });
             } else if(obj.event === 'edit'){
-                alert("编辑")
+                $.ajax({
+                    type: 'GET',
+                    url: "get_case_set_by_id?id="+data.id,
+                    async: false,
+                    timeout: 500000,
+                    dataType: "json",
+                    success: function (data) {
+                        var form = $("#edit_set_case")
+                        form.find('input[name="id"]').val(data.data.id)
+                        form.find('input[name="business_code"]').val(data.data.business_code)
+                        form.find('input[name="case_set_name"]').val(data.data.case_set_name)
+                        form.find('input[name="description"]').val(data.data.description)
+                        layer.open({
+                            type: 1
+                            , title: '编辑case集合'
+                            , area: ['640px', '400px']
+                            , shade: 0
+                            , maxmin: true
+                            , offset: [100, 600]
+                            , content: form
+                            , end: function () {
+                                form.hide();
+                            }
+                        });
+
+                    }
+                });
                 //todo
             }else if (obj.event === "run") {
                 alert("运行")

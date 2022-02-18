@@ -12,6 +12,10 @@
     </fieldset>
 </div>
 
+<div class="layui-inline">
+    <button class="layui-btn layui-btn-primary layui-border-orange" style="display: inline" id="run">运行调试</button>
+</div>
+
 <form class="layui-form" action="" id="test_service" style="display: none">
     <div class="layui-form-item" id="test_service_list">
         <!--        <div class="layui-input-inline"><input type="checkbox" name="" title="写作" checked></div>-->
@@ -31,28 +35,28 @@
                 <input type="text" class="case_name layui-input" placeholder="请输case名称">
             </div>
             <div class="layui-inline">
-                <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
+                <button class="layui-btn layui-btn-sm layui-border-blue layui-btn-primary" style="display: inline" id="search_btn">搜索</button>
             </div>
         </div>
     </div>
-    <div style="float: left">
+    <div style="float: left;margin-top: 1px">
     <table class="layui-table" lay-filter="demo" id="idTest" ></table>
     </div>
-    <div style="float: left;margin-left: 200px" >
+    <div style="float: left;margin-top: 0px;margin-left: 180px" >
         <table class="layui-table" lay-filter="demo2" id="idTest2"></table>
     </div>
 
 
 
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="copy">添加case至当前case集合</a>
+        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="copy">添加case至当前case集合</a>
     </script>
 
     <script type="text/html" id="barDemo2">
 {{/*        */}}{{/*        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>*/}}
 {{/*        */}}{{/*        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
 {{/*        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="copy">添加case至当前case集合</a>*/}}
-                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+                <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="del">删除</a>
     </script>
 
     <script src="/static/layui/layui.js" charset="utf-8"></script>
@@ -155,12 +159,17 @@
             })
             table.on('tool(demo2)', function(obj){
                 var data = obj.data;
-                if(obj.event === 'detail'){
-                    layer.msg('ID：'+ data.id + ' 的查看操作');
+                if(obj.event === 'run'){
+
                 }else if(obj.event === 'del'){
                         alert("删除")
                 }
                 layui.close(obj);
+            });
+
+            $(document).on("click", "#run", function () {
+                    var set_id = {{.id}}
+                    alert(set_id)
             });
 
 

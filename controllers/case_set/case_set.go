@@ -170,14 +170,19 @@ type delparam struct {
 
 // 删除指定CaseSet（application/json） -- Done
 func (c *CaseSetController) deleteById() {
-	delparam := delparam{}
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
+	ids := c.GetString("id")
+	id, err := strconv.ParseInt(ids, 10, 64)
 	if err != nil {
-		logs.Error("解析删除指定测试用例集入参报错, err: ", err)
-		c.ErrorJson(-1, "请求参数错误", nil)
+		logs.Error("获取caseset id 出错，err:", err)
 	}
+	//delparam := delparam{}
+	//err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
+	//if err != nil {
+	//	logs.Error("解析删除指定测试用例集入参报错, err: ", err)
+	//	c.ErrorJson(-1, "请求参数错误", nil)
+	//}
 	caseSet := models.CaseSetMongo{}
-	err = caseSet.DelCaseSet(delparam.id)
+	err = caseSet.DelCaseSet(id)
 	if err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
@@ -204,36 +209,38 @@ func (c *CaseSetController) getCaseSetById() {
 // 编辑后保存CaseSet （Form表单传参） -- Done
 func (c *CaseSetController) saveEditCaseSet() {
 	csm := models.CaseSetMongo{}
+	name, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 
 	if err := c.ParseForm(&csm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
-
+	csm.Author = name
 	business := csm.BusinessCode
 	businessCode, _ := strconv.Atoi(business)
 	businessName := controllers.GetBusinessNameByCode(businessCode)
 	csm.BusinessName = businessName
 
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := csm.Parameter
-	v := make(map[string]interface{})
-	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("更新Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	csm.Parameter = string(paramByte)
-
-	csm, err = csm.UpdateCaseSet(csm.Id, csm)
+	//param := csm.Parameter
+	//v := make(map[string]interface{})
+	//err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("更新Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//csm.Parameter = string(paramByte)
+	//todo 暂时不放公共参数
+	csm, err := csm.UpdateCaseSet(csm.Id, csm)
 	if err != nil {
 		c.ErrorJson(-1, "更新测试用例集失败", nil)
 	}
-	c.SuccessJson(nil)
+	c.Ctx.Redirect(302, "/case_set/index?business="+business)
+
 }
 
 // ==================================== 用例 接口 ==========================================
