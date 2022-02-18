@@ -1,0 +1,469 @@
+{{template "head.html" .}}
+
+<form class="layui-form layui-form-pane" action="/inspection/add_one_case/" method="post" enctype="" style="padding: 1%">
+
+    <input type="text" name="api_name" value="api_name" style="display: none">
+    <input type="text" name="level" value="none" style="display: none">
+<!--    <input type="text" name="id" value="0" style="display: none">-->
+<!--    <input type="text" name="created_at" value="none" style="display: none">-->
+<!--    <input type="text" name="updated_at" value="none" style="display: none">-->
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">业务-服务</label>
+            <div class="layui-input-inline">
+                <select name="business_code" lay-filter="business" id="business">
+                </select>
+            </div>
+
+            <div class="layui-input-inline">
+                <select name="service_name" lay-filter="services" id="services">
+                </select>
+            </div>
+
+        </div>
+
+<!--        隐藏作者-->
+        <input type="text" name="author" style="display: none" value={{.Author}}>
+        <!-- 巡检策略 -->
+        <div class="layui-inline">
+            <label class="layui-form-label">巡检策略</label>
+            <div class="layui-input-block">
+                <select name="strategy" lay-filter="strategy" id="strategy">
+                </select>
+                <!--                <select name="strategy" lay-filter="strategy" id="strategy">-->
+                <!--                    &lt;!&ndash;                    <option selected>{{.a.ServiceName}}</option>&ndash;&gt;-->
+                <!--                </select>-->
+            </div>
+        </div>
+<!--        隐藏response-->
+        <input type="text" name="smoke_response" style="display: none" id="smoke_response">
+        
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-block" style="width:45%">
+            <input type="text" name="case_name" lay-verify="required" autocomplete="off" placeholder="请输入名称" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block" style="width: 45%">
+            <input type="text" name="description" lay-verify="required" autocomplete="off" placeholder="请输入描述" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">请求</label>
+        <div class="layui-input-inline">
+            <select name="request_method" id="request_method">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+            </select>
+        </div>
+
+<!--        position:absolute 在这里是让input和select在同一位置。-->
+<!--        z-index:2 是为了让input在select上面。-->
+<!--        width:80% 是为了不盖住select后面的小三角符号，select还可以点击。-->
+<!--        autocomplete=“off” 为了不自动填充input框，免得压盖select选项-->
+
+        <div class="layui-input-inline">
+            <input type="text" name="domain" id="HandoverCompany" placeholder="请输入或选择域名" class="layui-input" style="position:absolute;z-index:2;width:83%;" lay-verify="required" value="" onkeyup="search()" autocomplete="off">
+            <select type="text" id="hc_select" lay-filter="hc_select" autocomplete="off" placeholder="移交单位全称" lay-verify="required" class="layui-select" lay-search>
+<!--                <option value="http://api.izuiyou.com/">http://api.izuiyou.com/</option>-->
+<!--                <option value="http://test.izuiyou.com/">http://test.izuiyou.com/</option>-->
+            </select>
+        </div>
+
+        <div class="layui-input-inline" style="width: 45%">
+            <input type="text" id="api_url" name="api_url" lay-verify="required"
+                   placeholder="例:http://api.izuiyou.com/index/recommend" autocomplete="off" class="layui-input">
+        </div>
+        <button type="button" class="layui-btn layui-btn-normal" id="test">调试接口</button>
+        <button type="button" class="layui-btn layui-btn-normal" id="edit_point">编辑校验点</button>
+
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">请求参数</label>
+            <div class="layui-input-block" >
+            <textarea placeholder="请输入内容" style="height: 200px" class="layui-textarea"
+                      name="parameter" id="request_param" lay-verify="required"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
+        </div>
+
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">检查点</label>
+            <div class="layui-input-block">
+            <textarea placeholder="无法直接编辑，只能通过校验点组合" class="layui-textarea" style="height: 200px" id="check_point"
+                      name="check_point" lay-verify="required" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+
+        <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" id="submit">提交保存</button>
+
+    </div>
+</form>
+
+<!--校验点列表-->
+
+<div class="layui-form json-height" style="display: none">
+
+<!--    <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>-->
+
+</div>
+
+
+<script type="application/javascript" src="/static/js/case_json_add.js"></script>
+<script type="application/javascript" src="/static/js/jsonshow.js"></script>
+<script type="application/javascript" src="/static/js/libs.js"></script>
+<script type="module">
+    layui.use(['form', 'layedit', 'laydate'], function(){
+        var form = layui.form
+            ,$ = layui.jquery
+            ,layer = layui.layer
+
+        /** 通用：通过业务线获取service列表; 通过url和data获取冒烟数据*/
+        function get_service_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business='+bus,
+                success: function (data) {
+                    // $("#City").html("");
+                    $("#services").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                        $("#services").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
+        function get_response(){
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            let body = ""
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    // alert(data.data.body)
+                    body = JSON.parse(data.data.body)
+                }
+            });
+            return body
+        }
+
+        function isNumber(val) {
+            var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+            var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+            if(regPos.test(val) || regNeg.test(val)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function get_domain_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/case/get_domains?business='+bus,
+                success: function (data) {
+                    $("#hc_select").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["domain_name"]).text(val["domain_name"]);
+                        $("#hc_select").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
+        /** 默认加载任务：获取用户下的业务线和其关联的服务； */
+        let first_business
+        $(function (){
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/business/get_user_businesses",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var date = data.data.businesses
+                    first_business = date[0]['code']
+                    $.each(date, function (n, val) {
+                        var option1 = '<option value="' + val["code"] + '" >' + val["name"] + '</option>'
+                        $("#business").append(option1);
+                        form.render('select');
+                    })
+                }
+            });
+            /** 初始化线上巡检策略 */
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/inspection/get_all_strategy",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var strategy = data.data
+                    $.each(strategy, function (n, val) {
+                        let option1;
+                        {{/*if(val["name"] === "{{.a.BusinessName}}"){*/}}
+                        {{/*    first_business = val["code"]*/}}
+                        {{/*    option1 = '<option selected value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}else{*/}}
+                        {{/*    option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}*/}}
+                        option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
+                        $("#strategy").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
+            /** 默认加载一列服务 **/
+            get_service_by_business(first_business)
+            /** 默认加载一列域名 **/
+            get_domain_by_business(first_business)
+
+        })
+
+        /** form 监听事件 */
+        form.on('select(business)', function(data) {
+            get_service_by_business(data.value)
+            get_domain_by_business(data.value)
+            form.render()
+        });
+
+        form.on('select(hc_select)', function (data) {   //选择移交单位 赋值给input框
+            var select_text = data.elem[data.elem.selectedIndex].text;
+            $("#HandoverCompany").val(select_text );
+            $("#hc_select").next().find("dl").css({ "display": "none" });
+            form.render();
+        });
+
+        /** 监听事件 */
+
+        let obj
+        $(document).on('click', '#test', function () {
+            const business = $("#business option:selected").val()
+            const request_param = $("#request_param").val()
+            const request_url = $("#api_url").val()
+            var domain = $('#HandoverCompany').val()
+            if(business === "" || request_param === "" || request_url === "" || domain === ""){
+                layer.msg("业务线、请求地址、参数、域名不能为空")
+                return
+            }
+            console.log(domain+request_url)
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "business":business,
+                    "api_url":domain + request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    // 将response写入到input中
+                    $("#smoke_response").val(data.data.body)
+                    try {
+                        obj = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        alert("冒烟失败 - " +data.data.httpCode + "--" + err)
+                        return
+                    }
+                    var body = JSON.stringify(obj, undefined, 4)
+                    $("#response_param").html("")
+                    document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+                }
+            });
+            /** 触发填充 **/
+            $(".json-height").html("")
+            $(".json-height").append(first_pre)
+            // alert(res)
+            $.each(analysisJson(obj).keys, function(i,v){
+                $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#edit_point', function () {
+            if (obj === undefined) {
+                layer.msg("请先获取调试的返回数据")
+                return
+            }
+            else{
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: '当你选择该窗体时，即会在最顶端'
+                    ,area: ['1400px', '300px']
+                    ,shade: 0
+                    ,maxmin: true
+                    ,offset: "lb"
+                    ,content: $(".json-height")
+                    ,btn: ['保存并关闭'] //只是为了演示
+                    ,yes: function(){
+                        /** 保存校验点成为 jsonpath **/
+                        const result_list = new Array()
+                        $(".json-nb").each(function (){
+                            let node = ""
+                            $(this).find(".data_block").find("option:selected").each(function (){
+                                if(isNumber($(this).text())){
+                                    node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                }else{
+                                    node = node + $(this).text() +"."
+                                }
+                            });
+                            node = node.substring(0,node.length-1)
+                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const value = $(this).find("#value").val();
+                            const valueType = $(this).find("#value_type").find("option:selected").text();
+                            const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
+                            result_list.push(now)
+                        });
+                        // 调用test
+                        const result = generateJsonPath(result_list, obj)
+                        if(result.code === -1){
+                            alert(result.msg)
+                            return
+                        }
+                        $("#check_point").val(JSON.stringify(result.data))
+                        layer.closeAll();
+                    }
+                    ,zIndex: layer.zIndex //重点1
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: ' response数据（位置固定，无法拖动，可以滚动）'
+                    ,area: ['500px', '600px']
+                    ,shade: 0
+                    ,maxmin: true
+                    ,move:false
+                    ,offset: "rt"
+                    ,content: $("#response_param")
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+            }
+        });
+
+        $(document).on('click', '#right_add', function () {
+            // const obj = get_response()
+            var arr =new Array();
+            const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
+            sel_val.each(function() {
+                if(isNumber($(this).text())){
+                    console.log("is a number so pass")
+                }else{
+                    arr.push($(this).text())
+                }
+            });
+            // alert(arr)
+            const res = analysisJson(obj, arr);
+            if(res["isArray"] === true){
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                for (let i = 0; i < res.arrayLength; i++) {
+                    last_json.append('<option value='+i+'>'+ i+'</option>')
+                }
+            }
+            $(this).parent().parent().find(".data_block").append(check_sel)
+            var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+            $.each(res.keys, function(i,v){
+                last_json.append('<option value='+v+'>'+ v+'</option>')
+            });
+
+            form.render()
+        });
+
+        $(document).on('click', '#left_rm', function () {
+            $(this).parent().parent().find(".data_block").children().last().remove()
+            form.render()
+        });
+
+        $(document).on('click', '#down_add', function () {
+            // alert("down_add")
+            // const obj = get_response()
+            const these = $(this);
+            these.parent().parent().after(pre)
+            // alert($(this).parent().parent().next().find("#json_head").text())
+            $.each(analysisJson(obj).keys, function(i,v){
+                these.parent().parent().next().find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#up_rm', function () {
+            // alert("down_add")
+            $(this).parent().parent().remove()
+            form.render()
+        });
+
+        $('#HandoverCompany').bind('input propertychange', function () {
+            var value = $("#HandoverCompany").val();
+            $("#hc_select").val(value);
+            form.render();
+            $("#hc_select").next().find("dl").css({ "display": "block" });
+            var dl = $("#hc_select").next().find("dl").children();
+            var j = -1;
+            for (var i = 0; i < dl.length; i++) {
+                if (dl[i].innerHTML.indexOf(value) <= -1) {
+                    dl[i].style.display = "none";
+                    j++;
+                }
+                if (j == dl.length-1) {
+                    $("#hc_select").next().find("dl").css({ "display": "none" });
+                }
+            }
+        });
+
+    });
+</script>
+
+<style>
+    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: blue; }
+    .null { color: magenta; }
+    .key { color: red; }
+    #response_param::-webkit-scrollbar {
+        display: none;}
+</style>
+
+
+</body>

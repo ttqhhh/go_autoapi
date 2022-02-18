@@ -87,6 +87,8 @@ var StrategyCode2Expression = map[int]string{
 func (c *CaseController) Get() {
 	do := c.GetMethodName()
 	switch do {
+	case "show_add_inspection_case":
+		c.ShowAddInspectionCase()
 	case "show_cases":
 		c.ShowCases()
 	case "show_edit_case":
@@ -121,6 +123,17 @@ func (c *CaseController) Post() {
 		c.ErrorJson(-1, "不支持", nil)
 	}
 }
+
+func (c *CaseController) ShowAddInspectionCase() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	business := c.GetString("business")
+	//services := GetServiceList(business)
+	// 获取全部service
+	c.Data["Author"] = userId
+	c.Data["business"] = business
+	c.TplName = "case_add_inspection.html"
+}
+
 func (c *CaseController) updateCaseByID() {
 	icm := models.InspectionCaseMongo{}
 	dom := models.Domain{}
@@ -301,8 +314,8 @@ func (c *CaseController) AddOneCase() {
 	// 保存成功后，将该条线上巡检Case关联的测试Case巡检状态切换为开启
 	testCaseMongo := models.TestCaseMongo{}
 	testCaseMongo.SetInspection(acm.TestCaseId, models.INSPECTION)
-	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
-	c.Ctx.Redirect(302, "/case/close_windows")
+	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 //更改一个线上巡航case的状态为不巡航
