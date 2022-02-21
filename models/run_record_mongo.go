@@ -34,7 +34,6 @@ type RunReportMongo struct {
 	UpdateBy       string `form:"update_by" json:"update_by" bson:"update_by"`    // 修改人
 	CreatedAt      string `form:"created_at" json:"created_at" bson:"created_at"` // omitempty 表示该字段为空时，不返回
 	UpdatedAt      string `form:"updated_at" json:"updated_at" bson:"updated_at"`
-
 }
 
 func (mongo *RunReportMongo) TableName() string {
@@ -68,7 +67,7 @@ func (mongo *RunReportMongo) Delete(id int64) error {
 	defer ms.Close()
 	// 处理更新时间字段
 	data := bson.M{
-		"_id":id,
+		"_id": id,
 	}
 	err := db.Remove(data)
 	if err != nil {
@@ -124,13 +123,16 @@ func (mongo *RunReportMongo) QueryByPage(businesses []int, serviceName string, p
 	}
 	// 根据是否成功进行数据过滤掉
 	if runReportStatus == FAIL {
-		query["is_pass"] = FAIL
+		queryCond2 := []interface{}{}
+		queryCond2 = append(queryCond2, bson.M{"is_pass": FAIL})
+		queryCond2 = append(queryCond2, bson.M{"is_pass": RUNNING})
+		query["$or"] = queryCond2
 	} else if runReportStatus == SUCCESS {
 		query["is_pass"] = SUCCESS
 	}
 	// 线上巡检case筛选
 	if isInspection == INSPECTION {
-		query["create_by"] = bson.M{"$regex":"线上巡检"}
+		query["create_by"] = bson.M{"$regex": "线上巡检"}
 	} else {
 		//  限制非【线上巡检】数据
 		query["create_by"] = bson.M{"$ne": "线上巡检"}
@@ -185,6 +187,7 @@ func (mongo *RunReportMongo) QueryById(id int64) (*RunReportMongo, error) {
 	}
 	return &runReport, err
 }
+
 //查询所有的报告
 func (mongo *RunReportMongo) Query() ([]RunReportMongo, error) {
 	ms, db := db_proxy.Connect(db, run_record_collection)
@@ -192,8 +195,7 @@ func (mongo *RunReportMongo) Query() ([]RunReportMongo, error) {
 	//timeUnix := time.Now().Unix() //当前时间转换为时间戳
 	//nowTime:=time.Unix(timeUnix,0).Format("2006-01-02 15:04:05") //时间戳转换为字符串
 	//NOWTIME,_:=time.ParseInLocation("2006-01-02 15:04:05",nowTime,time.Local)
-	query := bson.M{
-	}
+	query := bson.M{}
 	runReportList := []RunReportMongo{}
 	err := db.Find(query).All(&runReportList)
 	if err != nil {
