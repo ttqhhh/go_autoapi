@@ -105,7 +105,7 @@
                         const option1 = '<div class="layui-input-inline">' +
                             '<input type="checkbox" name="service" value='+val["id"]+' title='+val["service_name"]+'></div>';
                         html = html + option1
-                        $("#search_service").append('<option value='+val["service_name"]+'>'+val["service_name"]+'</option>');
+                        $("#search_service").append('<option value='+val["id"]+'>'+val["service_name"]+'</option>');
                     })
                     $("#test_service_list").append(html);
                     form.render();
@@ -113,10 +113,14 @@
             })
         })
 
-        //表格渲染
+        let url = $(".search_input_url").val();
+        let service = $("#search_service option:selected").val()
+        if(url === undefined){url = ""}
+        if(service === undefined){service = ""}
+        // 表单渲染
         table.render({
             elem:'#idTest'
-            ,url:'/case/get_all_cases?business={{.business}}'
+            ,url:'/case/search_case?business={{.business}}&url='+url +'&service='+service
             ,page:true
             ,cols:[[
                 {type:"checkbox",fixed:'left'},

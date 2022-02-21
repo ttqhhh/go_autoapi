@@ -87,20 +87,20 @@ func (t *TestCaseMongo) GetCasesByQuery(query interface{}) (TestCaseMongo, error
 //	return caseList
 //}
 
-func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, service string) (result []TestCaseMongo, totalCount int64, err error) {
+func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, url string, serviceId int) (result []*TestCaseMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	var query = bson.M{}
-	if service == "" && url != "" {
+	if serviceId == -1 && url != "" {
 		query = bson.M{"status": status,
 			"business_code": business,
 			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
-	} else if service != "" && url == "" {
-		query = bson.M{"status": status, "business_code": business, "service_name": service}
-	} else if service != "" && url != "" {
+	} else if serviceId != -1 && url == "" {
+		query = bson.M{"status": status, "business_code": business, "service_id": serviceId}
+	} else if serviceId != -1 && url != "" {
 		query = bson.M{"status": status,
 			"business_code": business,
-			"service_name":  service,
+			"service_id":    serviceId,
 			"api_url":       bson.M{"$regex": bson.RegEx{Pattern: url, Options: "im"}}}
 	} else {
 		query = bson.M{"status": status, "business_code": business}
@@ -111,6 +111,18 @@ func (t *TestCaseMongo) GetCasesByConfusedUrl(page, limit int, business string, 
 		logs.Error("查询分页列表数据报错, err: ", err)
 		return nil, 0, err
 	}
+	// 将Case中的service_name字段进行替换处理
+	serviceMongo := ServiceMongo{}
+	for _, ins := range result {
+		serviceId := ins.ServiceId
+		service, err := serviceMongo.QueryById(serviceId)
+		if err != nil {
+			return nil, 0, nil
+		}
+		serviceName := service.ServiceName
+		ins.ServiceName = serviceName
+	}
+
 	// 获取指定业务线下全部case数量
 	total, err := c.Find(query).Count()
 	if err != nil {
@@ -268,11 +280,11 @@ func (t *TestCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*
 }
 
 // 获取指定服务集合下所有Case
-func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
+func (t *TestCaseMongo) GetAllCasesByService(serviceId int64) (result []*TestCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
-	query := bson.M{"status": status, "service_id": serviceId, "is_inspection": INSPECTION}
+	query := bson.M{"status": status, "service_id": serviceId}
 	// 获取指定业务线下全部case列表
 	err = c.Find(query).All(&result)
 	if err != nil {

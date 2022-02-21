@@ -180,6 +180,25 @@ func (c *ServiceController) remove() {
 		c.ErrorJson(-1, "参数异常", nil)
 	}
 	logs.Info("请求参数: id=%v", param)
+
+	testCaseMongo := models.TestCaseMongo{}
+	testCaseList, err := testCaseMongo.GetAllCasesByService(param.Id)
+	if err != nil {
+		c.ErrorJson(-1, "操作失败", nil)
+	}
+	if len(testCaseList) > 0 {
+		c.ErrorJson(-1, "当前服务下存在自动化Case, 不允许删除", nil)
+	}
+
+	inspectionCaseMongo := models.InspectionCaseMongo{}
+	inspectionCaseList, err := inspectionCaseMongo.GetAllInspectionCasesByService(param.Id)
+	if err != nil {
+		c.ErrorJson(-1, "操作失败", nil)
+	}
+	if len(inspectionCaseList) > 0 {
+		c.ErrorJson(-1, "当前服务下存在线上监控Case, 不允许删除", nil)
+	}
+
 	serviceMongo := models.ServiceMongo{}
 	err = serviceMongo.Delete(param.Id)
 	if err != nil {
