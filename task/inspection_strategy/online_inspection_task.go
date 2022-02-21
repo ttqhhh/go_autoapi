@@ -189,6 +189,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %d;\n【失败原因】: %s;\n\n", caseName, uri, statusCode, reason)
 			}
 		}
+		if isPass == models.RUNNING {
+			isPass = models.SUCCESS
+		}
 		if msg != "" {
 			logs.Info("开始向通道发送消息")
 			totalMsg := baseMsg + msg
