@@ -120,11 +120,7 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	if err != nil {
 		logs.Error("获取全部数据出错，err:", err)
 	}
-	if failCount != 0 {
-		failCount = int64(len(noReapetFail))
-	} else {
-		failCount = 0
-	}
+	failCount = int64(len(noReapetFail))
 	return
 
 }
