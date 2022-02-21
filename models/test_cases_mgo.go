@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/beego/beego/v2/core/logs"
@@ -279,4 +280,47 @@ func (t *TestCaseMongo) GetAllInspectionCasesByService(serviceId int64) (result 
 		return nil, err
 	}
 	return
+}
+
+// 专门供对外暴露的api刷新token使用
+func (t *TestCaseMongo) FlushAllTokenByBusiness(business string, token string) error {
+	ms, db := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	var need_flush_case = []*TestCaseMongo{}
+	query := bson.M{"business_code": business, "status": status}
+	err := db.Find(query).All(&need_flush_case)
+	if err != nil {
+		logs.Error("数据库查询测试Case报错, err: ", err)
+		return err
+	}
+
+	for _, testCase := range need_flush_case {
+		id := testCase.Id
+		parameter := testCase.Parameter
+		pjson := map[string]interface{}{}
+		json.Unmarshal([]byte(parameter), &pjson)
+		_, ok := pjson["token"]
+		if ok {
+			pjson["token"] = token
+			pjsonByte, err := json.Marshal(pjson)
+			if err != nil {
+				logs.Error("序列化pjson报错, err: ", err)
+				return err
+			}
+			data := bson.M{
+				"$set": bson.M{
+					"parameter":  string(pjsonByte),
+					"updated_at": time.Now().Format(Time_format),
+				},
+			}
+			_, err = db.UpsertId(id, data)
+			if err != nil {
+				logs.Error("数据库更新TestCase的token报错, err: ", err)
+				return err
+			}
+		}
+
+	}
+	return nil
 }
