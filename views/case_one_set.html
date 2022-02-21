@@ -162,7 +162,22 @@
                 if(obj.event === 'run'){
 
                 }else if(obj.event === 'del'){
-                        alert("删除")
+                    layer.confirm('真的删除行么', function(index){
+                        // obj.del();
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/delete_set_case_by_id",
+                            // contentType: "application/json",
+                            // dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:{
+                                "id": data.id,
+                            }
+                        });
+                        layer.close(index);
+                        window.location.reload()
+                    });
                 }
                 layui.close(obj);
             });

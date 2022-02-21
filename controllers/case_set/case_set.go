@@ -53,6 +53,8 @@ func (c *CaseSetController) Post() {
 		c.addSetCase()
 	case "save_edit_set_case":
 		c.saveEditSetCase()
+	case "delete_set_case_by_id":
+		c.DelSetCaseByID()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -325,15 +327,19 @@ func (c *CaseSetController) addSetCase() {
 }
 
 func (c *CaseSetController) DelSetCaseByID() {
-	delparam := delparam{}
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
+	//delparam := delparam{}
+	//err := json.Unmarshal(c.Ctx.Input.RequestBody, &delparam)
+	//if err != nil {
+	//	logs.Error("解析删除指定测试用例集入参报错, err: ", err)
+	//	c.ErrorJson(-1, "请求参数错误", nil)
+	//}
+	ids := c.GetString("id")
+	id, err := strconv.ParseInt(ids, 10, 64)
 	if err != nil {
-		logs.Error("解析删除指定测试用例集入参报错, err: ", err)
-		c.ErrorJson(-1, "请求参数错误", nil)
+		logs.Error("获取set_case id 出错，err:", err)
 	}
-
 	scm := models.SetCaseMongo{}
-	err = scm.DelSetCase(delparam.id)
+	err = scm.DelSetCase(id)
 	if err != nil {
 		c.ErrorJson(-1, "删除用例失败", nil)
 	}
