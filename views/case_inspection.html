@@ -154,7 +154,7 @@
                     // $("#City").html("");
                     $.each(data.data, function(key, val) {
                         let option1;
-                        if(val["service_name"] === '{{.a.ServiceName}}'){
+                        if(val["id"] === {{.a.ServiceId}}){
                             // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
                             option1 = '<option selected value='+val["id"]+";"+val["service_name"]+'>'+val["service_name"]+'</option>'
                         }else{

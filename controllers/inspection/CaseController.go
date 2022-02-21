@@ -198,6 +198,27 @@ func (c *CaseController) ShowCaseDeatil() {
 	}
 	acm := models.InspectionCaseMongo{}
 	res := acm.GetOneCase(idInt)
+	result := map[string]interface{}{}
+	result["Id"] = res.Id
+	// 去查询关联的ServiceName
+	serviceMongo := models.ServiceMongo{}
+	service, err := serviceMongo.QueryById(res.ServiceId)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	result["ServiceName"] = service.ServiceName
+	result["Parameter"] = res.Parameter
+	result["Author"] = res.Author
+	result["ApiUrl"] = res.ApiUrl
+	result["BusinessName"] = res.BusinessName
+	result["CaseName"] = res.CaseName
+	result["Domain"] = res.Domain
+	result["Description"] = res.Description
+	result["Checkpoint"] = res.Checkpoint
+	result["RequestMethod"] = res.RequestMethod
+	result["SmokeResponse"] = res.SmokeResponse
+	result["Strategy"] = res.Strategy
+
 	c.Data["a"] = &res
 	//c.Data["services"] = services
 	c.TplName = "inspection_case_detail.html"
