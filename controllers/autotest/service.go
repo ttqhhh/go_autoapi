@@ -70,13 +70,11 @@ func (c *ServiceController) page() {
 	// 只能看到自己有权限的服务
 	//userId, _ := c.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	serviceName := c.GetString("service_name")
-	//business, err := c.GetInt8("business", -1)
-	//if err != nil {
-	//	logs.Warn("/service/page接口 参数异常, err: %v", err)
-	//	c.ErrorJson(-1, "参数异常", nil)
-	//}
-	//businessCodeList := GetUserBusinessesList(userId)
-	businessCodeList := []int{constant.ZuiyYou, constant.PiPi, constant.HaiWai, constant.ZhongDong, constant.Matuan, constant.ShangYeHua, constant.HaiWaiUS}
+	business, err := c.GetInt8("business", -1)
+	if err != nil {
+		logs.Warn("/service/page接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
 	pageNo, err := c.GetInt("page", 1)
 	if err != nil {
 		logs.Warn("/service/page接口 参数异常, err: %v", err)
@@ -89,15 +87,10 @@ func (c *ServiceController) page() {
 	}
 	logs.Info("请求参数: service_name=%v, business=%v, page_no=%v, page_size=%v", serviceName, pageNo, pageSize)
 	serviceMongo := models.ServiceMongo{}
-	services, total, err := serviceMongo.QueryByPage(businessCodeList, serviceName, pageNo, pageSize)
+	services, total, err := serviceMongo.QueryByPage(business, serviceName, pageNo, pageSize)
 	if err != nil {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
-	//result := make(map[string]interface{})
-	//result["total"] = total
-	//result["data"] = services
-
-	//c.SuccessJson(result)
 	res := make(map[string]interface{})
 	res["code"] = 0
 	res["msg"] = "成功"
