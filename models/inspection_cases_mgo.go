@@ -79,7 +79,7 @@ func (t *InspectionCaseMongo) GetCasesByQuery(query interface{}) (InspectionCase
 //}
 
 // 获取指定业务线下的指定页面case
-func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string, serviceId int64, uri string, strategy int64) (result []InspectionCaseMongo, totalCount int64, err error) {
+func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string, serviceId int64, uri string, strategy int64) (result []*InspectionCaseMongo, totalCount int64, err error) {
 	//acm := TestCaseMongo{}
 	//result := make([]TestCaseMongo, 0, 10)
 	ms, c := db_proxy.Connect("auto_api", inspection_collection)
@@ -101,6 +101,18 @@ func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string, serv
 		logs.Error("查询分页列表数据报错, err: ", err)
 		return nil, 0, err
 	}
+	// 将Case中的service_name字段进行替换处理
+	serviceMongo := ServiceMongo{}
+	for _, ins := range result {
+		serviceId := ins.ServiceId
+		service, err := serviceMongo.QueryById(serviceId)
+		if err != nil {
+			return nil, 0, nil
+		}
+		serviceName := service.ServiceName
+		ins.ServiceName = serviceName
+	}
+
 	// 获取指定业务线下全部case数量
 	total, err := c.Find(query).Count()
 	if err != nil {
