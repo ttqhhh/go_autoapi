@@ -192,7 +192,7 @@ func (c *AutoTestController) performTests() {
 		logs.Error("插入执行记录失败", err)
 		c.ErrorJson(-1, "插入执行记录失败，请呼叫本平台相关负责同学", nil)
 	}
-
+	var isPanic = false
 	go func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
@@ -202,6 +202,7 @@ func (c *AutoTestController) performTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						isPanic = true
 						wg.Done()
 					}
 				}()
@@ -213,22 +214,25 @@ func (c *AutoTestController) performTests() {
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
 		wg.Wait()
-
-		go func() {
-			autoResult, _ := models.GetResultByRunId(uuid)
-			var isPass int8 = models.SUCCESS
-			// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
-			for _, result := range autoResult {
-				if result.Result == models.AUTO_RESULT_FAIL {
-					isPass = models.FAIL
-					break
+		if isPanic {
+			//todo case Panic了
+		} else {
+			go func() {
+				autoResult, _ := models.GetResultByRunId(uuid)
+				var isPass int8 = models.SUCCESS
+				// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
+				for _, result := range autoResult {
+					if result.Result == models.AUTO_RESULT_FAIL {
+						isPass = models.FAIL
+						break
+					}
 				}
-			}
-			// 更新失败个数和本次执行记录状态
-			autoResultMongo := &models.AutoResult{}
-			failCount, _ := autoResultMongo.GetFailCount(uuid)
-			runReport.UpdateIsPass(id, isPass, failCount, userId)
-		}()
+				// 更新失败个数和本次执行记录状态
+				autoResultMongo := &models.AutoResult{}
+				failCount, _ := autoResultMongo.GetFailCount(uuid)
+				runReport.UpdateIsPass(id, isPass, failCount, userId)
+			}()
+		}
 	}()
 	time.Sleep(5 * time.Second)
 	autoResultMongo := &models.AutoResult{}
@@ -424,7 +428,7 @@ func (c *AutoTestController) performInspectTests() {
 		logs.Error("插入执行记录失败", err)
 		c.ErrorJson(-1, "插入执行记录失败，请呼叫本平台相关负责同学", nil)
 	}
-
+	var isPanic = false
 	go func() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
@@ -434,6 +438,7 @@ func (c *AutoTestController) performInspectTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						isPanic = true
 						wg.Done()
 					}
 				}()
@@ -446,21 +451,27 @@ func (c *AutoTestController) performInspectTests() {
 		}
 		wg.Wait()
 
-		go func() {
-			autoResult, _ := models.GetResultByRunId(uuid)
-			var isPass int8 = models.SUCCESS
-			// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
-			for _, result := range autoResult {
-				if result.Result == models.AUTO_RESULT_FAIL {
-					isPass = models.FAIL
-					break
+		if isPanic {
+			//有case崩溃触发panic //todo 做些什么
+		} else {
+			go func() {
+				autoResult, _ := models.GetResultByRunId(uuid)
+				var isPass int8 = models.SUCCESS
+				// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
+				for _, result := range autoResult {
+					if result.Result == models.AUTO_RESULT_FAIL {
+						isPass = models.FAIL
+						break
+					}
 				}
-			}
-			// 更新失败个数和本次执行记录状态
-			autoResultMongo := &models.AutoResult{}
-			failCount, _ := autoResultMongo.GetFailCount(uuid)
-			runReport.UpdateIsPass(id, isPass, failCount, userId)
-		}()
+				// 更新失败个数和本次执行记录状态
+				autoResultMongo := &models.AutoResult{}
+				failCount, _ := autoResultMongo.GetFailCount(uuid)
+				runReport.UpdateIsPass(id, isPass, failCount, userId)
+			}()
+
+		}
+
 	}()
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 }
