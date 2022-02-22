@@ -226,6 +226,15 @@
                     }
                 });
                 /** 非动态项 作为尾部直接加在后面就ok **/
+                var checkTypeMap = {
+                    "eq":"等于",
+                    "in":"包含于",
+                    "exist":"存在此字段",
+                    "lt":"小于",
+                    "gt":"大于",
+                    "lte":"小于等于",
+                    "gte":"大于等于",
+                }
                 let html_butt =
                     '            <div class="layui-inline" style="margin:0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
@@ -238,13 +247,13 @@
                     '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                     '                <select name="check_type" id="check_type">\n' +
                     '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
-                    '                    <option value="eq">eq</option>\n' +
-                    '                    <option value="in">in</option>\n' +
-                    '                    <option value="exist">exist</option>\n' +
-                    '                    <option value="lt">lt</option>\n' +
-                    '                    <option value="gt">gt</option>\n' +
-                    '                    <option value="lte">lte</option>\n' +
-                    '                    <option value="gte">gte</option>\n' +
+                    '                    <option value="eq">e等于q</option>\n' +
+                    '                    <option value="in">包含于</option>\n' +
+                    '                    <option value="exist">存在此字段</option>\n' +
+                    '                    <option value="lt">小于</option>\n' +
+                    '                    <option value="gt">大于</option>\n' +
+                    '                    <option value="lte">小于等于</option>\n' +
+                    '                    <option value="gte">大于等于</option>\n' +
                     '                </select>\n' +
                     '            </div>\n' +
                     '\n' +
@@ -523,7 +532,7 @@
                                 }
                             });
                             node = node.substring(0,node.length-1)
-                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const checkType = $(this).find("#check_type").find("option:selected").val();
                             const value = $(this).find("#value").val();
                             const valueType = $(this).find("#value_type").find("option:selected").text();
                             const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
