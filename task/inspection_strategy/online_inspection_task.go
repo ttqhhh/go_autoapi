@@ -98,7 +98,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
-						logs.Error("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl)
+						logs.Error("【线上巡检】case异常: 该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + " 业务线：" + businessName + " 服务名" + serviceName + " case名称：" + val.CaseName + " url：" + val.ApiUrl)
 						wgInner.Done() //执行或defer后触发线程关闭！！！！！
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 					}
