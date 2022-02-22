@@ -274,6 +274,16 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason += ";" + fmt.Sprintf("不满足【存在】, json路径：【%s】", path)
 			continue
 		}
+		/**
+			<option value="eq" selected>等于</option>	number/string
+		    <option value="neq">不等于</option>			number/string
+		    <option value="in">包含于</option>			string
+		    <option value="exist">存在此字段</option>
+		    <option value="lt">小于</option>			number
+		    <option value="gt">大于</option>			number
+		    <option value="lte">小于等于</option>		number
+		    <option value="gte">大于等于</option>		number
+		*/
 		for checkType, checkValue := range checkRule {
 			var vv interface{}
 			// 根据类型转换jsonpath获取的数组首位类型
@@ -287,6 +297,11 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 				} else {
 					switch checkValue.(type) {
 					case string:
+						if checkType == "lt" || checkType == "gt" || checkType == "lte" || checkType == "gte" {
+							logs.Error("the check type should not string type'", path)
+							reason += ";" + fmt.Sprintf("校验类型为:【%s】时, 校验值类型不能为string。json路径：【%s】", checkType, path)
+							continue
+						}
 						if valueType != jsonpath.String {
 							logs.Error("the verify key type and value type isn't same", path)
 							reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
@@ -294,6 +309,11 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 						}
 						vv = valueInResp[0].MustString()
 					case float64:
+						if checkType == "in" {
+							logs.Error("the check type should not number type'", path)
+							reason += ";" + fmt.Sprintf("校验类型为:【%s】时, 校验值类型不能为number。json路径：【%s】", checkType, path)
+							continue
+						}
 						if valueType != jsonpath.Numeric {
 							logs.Error("the verify key type and value type isn't same", path)
 							reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
