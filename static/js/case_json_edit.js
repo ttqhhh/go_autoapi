@@ -21,8 +21,9 @@ pre = '        <div class="json-nb">\n' +
     '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
     '                <select name="check_type" id="check_type">\n' +
     '                    <option value="eq" selected>等于</option>\n' +
+    '                    <option value="neq">不等于</option>\n' +
     '                    <option value="in">包含于</option>\n' +
-    '                    <option value="exist">存在</option>\n' +
+    '                    <option value="exist">存在此字段</option>\n' +
     '                    <option value="lt">小于</option>\n' +
     '                    <option value="gt">大于</option>\n' +
     '                    <option value="lte">小于等于</option>\n' +

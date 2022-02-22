@@ -288,8 +288,13 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			if checkType == "eq" {
 				if checkValue != vv {
 					logs.Error("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", path, vv, checkValue)
+					continue
+				}
+			} else if checkType == "neq" {
+				if checkValue == vv {
+					logs.Error("equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【不相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "exist" {
@@ -297,41 +302,35 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			} else if checkType == "in" {
 				if !strings.Contains(vv.(string), checkValue.(string)) {
 					logs.Error("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【包含】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【包含于%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "lt" {
 				if !(vv.(float64) < checkValue.(float64)) {
 					logs.Error("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【小于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "gt" {
 				if !(vv.(float64) > checkValue.(float64)) {
 					logs.Error("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【大于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "lte" {
 				if !(vv.(float64) <= checkValue.(float64)) {
 					logs.Error("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【小于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<=%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "gte" {
 				if !(vv.(float64) >= checkValue.(float64)) {
 					logs.Error("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>=%v】", path, vv, checkValue)
 					continue
 				}
 			} else {
 				logs.Error("do not support, checkType: ", checkType)
-				//reason += ";" + fmt.Sprintf("do not support this operator")
 				reason += ";" + fmt.Sprintf("不支持的验证类型: %s", checkType)
 				continue
 			}

@@ -231,6 +231,7 @@
                 /** 非动态项 作为尾部直接加在后面就ok **/
                 var checkTypeMap = {
                     "eq":"等于",
+                    "neq":"不等于",
                     "in":"包含于",
                     "exist":"存在此字段",
                     "lt":"小于",
@@ -251,6 +252,7 @@
                     '                <select name="check_type" id="check_type">\n' +
                     '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
                     '                    <option value="eq">等于</option>\n' +
+                    '                    <option value="neq">不等于</option>\n' +
                     '                    <option value="in">包含于</option>\n' +
                     '                    <option value="exist">存在此字段</option>\n' +
                     '                    <option value="lt">小于</option>\n' +
