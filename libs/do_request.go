@@ -278,11 +278,19 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			var vv interface{}
 			// 根据类型转换jsonpath获取的数组首位类型
 			if checkType != "exist" {
-				switch checkValue.(type) {
-				case string:
-					vv = valueInResp[0].MustString()
-				case float64:
-					vv = valueInResp[0].MustNumeric()
+				// 判断valueInResp的value值是否为number/string
+				valueType := valueInResp[0].Type()
+				if valueType != jsonpath.Numeric && valueType != jsonpath.String {
+					logs.Error("the verify key is not last level in the response", path)
+					reason += ";" + fmt.Sprintf("按照配置的json路径取到的值非基本类型（number/string）, 请重新配置。json路径：【%s】", path)
+					continue
+				} else {
+					switch checkValue.(type) {
+					case string:
+						vv = valueInResp[0].MustString()
+					case float64:
+						vv = valueInResp[0].MustNumeric()
+					}
 				}
 			}
 			if checkType == "eq" {
