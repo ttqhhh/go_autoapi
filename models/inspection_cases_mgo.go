@@ -242,6 +242,20 @@ func (t *InspectionCaseMongo) GetAllCasesByBusiness(business string) (result []*
 	return
 }
 
+// 获取指定业务线下勾选了巡检按钮的case
+func (t *InspectionCaseMongo) GetAllCasesByBusinessAndStatusTrue(business string) (result []*InspectionCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", inspection_collection)
+	defer ms.Close()
+	query := bson.M{"status": status, "business_code": business, "is_inspection":1}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return
+}
+
 // 获取指定服务集合下所有Case
 func (t *InspectionCaseMongo) GetAllCasesByServiceList(serviceIds []int64) (result []*InspectionCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", inspection_collection)
