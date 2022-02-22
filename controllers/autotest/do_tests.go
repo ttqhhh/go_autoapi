@@ -200,7 +200,7 @@ func (c *AutoTestController) performTests() {
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
-						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
