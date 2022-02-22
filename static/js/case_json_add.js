@@ -21,7 +21,7 @@ pre = '        <div class="json-nb">\n' +
     '                <select name="check_type" id="check_type">\n' +
     '                    <option value="eq" selected>相等</option>\n' +
     '                    <option value="in">包含于</option>\n' +
-    '                    <option value="exist">存在</option>\n' +
+    '                    <option value="exist">存在此字段</option>\n' +
     '                    <option value="lt">小于</option>\n' +
     '                    <option value="gt">大于</option>\n' +
     '                    <option value="lte">小于等于</option>\n' +
@@ -64,7 +64,7 @@ first_pre = '        <div class="json-nb">\n' +
     '                <select name="check_type" id="check_type">\n' +
     '                    <option value="eq" selected>等于</option>\n' +
     '                    <option value="in">包含于</option>\n' +
-    '                    <option value="exist">存在</option>\n' +
+    '                    <option value="exist">存在此字段</option>\n' +
     '                    <option value="lt">小于</option>\n' +
     '                    <option value="gt">大于</option>\n' +
     '                    <option value="lte">小于等于</option>\n' +

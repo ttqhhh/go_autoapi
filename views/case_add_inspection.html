@@ -343,7 +343,7 @@
                                 }
                             });
                             node = node.substring(0,node.length-1)
-                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const checkType = $(this).find("#check_type").find("option:selected").val();
                             const value = $(this).find("#value").val();
                             const valueType = $(this).find("#value_type").find("option:selected").text();
                             const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
