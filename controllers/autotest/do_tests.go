@@ -17,6 +17,8 @@ import (
 
 const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e38eab18a"
+const ZY_PUBLISH_TOKEN = "d74178db8b6fc53b7b694760e19009f9cb5fb3aecf54ecd4dc6a2df9c57a12d3"
+const SYH_PUBLISH_TOKEN = "180aaf66ddae4098c53c58691965e028b887a18555f4b7c9fe61d4fd4adf8744"
 const (
 	ALL       = 0
 	IS_TEST   = 1
@@ -130,7 +132,7 @@ func (c *AutoTestController) performTests() {
 			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		} else if kind == "online" {
 			userId = "线上环境回归测试"
-			caseListInspection, err = InspectionMongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
+			caseListInspection, err = InspectionMongo.GetAllCasesByBusinessAndStatusTrue(strconv.Itoa(int(business)))
 		} else {
 			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		}
@@ -342,11 +344,12 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		DingSendShangXian(baseMsg + "\n" + msg)
+		if isPass == "失败"{
+			DingSendShangXianToFail(baseMsg + "\n" + msg, business)
+		}
 	}
 	msgs = "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	return
-	//ac := AutoTestController{}
-	//ac.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
 func (c *AutoTestController) performInspectTests() {
@@ -476,8 +479,30 @@ func (c *AutoTestController) performInspectTests() {
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count}, "OK")
 }
 
+// 通过不同业务线发送到不同对应的群
+func DingSendShangXianToFail(content string, business int8) {
+	var dingToken []string
+	if business == 0 {
+		dingToken = []string{ZY_PUBLISH_TOKEN}
+	}else if business == 1{
+		dingToken = []string{ZY_PUBLISH_TOKEN}
+	}else if business == 2{
+		dingToken = []string{ZY_PUBLISH_TOKEN}
+	}else if business == 3{
+		dingToken = []string{ZY_PUBLISH_TOKEN}
+	}else if business == 5{
+		dingToken = []string{SYH_PUBLISH_TOKEN}
+	}else{
+		//dingToken = []string{PUBLISH_TOKEN}
+		println("hahaha")
+	}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
+}
+
 func DingSendShangXian(content string) {
-	var dingToken = []string{PUBLISH_TOKEN}
+	var dingToken []string
+	dingToken = []string{PUBLISH_TOKEN}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }
