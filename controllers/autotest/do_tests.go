@@ -199,6 +199,7 @@ func (c *AutoTestController) performTests() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
+			time.Sleep(250 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
@@ -294,6 +295,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
+			time.Sleep(250 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
@@ -345,8 +347,8 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		DingSendShangXian(baseMsg + "\n" + msg)
-		if isPass == "失败"{
-			DingSendShangXianToFail(baseMsg + "\n" + msg, business)
+		if isPass == "失败" {
+			DingSendShangXianToFail(baseMsg+"\n"+msg, business)
 		}
 	}
 	msgs = "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
@@ -485,15 +487,15 @@ func DingSendShangXianToFail(content string, business int8) {
 	var dingToken []string
 	if business == 0 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 1{
+	} else if business == 1 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 2{
+	} else if business == 2 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 3{
+	} else if business == 3 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 5{
+	} else if business == 5 {
 		dingToken = []string{SYH_PUBLISH_TOKEN}
-	}else{
+	} else {
 		//dingToken = []string{PUBLISH_TOKEN}
 		println("hahaha")
 	}
