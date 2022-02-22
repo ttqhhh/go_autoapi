@@ -287,8 +287,18 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 				} else {
 					switch checkValue.(type) {
 					case string:
+						if valueType != jsonpath.String {
+							logs.Error("the verify key type and value type isn't same", path)
+							reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
+							continue
+						}
 						vv = valueInResp[0].MustString()
 					case float64:
+						if valueType != jsonpath.Numeric {
+							logs.Error("the verify key type and value type isn't same", path)
+							reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
+							continue
+						}
 						vv = valueInResp[0].MustNumeric()
 					}
 				}
