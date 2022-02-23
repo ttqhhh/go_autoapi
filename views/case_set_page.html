@@ -51,6 +51,13 @@
                    class="layui-input">
         </div>
     </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="parameter" id="parameter" required autocomplete="off" placeholder="请输入公共参数"
+                          class="layui-textarea"></textarea>
+        </div>
+    </div>
 
 
     <div class="layui-form-item" style="float: right">
@@ -74,6 +81,13 @@
         <div class="layui-input-block">
             <input type="text" name="description" id="description" autocomplete="off" placeholder="请输入文件名称"
                    class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="parameter" id="parameter_edit" required autocomplete="off" placeholder="请输入公共参数"
+                          class="layui-textarea"></textarea>
         </div>
     </div>
     <div class="layui-form-item" style="float: right">
@@ -156,6 +170,7 @@
                         form.find('input[name="business_code"]').val(data.data.business_code)
                         form.find('input[name="case_set_name"]').val(data.data.case_set_name)
                         form.find('input[name="description"]').val(data.data.description)
+                        $("#parameter_edit").text(data.data.parameter)
                         layer.open({
                             type: 1
                             , title: '编辑case集合'
@@ -213,7 +228,7 @@
             layer.open({
                 type: 1
                 , title: '新增组合case'
-                , area: ['440px', '300px']
+                , area: ['700px', '400px']
                 , shade: 0
                 , maxmin: true
                 , offset: [100, 600]

@@ -127,19 +127,19 @@ func (c *CaseSetController) addCaseSet() {
 	caseSet.BusinessName = businessName
 	//
 	//// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	//param := caseSet.Parameter
-	//v := make(map[string]interface{})
-	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	//if err != nil {
-	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
-	//	return
-	//}
-	//paramByte, err := json.Marshal(v)
-	//if err != nil {
-	//	logs.Error("保存Case时，处理请求json报错， err:", err)
-	//	c.ErrorJson(-1, "保存Case出错啦", nil)
-	//}
-	//caseSet.Parameter = string(paramByte)
+	param := caseSet.Parameter
+	v := make(map[string]interface{})
+	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	if err != nil {
+		logs.Error("发送冒烟请求前，解码json报错，err：", err)
+		return
+	}
+	paramByte, err := json.Marshal(v)
+	if err != nil {
+		logs.Error("保存Case时，处理请求json报错， err:", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	caseSet.Parameter = string(paramByte)
 	if err := caseSet.AddCaseSet(caseSet); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
