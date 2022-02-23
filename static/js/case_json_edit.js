@@ -28,6 +28,8 @@ pre = '        <div class="json-nb">\n' +
     '                    <option value="gt">大于</option>\n' +
     '                    <option value="lte">小于等于</option>\n' +
     '                    <option value="gte">大于等于</option>\n' +
+    '                    <option value="isTrue">为真</option>\n' +
+    '                    <option value="isFalse">为假</option>\n' +
     '                </select>\n' +
     '            </div>\n' +
     '\n' +
