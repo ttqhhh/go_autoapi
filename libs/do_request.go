@@ -294,15 +294,15 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 					continue
 				}
 			} else if checkType == "isTrue" {
-				if !(vv.(bool) != true) {
-					logs.Error("not isTrue, key %s, actual %checkRule, expected True", path, vv, checkValue)
-					reason += ";" + fmt.Sprintf("不满足【为真】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【True】", path, vv, checkValue)
+				if vv.(bool) != true {
+					logs.Error("not isTrue, key %s, actual %checkRule, expected True", path, vv)
+					reason += ";" + fmt.Sprintf("不满足【为真】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【true】", path, vv)
 					continue
 				}
 			} else if checkType == "isFalse" {
-				if !(vv.(bool) != false) {
-					logs.Error("not isFalse, key %s, actual %checkRule, expected False", path, vv, checkValue)
-					reason += ";" + fmt.Sprintf("不满足【为假】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【False】", path, vv, checkValue)
+				if vv.(bool) != false {
+					logs.Error("not isFalse, key %s, actual %checkRule, expected False", path, vv)
+					reason += ";" + fmt.Sprintf("不满足【为假】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【false】", path, vv)
 					continue
 				}
 			} else {
