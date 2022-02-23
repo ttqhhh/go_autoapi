@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"go_autoapi/db_proxy"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 	"time"
 )
 
@@ -295,7 +296,7 @@ func (t *TestCaseMongo) GetAllCasesByService(serviceId int64) (result []*TestCas
 }
 
 // 专门供对外暴露的api刷新token使用
-func (t *TestCaseMongo) FlushAllTokenByBusiness(business string, token string) error {
+func (t *TestCaseMongo) FlushAllTokenByBusiness(business string, token string, mid string) error {
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 
@@ -313,23 +314,52 @@ func (t *TestCaseMongo) FlushAllTokenByBusiness(business string, token string) e
 		pjson := map[string]interface{}{}
 		json.Unmarshal([]byte(parameter), &pjson)
 		_, ok := pjson["token"]
-		if ok {
-			pjson["token"] = token
-			pjsonByte, err := json.Marshal(pjson)
+		if mid != "" {
+			h_m, hm_ok := pjson["h_m"]
+			midInt, err := strconv.Atoi(mid)
 			if err != nil {
-				logs.Error("序列化pjson报错, err: ", err)
+				logs.Error("mid转换数据类型失败")
 				return err
 			}
-			data := bson.M{
-				"$set": bson.M{
-					"parameter":  string(pjsonByte),
-					"updated_at": time.Now().Format(Time_format),
-				},
+
+			if ok && hm_ok && int(h_m.(float64)) == int(midInt) {
+				pjson["token"] = token
+				pjsonByte, err := json.Marshal(pjson)
+				if err != nil {
+					logs.Error("序列化pjson报错, err: ", err)
+					return err
+				}
+				data := bson.M{
+					"$set": bson.M{
+						"parameter":  string(pjsonByte),
+						"updated_at": time.Now().Format(Time_format),
+					},
+				}
+				_, err = db.UpsertId(id, data)
+				if err != nil {
+					logs.Error("数据库更新TestCase的token报错, err: ", err)
+					return err
+				}
 			}
-			_, err = db.UpsertId(id, data)
-			if err != nil {
-				logs.Error("数据库更新TestCase的token报错, err: ", err)
-				return err
+		} else {
+			if ok {
+				pjson["token"] = token
+				pjsonByte, err := json.Marshal(pjson)
+				if err != nil {
+					logs.Error("序列化pjson报错, err: ", err)
+					return err
+				}
+				data := bson.M{
+					"$set": bson.M{
+						"parameter":  string(pjsonByte),
+						"updated_at": time.Now().Format(Time_format),
+					},
+				}
+				_, err = db.UpsertId(id, data)
+				if err != nil {
+					logs.Error("数据库更新TestCase的token报错, err: ", err)
+					return err
+				}
 			}
 		}
 
