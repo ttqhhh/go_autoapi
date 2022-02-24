@@ -199,7 +199,7 @@ func (c *AutoTestController) performTests() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
-			time.Sleep(250 * time.Millisecond) //休眠250毫秒
+			time.Sleep(500 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
@@ -295,7 +295,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
-			time.Sleep(250 * time.Millisecond) //休眠250毫秒
+			time.Sleep(500 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
