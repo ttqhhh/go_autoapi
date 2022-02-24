@@ -144,7 +144,11 @@ func (c *CaseController) updateCaseByID() {
 	dom.Author = icm.Author
 	intBus, _ := strconv.Atoi(icm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = icm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, icm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = icm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
@@ -273,7 +277,11 @@ func (c *CaseController) AddOneCase() {
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = acm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, acm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = acm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
