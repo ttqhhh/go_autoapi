@@ -23,8 +23,12 @@ func (c *CaseManageController) AddOneCase() {
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = acm.Domain
-	if err := dom.DomainInsert(dom); err != nil{
+	if strings.Contains(constants.ONLINE_DOMAIN, acm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线下自动化禁止使用线上域名", nil)
+	} else {
+		dom.DomainName = acm.Domain
+	}
+	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
 	// service_id 和 service_name 在一起,需要分割后赋值
