@@ -87,12 +87,15 @@ func (c *CaseManageController) updateCaseByID() {
 }
 
 func (c *CaseManageController) DelCaseByID() {
+	name, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	now := time.Now().Format(constants.TimeFormat)
+
 	caseID := c.GetString("id")
 	ac := models.TestCaseMongo{}
 	caseIDInt, err := strconv.ParseInt(caseID, 10, 64)
 	if err != nil {
 		logs.Error("在删除用例的时候类型转换失败")
 	}
-	ac.DelCase(caseIDInt)
+	ac.DelCase(caseIDInt, name, now)
 	logs.Info("删除成功")
 }

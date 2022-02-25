@@ -230,12 +230,16 @@ func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
 
 // 修改status
 
-func (t *TestCaseMongo) DelCase(id int64) {
+func (t *TestCaseMongo) DelCase(id int64, updated_by string, updated_at string) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	//err := db.Find(query).One(&acm)
-	err := db.Update(query, bson.M{"$set": bson.M{"status": del_}})
+	err := db.Update(query, bson.M{
+		"$set": bson.M{"status": del_,
+			"updated_by": updated_by,
+			"updated_at": updated_at,
+		}})
 	if err != nil {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)
