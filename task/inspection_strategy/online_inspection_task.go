@@ -102,7 +102,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 						logs.Error("【线上巡检】case异常: 该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + " 业务线：" + businessName + " 服务名" + serviceName + " case名称：" + val.CaseName + " url：" + val.ApiUrl)
 						wgInner.Done() //执行或defer后触发线程关闭！！！！！
 						logs.Error("Case: %v, 导致协程Panic, Error为: %v", val.TestCaseId, err)
-						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", val.TestCaseId, debug.Stack())
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", val.TestCaseId, string(debug.Stack()))
 					}
 				}()
 				// 当巡检用例执行失败时，再进行2次补偿重试

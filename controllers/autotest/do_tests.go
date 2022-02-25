@@ -209,7 +209,7 @@ func (c *AutoTestController) performTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
 						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
-						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, string(debug.Stack()))
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
@@ -309,7 +309,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
 						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
-						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, string(debug.Stack()))
 						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + runReport.ServiceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
 						wg.Done()
 					}
@@ -453,7 +453,7 @@ func (c *AutoTestController) performInspectTests() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
-						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, string(debug.Stack()))
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
