@@ -9,6 +9,7 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -207,6 +208,8 @@ func (c *AutoTestController) performTests() {
 				defer func() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
+						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
@@ -256,8 +259,8 @@ func (c *AutoTestController) performTests() {
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-		if isPass == "失败"{
-			DingSendShangXian(baseMsg + "\n" + msg, business)
+		if isPass == "失败" {
+			DingSendShangXian(baseMsg+"\n"+msg, business)
 		}
 	}
 	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
@@ -305,8 +308,9 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 				defer func() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
+						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
 						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + runReport.ServiceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
-						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						wg.Done()
 					}
 				}()
@@ -352,8 +356,8 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		//DingSendShangXian(baseMsg + "\n" + msg)
-		if isPass == "失败"{
-			DingSendShangXianToFail(baseMsg + "\n" + msg, business)
+		if isPass == "失败" {
+			DingSendShangXianToFail(baseMsg+"\n"+msg, business)
 		}
 	}
 	msgs = "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
@@ -448,6 +452,8 @@ func (c *AutoTestController) performInspectTests() {
 				defer func() {
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						logs.Error("Case: %v, 导致协程Panic, Error为: %v", caseId, err)
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", caseId, debug.Stack())
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
@@ -512,15 +518,15 @@ func DingSendShangXian(content string, business int8) {
 	var dingToken []string
 	if business == 0 {
 		dingToken = []string{ZY_TEST_PUBLISH_TOKEN}
-	}else if business == 1{
+	} else if business == 1 {
 		println("hahaha")
-	}else if business == 2{
+	} else if business == 2 {
 		dingToken = []string{HW_TEST_PUBLISH_TOKEN}
-	}else if business == 3{
+	} else if business == 3 {
 		dingToken = []string{HW_TEST_PUBLISH_TOKEN}
-	}else if business == 5{
+	} else if business == 5 {
 		println("hahaha")
-	}else{
+	} else {
 		//dingToken = []string{PUBLISH_TOKEN}
 		println("hahaha")
 	}
