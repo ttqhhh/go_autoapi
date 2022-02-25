@@ -13,12 +13,14 @@ import (
 )
 
 func (c *CaseManageController) AddOneCase() {
+	name, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 	now := time.Now().Format(constants.TimeFormat)
 	acm := models.TestCaseMongo{}
 	dom := models.Domain{}
 	if err := c.ParseForm(&acm); err != nil { // 传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
+	acm.Author = name
 	// 获取域名并确认是否执行
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)

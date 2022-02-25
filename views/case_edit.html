@@ -31,6 +31,13 @@
         </div>
 
         <div class="layui-inline">
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="created_at" autocomplete="off" placeholder="请输入标题"
+                       class="layui-input" value={{.a.CreatedAt}} >
+            </div>
+        </div>
+        <div class="layui-inline">
                 <label class="layui-form-label">添加人</label>
                 <div class="layui-input-block">
                     <input type="text" name="author" lay-verify="required" autocomplete="off" placeholder="请输入标题"

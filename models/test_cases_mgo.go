@@ -32,10 +32,11 @@ type TestCaseMongo struct {
 	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
 	Description  string `form:"description" json:"description" bson:"description"`
 	Method       string `form:"method" json:"method" bson:"method"`
-	CreatedAt    string `json:"created_at"`
-	UpdatedAt    string `json:"updated_at"`
+	CreatedAt    string `json:"created_at" form:"created_at" bson:"created_at"`
+	UpdatedAt    string `json:"updated_at" form:"updated_at" bson:"updated_at"`
 	//zen
-	Author string `form:"author" json:"author" bson:"author"`
+	Author    string `form:"author" json:"author" bson:"author"`
+	UpdatedBy string `json:"updated_by" form:"updated_by" bson:"updated_by"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
 	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`
@@ -229,12 +230,16 @@ func (t *TestCaseMongo) SetInspection(id int64, is_inspection int8) error {
 
 // 修改status
 
-func (t *TestCaseMongo) DelCase(id int64) {
+func (t *TestCaseMongo) DelCase(id int64, updated_by string, updated_at string) {
 	query := bson.M{"_id": id}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	//err := db.Find(query).One(&acm)
-	err := db.Update(query, bson.M{"$set": bson.M{"status": del_}})
+	err := db.Update(query, bson.M{
+		"$set": bson.M{"status": del_,
+			"updated_by": updated_by,
+			"updated_at": updated_at,
+		}})
 	if err != nil {
 		logs.Error("删除case失败，更给状态为1失败")
 		logs.Error(err)
