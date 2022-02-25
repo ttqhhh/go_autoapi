@@ -18,7 +18,10 @@ import (
 const XIAO_NENG_QUN_TOKEN = "6f35268d9dcb74b4b95dd338eb241832781aeaaeafd90aa947b86936f3343dbb"
 const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e38eab18a"
 const ZY_PUBLISH_TOKEN = "d74178db8b6fc53b7b694760e19009f9cb5fb3aecf54ecd4dc6a2df9c57a12d3"
+const ZY_TEST_PUBLISH_TOKEN = "4bf6f64b7d931f868e230d365ad17cde9435ae61637ba6e912c6bed4917c8e59"
 const SYH_PUBLISH_TOKEN = "180aaf66ddae4098c53c58691965e028b887a18555f4b7c9fe61d4fd4adf8744"
+const HW_TEST_PUBLISH_TOKEN = "7e1b086adbbd70d15dd7a565955342eb4f4e8bcf4936ca59187875100bdbd624"
+
 const (
 	ALL       = 0
 	IS_TEST   = 1
@@ -252,7 +255,9 @@ func (c *AutoTestController) performTests() {
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-		DingSendShangXian(baseMsg + "\n" + msg)
+		if isPass == "失败"{
+			DingSendShangXian(baseMsg + "\n" + msg, business)
+		}
 	}
 	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
@@ -343,7 +348,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
 		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-		DingSendShangXian(baseMsg + "\n" + msg)
+		//DingSendShangXian(baseMsg + "\n" + msg)
 		if isPass == "失败"{
 			DingSendShangXianToFail(baseMsg + "\n" + msg, business)
 		}
@@ -500,9 +505,22 @@ func DingSendShangXianToFail(content string, business int8) {
 	cli.SendTextMessage(content)
 }
 
-func DingSendShangXian(content string) {
+func DingSendShangXian(content string, business int8) {
 	var dingToken []string
-	dingToken = []string{PUBLISH_TOKEN}
+	if business == 0 {
+		dingToken = []string{ZY_TEST_PUBLISH_TOKEN}
+	}else if business == 1{
+		println("hahaha")
+	}else if business == 2{
+		dingToken = []string{HW_TEST_PUBLISH_TOKEN}
+	}else if business == 3{
+		dingToken = []string{HW_TEST_PUBLISH_TOKEN}
+	}else if business == 5{
+		println("hahaha")
+	}else{
+		//dingToken = []string{PUBLISH_TOKEN}
+		println("hahaha")
+	}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }
