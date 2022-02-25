@@ -144,7 +144,11 @@ func (c *CaseController) updateCaseByID() {
 	dom.Author = icm.Author
 	intBus, _ := strconv.Atoi(icm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = icm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, icm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = icm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
@@ -198,6 +202,27 @@ func (c *CaseController) ShowCaseDeatil() {
 	}
 	acm := models.InspectionCaseMongo{}
 	res := acm.GetOneCase(idInt)
+	result := map[string]interface{}{}
+	result["Id"] = res.Id
+	// 去查询关联的ServiceName
+	serviceMongo := models.ServiceMongo{}
+	service, err := serviceMongo.QueryById(res.ServiceId)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	result["ServiceName"] = service.ServiceName
+	result["Parameter"] = res.Parameter
+	result["Author"] = res.Author
+	result["ApiUrl"] = res.ApiUrl
+	result["BusinessName"] = res.BusinessName
+	result["CaseName"] = res.CaseName
+	result["Domain"] = res.Domain
+	result["Description"] = res.Description
+	result["Checkpoint"] = res.Checkpoint
+	result["RequestMethod"] = res.RequestMethod
+	result["SmokeResponse"] = res.SmokeResponse
+	result["Strategy"] = res.Strategy
+
 	c.Data["a"] = &res
 	//c.Data["services"] = services
 	c.TplName = "inspection_case_detail.html"
@@ -252,7 +277,11 @@ func (c *CaseController) AddOneCase() {
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = acm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, acm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = acm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}

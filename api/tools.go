@@ -36,6 +36,7 @@ func (c *ToolsController) flush_token() {
 	business := c.GetString("business", "") // 枚举： 0：最右，1：皮皮，2：海外，3：中东，4：妈妈，5：商业化，6：海外-US
 	token := c.GetString("token", "")
 	env := c.GetString("env", "") // 枚举：prod、test
+	mid := c.GetString("mid", "") // 非必填
 
 	if business == "" {
 		c.ErrorJson(-1, "business字段不可为空", nil)
@@ -59,13 +60,13 @@ func (c *ToolsController) flush_token() {
 
 	if env == "test" {
 		mongo := models.TestCaseMongo{}
-		err = mongo.FlushAllTokenByBusiness(business, token)
+		err = mongo.FlushAllTokenByBusiness(business, token, mid)
 		if err != nil {
 			c.ErrorJson(-1, err.Error(), nil)
 		}
 	} else {
 		mongo := models.InspectionCaseMongo{}
-		err = mongo.FlushAllTokenByBusiness(business, token)
+		err = mongo.FlushAllTokenByBusiness(business, token, mid)
 		if err != nil {
 			c.ErrorJson(-1, err.Error(), nil)
 		}

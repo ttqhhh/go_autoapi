@@ -202,10 +202,11 @@ func (c *AutoTestController) performTests() {
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
+			time.Sleep(500 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
-						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						isPanic = true
 						wg.Done()
@@ -299,10 +300,12 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		wg := sync.WaitGroup{}
 		wg.Add(len(caseList))
 		for _, val := range caseList {
+			time.Sleep(500 * time.Millisecond) //休眠250毫秒
 			go func(domain string, url string, uuid string, param string, checkout string, caseId int64, runBy string) {
 				defer func() {
 					if err := recover(); err != nil {
-						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
+						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。" + "【线上巡检】case异常该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "业务线：" + businessName + "服务名" + runReport.ServiceName + "case名称：" + val.CaseName + "url：" + val.ApiUrl)
+						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + runReport.ServiceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
 						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
 						wg.Done()
 					}
@@ -489,15 +492,15 @@ func DingSendShangXianToFail(content string, business int8) {
 	var dingToken []string
 	if business == 0 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 1{
+	} else if business == 1 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 2{
+	} else if business == 2 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 3{
+	} else if business == 3 {
 		dingToken = []string{ZY_PUBLISH_TOKEN}
-	}else if business == 5{
+	} else if business == 5 {
 		dingToken = []string{SYH_PUBLISH_TOKEN}
-	}else{
+	} else {
 		//dingToken = []string{PUBLISH_TOKEN}
 		println("hahaha")
 	}
@@ -521,6 +524,12 @@ func DingSendShangXian(content string, business int8) {
 		//dingToken = []string{PUBLISH_TOKEN}
 		println("hahaha")
 	}
+	cli := dingtalk.InitDingTalk(dingToken, "")
+	cli.SendTextMessage(content)
+}
+
+func DingSendWrongCase(content string) {
+	var dingToken = []string{"97c9241c729adc75e9a288aa9c1a074306fea7806688a2e68325fdab8fcc0f5a"}
 	cli := dingtalk.InitDingTalk(dingToken, "")
 	cli.SendTextMessage(content)
 }
