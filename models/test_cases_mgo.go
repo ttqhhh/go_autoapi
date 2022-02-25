@@ -32,10 +32,11 @@ type TestCaseMongo struct {
 	IsInspection int8   `form:"is_inspection" json:"is_inspection" bson:"is_inspection"`
 	Description  string `form:"description" json:"description" bson:"description"`
 	Method       string `form:"method" json:"method" bson:"method"`
-	CreatedAt    string `json:"created_at"`
-	UpdatedAt    string `json:"updated_at"`
+	CreatedAt    string `json:"created_at" form:"created_at" `
+	UpdatedAt    string `json:"updated_at" bson:"updated_at"`
 	//zen
-	Author string `form:"author" json:"author" bson:"author"`
+	Author    string `form:"author" json:"author" bson:"author"`
+	UpdatedBy string `json:"updated_by"`
 	//AppName       string `form:"app_name" json:"app_name" bson:"app_name"`
 	Domain        string `form:"domain" json:"domain" bson:"domain"`
 	BusinessName  string `form:"business_name" json:"business_name" bson:"business_name"`

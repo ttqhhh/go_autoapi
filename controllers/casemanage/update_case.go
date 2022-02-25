@@ -8,15 +8,19 @@ import (
 	"go_autoapi/models"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (c *CaseManageController) updateCaseByID() {
+	name, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	now := time.Now().Format(constants.TimeFormat)
 	acm := models.TestCaseMongo{}
 	dom := models.Domain{}
 	if err := c.ParseForm(&acm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
 	// 获取域名并确认是否执行
+	acm.UpdatedBy = name
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
@@ -35,6 +39,7 @@ func (c *CaseManageController) updateCaseByID() {
 	acm.ServiceId = id64
 	caseId := acm.Id
 	business := acm.BusinessCode
+	acm.UpdatedAt = now
 	//if business == "0" {
 	//	acm.BusinessName = "最右"
 	//} else if business == "1" {
