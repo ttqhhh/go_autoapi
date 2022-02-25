@@ -13,6 +13,7 @@ import (
 	"go_autoapi/controllers/monitor"
 	"go_autoapi/controllers/presstest"
 	"go_autoapi/controllers/report"
+	"go_autoapi/controllers/statisticsdata"
 	"go_autoapi/controllers/tuijian"
 	"go_autoapi/controllers/web_report"
 	_ "go_autoapi/controllers/web_report"
@@ -37,4 +38,5 @@ func init() {
 	beego.Router("/h5listen/*", &h5listen.H5ListenController{})
 	beego.Router("/h5report/*", &h5report.H5ReportController{})
 	beego.Router("/allview/*", &auto.AllviewController{})
+	beego.Router("/statistics/*", &statisticsdata.StatisticsController{}) //用于统计接口数量
 }
