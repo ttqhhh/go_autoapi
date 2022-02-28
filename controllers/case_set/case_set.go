@@ -213,7 +213,7 @@ func (c *CaseSetController) runById() {
 
 	// todo 核心逻辑
 	// 起一个协程异步去串行执行CaseSet中的Case
-	go func(id int64) {
+	go func(runReportId int64) {
 		// 3、运行测试用例集
 		for _, setCase := range setCaseList {
 			caseParam := setCase.Parameter
@@ -297,8 +297,8 @@ func (c *CaseSetController) runById() {
 		// 更新失败个数和本次执行记录状态
 		autoResultMongo := &models.AutoResult{}
 		failCount, _ := autoResultMongo.GetFailCount(uuid)
-		runReport.UpdateIsPass(id, isPass, failCount, runBy)
-	}(runparam.Id)
+		runReport.UpdateIsPass(runReportId, isPass, failCount, runBy)
+	}(id)
 
 	c.SuccessJson(nil)
 }
