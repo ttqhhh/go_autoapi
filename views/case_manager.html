@@ -169,8 +169,8 @@
                 // window.location.href="/case/show_edit_case?id="+data.id+"&business={{.business}}"
                 window.open("/case/show_edit_case?id="+data.id+"&business={{.business}}","_blank");
             }else if(obj.event === 'copy'){
-                window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
-                // window.open("/case/show_copy_case?id="+data.id+"&business={{.business}}","_blank");
+                // window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+                window.open("/case/show_copy_case?id="+data.id+"&business={{.business}}","_blank");
             } else if (obj.event === "run") {
                 var arr = new Array();
                 arr.push(data.id);
@@ -255,7 +255,8 @@
         });
 
         $(document).on("click",".add_case", function (){
-           window.location.href= "/case/show_add_case"
+           // window.location.href= "/case/show_add_case"
+            window.open("/case/show_add_case","_blank");
         });
 
         let needJump = true

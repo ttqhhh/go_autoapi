@@ -189,7 +189,8 @@ func (c *CaseController) updateCaseByID() {
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("更新成功")
-	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 func (c *CaseController) ShowCaseDeatil() {
@@ -343,8 +344,8 @@ func (c *CaseController) AddOneCase() {
 	// 保存成功后，将该条线上巡检Case关联的测试Case巡检状态切换为开启
 	testCaseMongo := models.TestCaseMongo{}
 	testCaseMongo.SetInspection(acm.TestCaseId, models.INSPECTION)
-	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
-	//c.Ctx.Redirect(302, "/case/close_windows")
+	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 //更改一个线上巡航case的状态为不巡航

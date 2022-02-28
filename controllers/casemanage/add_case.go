@@ -88,5 +88,6 @@ func (c *CaseManageController) AddOneCase() {
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	//c.SuccessJson("添加成功")
-	c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
