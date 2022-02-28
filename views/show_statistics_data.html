@@ -1,0 +1,51 @@
+{{template "head.html" .}}
+<div style="padding-top: 50px; padding-left: 200px; padding-right: 300px">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+        <legend>每周接口数据统计</legend>
+    </fieldset>
+</div>
+
+
+<div style="padding-top: 20px; padding-left: 200px; padding-right: 300px">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+        <legend>时间：{{.check_time}} ----{{.now_time}}</legend>
+    </fieldset>
+</div>
+<table id="demo" lay-filter="test"style="margin-top: 50px"> </table>
+
+<script src="/layui/layui.js"></script>
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            ,height: 314
+            ,url: '/statistics/get_all_api_group'//数据接口
+            ,page: false //开启分页
+            ,cols: [[ //表头
+                {field: 'business_name', title: '业务线', width:300}
+                ,{field: 'all_case_count', title: '全部case数', width:300}
+                ,{field: 'all_api_count', title: 'case覆盖总接口', width:300, sort: true}
+                ,{field: 'new_case_count', title: '本周新增case数', width:300}
+                ,{field: 'new_api_count', title: '本周新增接口数', width:300}
+            ]]
+            ,done:function () {
+                $(".layui-input-date").each(function (i) {
+                    layui.laydate.render({
+                        elem: this,
+                        format: "yyyy-MM-dd",
+                        done: function (value, date) {
+                            if (res && res.data[i]) {
+                                $.extend(res.data[i], {'rise_count': value})
+                            }
+                        }
+                    });
+                });
+                layer.closeAll();
+            }
+        });
+
+    });
+</script>

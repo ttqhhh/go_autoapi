@@ -371,3 +371,17 @@ func (t *TestCaseMongo) FlushAllTokenByBusiness(business string, token string, m
 	}
 	return nil
 }
+
+//获取所有case 不区分业务线
+func (t *TestCaseMongo) GetAllCasesNoBusiness() (result []*TestCaseMongo, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+	query := bson.M{"status": status}
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).All(&result)
+	if err != nil {
+		logs.Error("查询指定业务线下所有Case数据报错, err: ", err)
+		return nil, err
+	}
+	return result, err
+}
