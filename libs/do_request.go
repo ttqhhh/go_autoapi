@@ -22,39 +22,7 @@ func init() {
 	_ = db_proxy.InitClient()
 }
 
-//模拟请求方法
-func HttpPost(postUrl string, headers map[string]string, jsonMap string, method string) (int, string, string) {
-	client := &http.Client{}
-	//转换成postBody
-	//bytesData, err := json.Marshal(jsonMap)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return 0, "", ""
-	//}
-	postBody := bytes.NewReader([]byte(jsonMap))
-	client = &http.Client{}
-	//post请求
-	req, _ := http.NewRequest("POST", postUrl, postBody)
-	for k, v := range headers {
-		req.Header.Add(k, v)
-	}
-	resp, _ := client.Do(req)
-	//logs.Error("requests err:", resp)
-	//返回内容
-	body, err := ioutil.ReadAll(resp.Body)
-	logs.Error("requests err:", err)
-	//解析返回的cookie
-	var cookieStr string
-	cookies := resp.Cookies()
-	if cookies != nil {
-		for _, c := range cookies {
-			cookieStr += c.Name + "=" + c.Value + ";"
-		}
-	}
-	fmt.Printf("body is %v", string(body))
-	return resp.StatusCode, string(body), cookieStr
-}
-
+// 获取冒烟响应函数
 func DoRequestWithNoneVerify(business int, url string, param string) (respStatus int, body []byte, err error) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -81,7 +49,6 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 		return
 	}
 	paramByte, err := json.Marshal(v)
-	//logs.Info("打印json", string(paramByte))
 	if err != nil {
 		logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
 		return
@@ -119,7 +86,8 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
+// 发送请求函数
+func DoRequest(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool, resp string) {
 	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -192,80 +160,31 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	isPass = doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
+	resp = string(body)
+	isPass = doVerify(respStatus, uuid, resp, verify, caseId, isInspection, runBy)
 	return
 }
 
-//func DoRequest(url string, method string, uuid string, data string, verify string, caseId int64) {
-//	//密码
-//	r := db_proxy.GetRedisObject()
-//	statusCode, body, _ := HttpPost(url, nil, data, method)
-//	//body jsonStr转map
-//	var jmap map[string]interface{}
-//	if err := json.Unmarshal([]byte(body), &jmap); err != nil {
-//		fmt.Println("解析失败", err)
-//		return
-//	}
-//	// 此处采用go-simplejson来做个示例，用于以后扩展检查使用
-//	js, err := simplejson.NewJson([]byte(body))
-//	if err != nil {
-//		return
-//	}
-//	email, err := js.Get("data").Get("email").String()
-//	fmt.Println(js.Get("code"), email)
-//
-//	// 判断某个字段的类型
-//	//fmt.Println("type:", reflect.TypeOf(jmap["code"]))
-//	//判断登录是否成功
-//	doVerifyV2(statusCode, uuid, body, verify, caseId)
-//	r.Incr(uuid)
-//
-//}
-
-// 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
+// 结果验证函数
+func doVerify(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
 	isPass = true
 	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 		isPass = false
 		return
 	}
-	// 提前检查jsonpath是否存在，不存在就报错
-	//for path := range verify {
-	//	verifyO, err := jsonpath.JSONPath([]byte(response), path)
-	//	if err != nil {
-	//		logs.Error("doVerifyV2 jsonpath error，test failed", err)
-	//		//saveTestResult(uuid, caseId, result, path+" jsonpath err", runBy, response)
-	//		//reason = "checkpoint表达式有误，请检查您的checkpoint (" + path + ")"
-	//		reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
-	//		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
-	//		isPass = false
-	//		return
-	//	}
-	//	if len(verifyO) == 0 {
-	//		logs.Error("the verify key is not exist in the response", path)
-	//		//reason = "json路径: 【" + path + "】, 未配置有效的校验规则"
-	//		reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
-	//		//saveTestResult(uuid, caseId, result, path+" the verify key not exist err", runBy, response)
-	//		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
-	//		isPass = false
-	//		return
-	//	}
-	//}
 
 	for path, checkRule := range verify {
-		//fmt.Println(path, checkRule, verify, reflect.TypeOf(verify))
-		//logs.Error("path,checkRule is ", path, checkRule, reflect.TypeOf(path))
 		valueInResp, err := jsonpath.JSONPath([]byte(response), path)
 		// 提前检查jsonpath是否存在，不存在就报错
 		if err != nil {
-			logs.Error("doVerifyV2 jsonpath error，test failed", err)
+			logs.Error("doVerify jsonpath error，test failed", err)
 			reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+			SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 			isPass = false
 			return
 		}
@@ -288,7 +207,6 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			if checkType == "eq" {
 				if checkValue != vv {
 					logs.Error("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", path, vv, checkValue)
 					continue
 				}
@@ -297,41 +215,35 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			} else if checkType == "in" {
 				if !strings.Contains(vv.(string), checkValue.(string)) {
 					logs.Error("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not in, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【包含】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【包含于%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "lt" {
 				if !(vv.(float64) < checkValue.(float64)) {
 					logs.Error("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not lt, key %s, actual %checkRule < expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【小于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "gt" {
 				if !(vv.(float64) > checkValue.(float64)) {
 					logs.Error("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not gt, key %s, actual %checkRule > expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【大于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "lte" {
 				if !(vv.(float64) <= checkValue.(float64)) {
 					logs.Error("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not lte, key %s, actual %checkRule <= expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【小于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【<=%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "gte" {
 				if !(vv.(float64) >= checkValue.(float64)) {
 					logs.Error("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
-					//reason += ";" + fmt.Sprintf("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>=%v】", path, vv, checkValue)
 					continue
 				}
 			} else {
 				logs.Error("do not support, checkType: ", checkType)
-				//reason += ";" + fmt.Sprintf("do not support this operator")
 				reason += ";" + fmt.Sprintf("不支持的验证类型: %s", checkType)
 				continue
 			}
@@ -347,12 +259,15 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason = string(resultDescRune[1:])
 		}
 		isPass = false
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	}
 	return
 }
 
-func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string, statusCode int) {
+/**
+statusCode 为0时，表示场景测试中，前后校验逻辑 or 处理逻辑出错。
+*/
+func SaveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string, statusCode int) {
 	err := models.InsertResult(uuid, caseId, isInspection, result, reason, author, resp, statusCode)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)

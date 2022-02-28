@@ -107,7 +107,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				retryTimes := 0
 				isContinue := true
 				for isContinue {
-					isOk := libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+					isOk, _ := libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
 					if isOk == true { //如果是成功执行的case
 						mongo := models.InspectionCaseMongo{}
 						succseeCase := mongo.GetOneCase(caseId)

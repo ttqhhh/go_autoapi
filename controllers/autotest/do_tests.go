@@ -197,7 +197,7 @@ func (c *AutoTestController) performTests() {
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
+				libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
@@ -336,7 +336,7 @@ func (c *AutoTestController) performInspectTests() {
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+				libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)

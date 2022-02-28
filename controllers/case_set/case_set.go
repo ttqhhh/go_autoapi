@@ -3,6 +3,7 @@ package case_set
 import (
 	"encoding/json"
 	"github.com/astaxie/beego/logs"
+	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/constants"
 	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
@@ -147,11 +148,13 @@ func (c *CaseSetController) addCaseSet() {
 }
 
 type runparam struct {
-	id int64 `json:"id"`
+	Id       int64 `json:"id"`                       // 必填
+	Business int8  `json:"business" form:"business"` // 必填
 }
 
 // 通过Id运行指定CaseSet（application/json） -- Doing
 func (c *CaseSetController) runById() {
+	runBy, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 	runparam := runparam{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &runparam)
 	if err != nil {
@@ -159,15 +162,149 @@ func (c *CaseSetController) runById() {
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 
-	// todo 此处有非常非常重的逻辑，后面再写~~~
-	// todo 此处有非常非常重的逻辑，后面再写~~~
-	// todo 此处有非常非常重的逻辑，后面再写~~~
+	// 1、获取该测试用例集的相关数据
+	caseSetMongo := models.CaseSetMongo{}
+	caseSet, err := caseSetMongo.CaseSetById(runparam.Id)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	// 将CaseSet中的公共参数，读取至当前协程内存中，后续继续加入响应中提取的值，并且依据其中的值替换caseParam中的参数值
+	setParam := caseSet.Parameter
+	setParamMap := map[string]interface{}{}
+	err = json.Unmarshal([]byte(setParam), &setParamMap)
+	if err != nil {
+		logs.Error(-1, "解析测试用例集中的公共参数报错, err: ", err)
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+
+	setCaseMongo := models.SetCaseMongo{}
+	setCaseList, err := setCaseMongo.GetSetCaseListByCaseSetId(runparam.Id)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+
+	// 2、新建执行记录并入库
+	uuid, _ := c.GenUUid()
+	// 报告的名字：业务线-执行人-时间戳（日期）
+	business := runparam.Business
+	businessMap := controllers.GetBusinesses(runBy)
+	businessName := "未知"
+	for _, v := range businessMap {
+		if int8(v["code"].(int)) == business {
+			businessName = v["name"].(string)
+			break
+		}
+	}
+	runReport := models.RunReportMongo{}
+	format := "20060102/150405"
+	runReport.Name = businessName + "-" + runBy + "-" + time.Now().Format(format)
+	runReport.CreateBy = runBy
+	runReport.RunId = uuid
+	runReport.IsPass = models.RUNNING
+	runReport.Business = business
+	// 设置报告中的用例总条数
+	runReport.TotalCases = len(setCaseList)
+	runReport.ServiceName = "【场景测试】: " + caseSet.CaseSetName
+	id, err := runReport.Insert(runReport)
+	if err != nil {
+		logs.Error("插入执行记录失败", err)
+		c.ErrorJson(-1, "插入执行记录失败，请呼叫本平台相关负责同学", nil)
+	}
+
+	// todo 核心逻辑
+	// 起一个协程异步去串行执行CaseSet中的Case
+	go func(id int64) {
+		// 3、运行测试用例集
+		for _, setCase := range setCaseList {
+			caseParam := setCase.Parameter
+
+			// 从caseParam中，取出带有$字符的参数进行替换
+			// todo 现阶段仅支持json为深度为1的参数值替换
+			caseParamMap := map[string]interface{}{}
+			json.Unmarshal([]byte(caseParam), &caseParamMap)
+			for key, value := range caseParamMap {
+				strValue, ok := value.(string)
+				// 只有当value为字符串时，才考虑进行参数值替换
+				if ok {
+					// 当前value为"${"开头，且为"}"结尾
+					if strings.HasPrefix(strValue, "${") && strings.HasSuffix(strValue, "}") {
+						valueInSetParamMap, ok := setParamMap[key]
+						// 当公共参数setParamMap中存在要替换的key时，进行替换；不存在时，
+						if ok {
+							caseParamMap[key] = valueInSetParamMap
+						} else {
+							// todo 公共参数中不存在该key
+							reason := "公共参数中未找到指定的key, key=" + key
+							libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+							break
+						}
+					}
+				}
+			}
+			caseParamStr, err := json.Marshal(caseParamMap)
+			if err != nil {
+				logs.Error("场景自动化测试时, 参数替换后json字符串转换报错, err: ", err)
+				reason := "场景自动化测试时, 参数替换后json字符串转换报错"
+				// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
+				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+				break
+			}
+			caseSet.Parameter = string(caseParamStr)
+
+			// case执行
+			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.INSPECTION, runBy)
+
+			// 当Case集合中某条Case不通过时，不再继续往下执行该场景测试
+			if !isOk {
+				break
+			}
+			// 通过jsonpath路径去响应中提取值，并放入setParamMap公共参数中
+			extractRespMap := map[string]string{}
+			err = json.Unmarshal([]byte(setCase.ExtractResp), &extractRespMap)
+			if err != nil {
+				logs.Error("场景自动化测试时，从响应中提取数据的配置转换json报错, err: ", err)
+				reason := "场景自动化测试时，从响应中提取数据的配置转换json报错"
+				// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
+				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+				break
+			}
+			// value为jsonpath
+			for key, value := range extractRespMap {
+				valueInResp, err := jsonpath.JSONPath([]byte(resp), value)
+				if err != nil {
+					logs.Error("根据jsonpath从响应中提取value时报错, err: ", err)
+					reason := "根据jsonpath从响应中提取value时报错"
+					// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
+					libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+					break
+				}
+				// 将提取出来的值，放入setParamMap公共区域，提供后续接口使用
+				setParamMap[key] = valueInResp
+			}
+
+		}
+
+		// 4、执行记录结果状态处理
+		autoResult, _ := models.GetResultByRunId(uuid)
+		var isPass int8 = models.SUCCESS
+		// 判断case执行结果集合中是否有失败的case，有则认为本次执行操作状态为FAIL
+		for _, result := range autoResult {
+			if result.Result == models.AUTO_RESULT_FAIL {
+				isPass = models.FAIL
+				break
+			}
+		}
+		// 更新失败个数和本次执行记录状态
+		autoResultMongo := &models.AutoResult{}
+		failCount, _ := autoResultMongo.GetFailCount(uuid)
+		runReport.UpdateIsPass(id, isPass, failCount, runBy)
+	}(runparam.Id)
 
 	c.SuccessJson(nil)
 }
 
 type delparam struct {
-	id int64 `json:"id"`
+	Id int64 `json:"id"`
 }
 
 // 删除指定CaseSet（application/json） -- Done
