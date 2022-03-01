@@ -155,7 +155,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				//break
 			}
 		}
-		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
+		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
 		restrainBaseMsg := fmt.Sprintf("==========  ==========\n【业务线】: %s, 【服务】: %s。\n==========  ==========\n", businessName, serviceName)
 		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
 		msg := ""

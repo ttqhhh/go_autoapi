@@ -258,12 +258,12 @@ func (c *AutoTestController) performTests() {
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
-		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		msg := "【测试报告链接】" + "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		if isPass == "失败" {
 			DingSendShangXian(baseMsg+"\n"+msg, business)
 		}
 	}
-	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	msg := "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
@@ -354,13 +354,13 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
-		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		msg := "【测试报告链接】" + "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		//DingSendShangXian(baseMsg + "\n" + msg)
 		if isPass == "失败" {
 			DingSendShangXianToFail(baseMsg+"\n"+msg, business)
 		}
 	}
-	msgs = "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	msgs = "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	return
 }
 
