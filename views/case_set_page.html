@@ -188,36 +188,21 @@
                 });
                 //todo
             }else if (obj.event === "run") {
-                alert("运行")
-                //todo
+                $.ajax({
+                    type: 'POST',
+                    url: "/case_set/run_by_id",
+                    async: false,
+                    timeout: 500000,
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify({
+                        "id": data.id,
+                    }),
+                    success: function (data) {
+                        window.location.href = "/report/show_run_record"
 
-                {{/*var arr = new Array();*/}}
-                {{/*arr.push(data.id);*/}}
-                {{/*// alert(arr)*/}}
-                {{/*var needJump = true;*/}}
-                {{/*$.ajax({*/}}
-                {{/*    type: 'POST',*/}}
-                {{/*    contentType: "application/json",*/}}
-                {{/*    dataType: "json",*/}}
-                {{/*    url: "/auto/perform_inspect_tests",*/}}
-                {{/*    async: false,*/}}
-                {{/*    timeout: 500000,*/}}
-                {{/*    data: JSON.stringify({*/}}
-                {{/*        "ids": arr,*/}}
-                {{/*        "type": 2,*/}}
-                {{/*        "business": parseInt('{{.business}}'),*/}}
-                {{/*    }),*/}}
-                {{/*    success: function (data) {*/}}
-                {{/*        respCode = data.code*/}}
-                {{/*        if (respCode == -1) {*/}}
-                {{/*            needJump = false*/}}
-                {{/*            layer.msg(data.msg)*/}}
-                {{/*        }*/}}
-                {{/*    }*/}}
-                {{/*});*/}}
-                {{/*if (needJump) {*/}}
-                {{/*    window.location.href = "/report/show_run_record_inspection";*/}}
-                {{/*}*/}}
+                    }
+                });
             }
             layui.close(obj);
         });
