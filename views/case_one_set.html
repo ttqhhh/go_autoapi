@@ -53,7 +53,7 @@
     </script>
 
     <script type="text/html" id="barDemo2">
-{{/*        */}}{{/*        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>*/}}
+                <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="edit">编辑</a>
 {{/*        */}}{{/*        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
 {{/*        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="copy">添加case至当前case集合</a>*/}}
                 <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="del">删除</a>
@@ -154,13 +154,13 @@
                     {title: '业务线', field:'business_name', width:100},
                     {title: '服务名称', field:'service_name', width:150},
                     {title: '用例名称', field:'case_name', width:200},
-                    {title: '操作', fixed:"right",toolbar:'#barDemo2', width:80},
+                    {title: '操作', fixed:"right",toolbar:'#barDemo2', width:160},
                 ]]
             })
             table.on('tool(demo2)', function(obj){
                 var data = obj.data;
-                if(obj.event === 'run'){
-
+                if(obj.event === 'edit'){
+                    window.location.href="/case_set/get_set_case_by_id?id="+data.id
                 }else if(obj.event === 'del'){
                     layer.confirm('真的删除行么', function(index){
                         // obj.del();

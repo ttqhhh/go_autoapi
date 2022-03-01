@@ -492,11 +492,13 @@ func (c *CaseSetController) getSetCaseById() {
 	}
 
 	scm := models.SetCaseMongo{}
-	mongo, err := scm.GetSetCaseById(id)
+	resp, err := scm.GetSetCaseById(id)
 	if err != nil {
 		c.ErrorJson(-1, "服务查询数据异常", nil)
 	}
-	c.SuccessJson(mongo)
+	c.Data["a"] = &resp
+	c.TplName = "case_edit_new.html"
+
 }
 
 // 编辑SetCase
@@ -547,5 +549,7 @@ func (c *CaseSetController) saveEditSetCase() {
 	}
 	//c.SuccessJson("更新成功")
 	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)
-	c.Ctx.Redirect(302, "/case/close_windows")
+	c.Ctx.Redirect(302, "/case_set/one_case?business="+business+"&id="+strconv.FormatInt(scm.CaseSetId, 10))
+
+	//c.Ctx.Redirect(302, "/case/close_windows")
 }
