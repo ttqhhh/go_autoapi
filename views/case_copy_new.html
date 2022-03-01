@@ -5,6 +5,7 @@
 <form class="layui-form layui-form-pane" action="/case_set/add_set_case/" method="post" style="padding: 1%">
     {{/*    <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >*/}}
     <input type="text" name="api_name" value="api_name" style="display: none">
+    <input type="text" name="case_set_id" value="{{.case_set_id}}" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
     <!--    冒烟数据在这里，修改和展示都在这 默认隐藏 调试可以展开-->
     <input type="text" name="smoke_response" id="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
