@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"go_autoapi/libs"
 	"go_autoapi/models"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,13 +14,22 @@ type StatisticsController struct {
 }
 
 const Layout = "2006-01-02 15:04:05" //时间常量
+const ApiCountZuiyou = 200           //每条业务线接口总数
+const ApiCountPipi = 200
+const ApiCountHaiwai = 200
+const ApiCountZhongdong = 200
+const ApiCountMatuan = 200
+const ApiCountShangyehua = 200
+const ApiCountHaiwaiUS = 200
 
 type respData struct {
-	BusinessName string  `form:"business_name" json:"business_name"`
-	AllApiCount  float64 `form:"all_api_count" json:"all_api_count"`
-	NewApiConut  float64 `form:"new_api_count" json:"new_api_count"`
-	AllCaseCount int     `form:"all_case_count" json:"all_case_count"`
-	NewCaseConut int     `form:"new_case_count" json:"new_case_count"`
+	BusinessName       string  `form:"business_name" json:"business_name"`
+	AllApiCount        float64 `form:"all_api_count" json:"all_api_count"`
+	NewApiConut        float64 `form:"new_api_count" json:"new_api_count"`
+	AllCaseCount       int     `form:"all_case_count" json:"all_case_count"`
+	NewCaseConut       int     `form:"new_case_count" json:"new_case_count"`
+	DegreeOfCompletion string  `form:"degree_of_completion" json:"degree_of_completion"` //完成度
+
 }
 
 func (c *StatisticsController) Get() {
@@ -130,6 +140,9 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData1.NewApiConut = float64(resp2["zuiyou_count_new"])
 	respData1.AllCaseCount = len(zuiyou_list)
 	respData1.NewCaseConut = resp2["zuiyou_new_case"]
+	str := strconv.FormatFloat(float64(respData1.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData1.DegreeOfCompletion = str + "%"
+
 	respDataList = append(respDataList, respData1)
 
 	respData2 := respData
@@ -138,6 +151,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData2.NewApiConut = float64(resp2["pipi_count_new"])
 	respData2.AllCaseCount = len(pipi_list)
 	respData2.NewCaseConut = resp2["pipi_new_case"]
+	str2 := strconv.FormatFloat(float64(respData2.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData2.DegreeOfCompletion = str2 + "%"
 	respDataList = append(respDataList, respData2)
 
 	respData3 := respData
@@ -146,6 +161,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData3.NewApiConut = float64(resp2["haiwai_count_new"])
 	respData3.AllCaseCount = len(haiwai_list)
 	respData3.NewCaseConut = resp2["haiwai_new_case"]
+	str3 := strconv.FormatFloat(float64(respData3.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData3.DegreeOfCompletion = str3 + "%"
 	respDataList = append(respDataList, respData3)
 
 	respData4 := respData
@@ -154,6 +171,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData4.NewApiConut = float64(resp2["zhongdong_count_new"])
 	respData4.AllCaseCount = len(zhongdong_list)
 	respData4.NewCaseConut = resp2["zhongdong_new_case"]
+	str4 := strconv.FormatFloat(float64(respData4.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData4.DegreeOfCompletion = str4 + "%"
 	respDataList = append(respDataList, respData4)
 
 	respData5 := respData
@@ -162,6 +181,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData5.NewApiConut = float64(resp2["matuan_count_new"])
 	respData5.AllCaseCount = len(matuan_list)
 	respData5.NewCaseConut = resp2["matuan_new_case"]
+	str5 := strconv.FormatFloat(float64(respData5.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData5.DegreeOfCompletion = str5 + "%"
 	respDataList = append(respDataList, respData5)
 
 	respData6 := respData
@@ -170,6 +191,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData6.NewApiConut = float64(resp2["shangyehua_count_new"])
 	respData6.AllCaseCount = len(shangyehuai_list)
 	respData6.NewCaseConut = resp2["shangyehua_new_case"]
+	str6 := strconv.FormatFloat(float64(respData6.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData6.DegreeOfCompletion = str6 + "%"
 	respDataList = append(respDataList, respData6)
 
 	respData7 := respData
@@ -178,6 +201,8 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData7.NewApiConut = float64(resp2["haiwaiUS_count_new"])
 	respData7.AllCaseCount = len(haiwaiUS_list)
 	respData7.NewCaseConut = resp2["haiwaiUS_new_case"]
+	str7 := strconv.FormatFloat(float64(respData7.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	respData7.DegreeOfCompletion = str7 + "%"
 	respDataList = append(respDataList, respData7)
 	c.FormSuccessJson(int64(len(respDataList)), respDataList)
 }
