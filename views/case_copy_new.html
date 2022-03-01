@@ -3,10 +3,8 @@
 
 
 <form class="layui-form layui-form-pane" action="/case_set/add_set_case/" method="post" style="padding: 1%">
-
     {{/*    <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >*/}}
     <input type="text" name="api_name" value="api_name" style="display: none">
-    <input type="text" name="case_set_id" value="{{.case_set_id}}" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
     <!--    冒烟数据在这里，修改和展示都在这 默认隐藏 调试可以展开-->
     <input type="text" name="smoke_response" id="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
@@ -96,17 +94,16 @@
                       name="parameter" id="request_param">{{.a.Parameter}}</textarea>
             </div>
         </div>
-        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
-            <span id="response_param_tip">当前值为上次入库的冒烟数据</span>
-            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
-        </div>
-
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">需要提取的参数</label>
             <div class="layui-input-block">
-            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="extract_resp"
-                      name="extract_resp" lay-verify="required"></textarea>
+    <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="extract_resp"
+              name="extract_resp" lay-verify="required"></textarea>
             </div>
+        </div>
+        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <span id="response_param_tip">当前值为上次入库的冒烟数据</span>
+            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
         </div>
 
         <div class="layui-inline" style="width: 45%;">
@@ -151,7 +148,7 @@
                     // $("#City").html("");
                     $.each(data.data, function(key, val) {
                         let option1;
-                        if(val["service_name"] === '{{.a.ServiceName}}'){
+                        if(val["id"] === {{.a.ServiceId}}){
                             // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
                             option1 = '<option selected value='+val["id"]+";"+val["service_name"]+'>'+val["service_name"]+'</option>'
                         }else{
@@ -223,10 +220,22 @@
                     }
                 });
                 /** 非动态项 作为尾部直接加在后面就ok **/
+                var checkTypeMap = {
+                    "eq":"等于",
+                    "neq":"不等于",
+                    "in":"包含于",
+                    "exist":"存在此字段",
+                    "lt":"小于",
+                    "gt":"大于",
+                    "lte":"小于等于",
+                    "gte":"大于等于",
+                    "isTrue":"为真",
+                    "isFalse":"为假",
+                }
                 let html_butt =
                     '            <div class="layui-inline" style="margin:0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
-                    // '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
                     '            </div>\n' +
                     // '\n' +
                     // '            <div class="layui-inline">\n' +
@@ -234,14 +243,17 @@
                     '\n' +
                     '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                     '                <select name="check_type" id="check_type">\n' +
-                    '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
-                    '                    <option value="eq">eq</option>\n' +
-                    '                    <option value="in">in</option>\n' +
-                    '                    <option value="exist">exist</option>\n' +
-                    '                    <option value="lt">lt</option>\n' +
-                    '                    <option value="gt">gt</option>\n' +
-                    '                    <option value="lte">lte</option>\n' +
-                    '                    <option value="gte">gte</option>\n' +
+                    '                    <option checked value=' + v.checkType + '>' + checkTypeMap[v.checkType] + '</option>\n' +
+                    '                    <option value="eq">等于</option>\n' +
+                    '                    <option value="neq">不等于</option>\n' +
+                    '                    <option value="in">包含于</option>\n' +
+                    '                    <option value="exist">存在此字段</option>\n' +
+                    '                    <option value="lt">小于</option>\n' +
+                    '                    <option value="gt">大于</option>\n' +
+                    '                    <option value="lte">小于等于</option>\n' +
+                    '                    <option value="gte">大于等于</option>\n' +
+                    '                    <option value="isTrue">为真</option>\n' +
+                    '                    <option value="isFalse">为假</option>\n' +
                     '                </select>\n' +
                     '            </div>\n' +
                     '\n' +
@@ -259,7 +271,7 @@
                     '            </div>\n' +
                     '            <div class="layui-inline" style="margin: 0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
-                    // '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
                     '            </div>\n' +
                     // '            <div class="layui-inline">\n' +
                     // '            </div>\n' +
@@ -497,7 +509,7 @@
                                 }
                             });
                             node = node.substring(0,node.length-1)
-                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const checkType = $(this).find("#check_type").find("option:selected").val();
                             const value = $(this).find("#value").val();
                             const valueType = $(this).find("#value_type").find("option:selected").text();
                             const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
