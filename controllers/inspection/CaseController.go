@@ -56,7 +56,7 @@ const (
 	H5_EXPRESSION          = "0 0/5 * * * *"
 )
 const (
-	ONE_WEEK_EXPRESSION = "0 0 8 * * 1" //每周一早上8点
+	ONE_WEEK_EXPRESSION = "0 0 8 * * *" //每天早上8点
 
 )
 

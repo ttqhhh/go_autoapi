@@ -53,8 +53,8 @@ func init() {
 		toolbox.AddTask("Rt_Monitor_Task", RtMonitorTask)
 	}
 	if IS_OPEN_REGULAR_DELETE_TASK { //新增，每周一执行一次的定时删除报告任务
-		//Delete1Week := toolbox.NewTask("Delete_Date_1Week", inspection.ONE_WEEK_EXPRESSION, inspection_strategy.Delete1Week)
-		//toolbox.AddTask("Delete_Date_1Week", Delete1Week)
+		Delete1Week := toolbox.NewTask("Delete_Date_1Week", inspection.ONE_WEEK_EXPRESSION, inspection_strategy.Delete1Week)
+		toolbox.AddTask("Delete_Date_1Week", Delete1Week)
 		//性能监控的定期删除  一周一次，清理时间小于当前时间的7天前记录
 		Delete1WeekAlert := toolbox.NewTask("Delete_Date_1Week_Alert", inspection.ONE_WEEK_EXPRESSION, inspection_strategy.DeleteOneWeek)
 		toolbox.AddTask("Delete_Date_1Week_Alert", Delete1WeekAlert)

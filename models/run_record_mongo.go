@@ -191,11 +191,16 @@ func (mongo *RunReportMongo) QueryById(id int64) (*RunReportMongo, error) {
 //查询所有的报告
 func (mongo *RunReportMongo) Query() ([]RunReportMongo, error) {
 	ms, db := db_proxy.Connect(db, run_record_collection)
+	nowTimeStr := time.Now().AddDate(0, 0, -1).Format("2006-01-02 15:04:0")
 	defer ms.Close()
 	//timeUnix := time.Now().Unix() //当前时间转换为时间戳
 	//nowTime:=time.Unix(timeUnix,0).Format("2006-01-02 15:04:05") //时间戳转换为字符串
 	//NOWTIME,_:=time.ParseInLocation("2006-01-02 15:04:05",nowTime,time.Local)
-	query := bson.M{}
+	query := bson.M{
+		"created_at": bson.M{
+			"$lt": nowTimeStr,
+		},
+	}
 	runReportList := []RunReportMongo{}
 	err := db.Find(query).All(&runReportList)
 	if err != nil {

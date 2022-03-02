@@ -142,7 +142,7 @@ func (a *AutoResult) DeleteResult(id string) error {
 
 //查询一周之前的的报告结果
 func (a *AutoResult) QueryResult() ([]AutoResult, error) {
-	nowTimeStr := time.Now().AddDate(0, 0, -8).Format("2006-01-02 15:04:0")
+	nowTimeStr := time.Now().AddDate(0, 0, -2).Format("2006-01-02 15:04:0")
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	query := bson.M{
