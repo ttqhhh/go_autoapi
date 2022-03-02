@@ -21,7 +21,7 @@ const PUBLISH_TOKEN = "368717ace006064d9fa19c2f1497cf51f5ec93e1fe64054fe28c3e7e3
 const ZY_PUBLISH_TOKEN = "d74178db8b6fc53b7b694760e19009f9cb5fb3aecf54ecd4dc6a2df9c57a12d3"
 const ZY_TEST_PUBLISH_TOKEN = "4bf6f64b7d931f868e230d365ad17cde9435ae61637ba6e912c6bed4917c8e59"
 const SYH_PUBLISH_TOKEN = "180aaf66ddae4098c53c58691965e028b887a18555f4b7c9fe61d4fd4adf8744"
-const HW_TEST_PUBLISH_TOKEN = "7e1b086adbbd70d15dd7a565955342eb4f4e8bcf4936ca59187875100bdbd624"
+const HW_TEST_PUBLISH_TOKEN = "048dd2d62072c6e60b561b80d07b10a324d94fcffebff31099945bee31153396"
 
 const (
 	ALL       = 0
@@ -132,10 +132,10 @@ func (c *AutoTestController) performTests() {
 		var err error
 		// 查询该业务线下所有的Case
 		if kind == "test" {
-			userId = "测试环境回归测试"
+			userId = "测试环境回归测试-" + user
 			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
 		} else if kind == "online" {
-			userId = "线上环境回归测试"
+			userId = "线上环境回归测试-" + user
 			caseListInspection, err = InspectionMongo.GetAllCasesByBusinessAndStatusTrue(strconv.Itoa(int(business)))
 		} else {
 			caseList, err = mongo.GetAllCasesByBusiness(strconv.Itoa(int(business)))
@@ -185,7 +185,7 @@ func (c *AutoTestController) performTests() {
 		}
 	}
 	format := "20060102/150405"
-	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
+	runReport.Name = businessName + "-" + userId + "-" + project + "-" + time.Now().Format(format)
 	runReport.CreateBy = userId
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
@@ -252,8 +252,8 @@ func (c *AutoTestController) performTests() {
 	} else {
 		isPass = "失败"
 	}
-
-	if userId == "测试环境回归测试" || userId == "线上环境回归测试" {
+	fmt.Println(isPass)
+	if strings.Contains(userId, "回归测试") {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
@@ -263,7 +263,7 @@ func (c *AutoTestController) performTests() {
 			DingSendShangXian(baseMsg+"\n"+msg, business)
 		}
 	}
-	msg := "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+	msg := "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 	c.SuccessJsonWithMsg(map[string]interface{}{"uuid": uuid, "count": count, "report_msg": msg}, "OK")
 }
 
@@ -284,7 +284,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		}
 	}
 	format := "20060102/150405"
-	runReport.Name = businessName + "-" + userId + "-" + time.Now().Format(format)
+	runReport.Name = businessName + "-" + userId + "-" + project + "-" + time.Now().Format(format)
 	runReport.CreateBy = userId
 	runReport.RunId = uuid
 	runReport.TotalCases = totalCases
@@ -348,13 +348,13 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 	} else {
 		isPass = "失败"
 	}
-
-	if userId == "测试环境回归测试" || userId == "线上环境回归测试" {
+	fmt.Println(isPass)
+	if strings.Contains(userId, "回归测试") {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
 		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
 			"【测试结果】：" + isPass
-		msg := "【测试报告链接】" + "http://172.16.2.86:8080/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		msg := "【测试报告链接】" + "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
 		//DingSendShangXian(baseMsg + "\n" + msg)
 		if isPass == "失败" {
 			DingSendShangXianToFail(baseMsg+"\n"+msg, business)
