@@ -8,7 +8,7 @@
 
 <div style="padding-top: 20px; padding-left: 200px; padding-right: 300px">
     <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
-        <legend>时间：{{.check_time}} ----{{.now_time}}</legend>
+        <legend>统计周期：{{.check_time}} ----{{.now_time}}</legend>
     </fieldset>
 </div>
 <table id="demo" lay-filter="test"style="margin-top: 50px"> </table>
@@ -25,13 +25,13 @@
             ,url: '/statistics/get_all_api_group'//数据接口
             ,page: false //开启分页
             ,cols: [[ //表头
-                {field: 'business_name', title: '业务线', width:300}
-                ,{field: 'new_case_count', title: '本周新增case数', width:300}
-                ,{field: 'all_case_count', title: '全部case数', width:300}
-                ,{field: 'new_api_count', title: '本周新增接口数', width:300}
-                ,{field: 'all_api_count', title: 'case覆盖总接口', width:300, sort: true}
-                ,{field: 'all_api', title: '全部接口数', width:300, sort: true}
-                ,{field: 'degree_of_completion', title: '接口完成度', width:300}
+                {field: 'business_name', title: '业务线', width:200}
+                ,{field: 'new_case_count', title: '本周新增case数', width:200}
+                ,{field: 'all_case_count', title: '全部case数', width:200}
+                ,{field: 'new_api_count', title: '本周新增接口数', width:200}
+                ,{field: 'all_api_count', title: 'case覆盖总接口', width:200, sort: true}
+                ,{field: 'all_api', title: '全部接口数', width:200, sort: true}
+                ,{field: 'degree_of_completion', title: '接口完成度', width:200,sort: true}
             ]]
             ,done:function () {
                 $(".layui-input-date").each(function (i) {
