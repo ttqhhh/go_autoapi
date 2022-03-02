@@ -26,11 +26,12 @@
             ,page: false //开启分页
             ,cols: [[ //表头
                 {field: 'business_name', title: '业务线', width:300}
-                ,{field: 'all_case_count', title: '全部case数', width:300}
-                ,{field: 'all_api_count', title: 'case覆盖总接口', width:300, sort: true}
                 ,{field: 'new_case_count', title: '本周新增case数', width:300}
+                ,{field: 'all_case_count', title: '全部case数', width:300}
                 ,{field: 'new_api_count', title: '本周新增接口数', width:300}
-                ,{field: 'degree_of_completion', title: '完成度', width:300}
+                ,{field: 'all_api_count', title: 'case覆盖总接口', width:300, sort: true}
+                ,{field: 'all_api', title: '全部接口数', width:300, sort: true}
+                ,{field: 'degree_of_completion', title: '接口完成度', width:300}
             ]]
             ,done:function () {
                 $(".layui-input-date").each(function (i) {
