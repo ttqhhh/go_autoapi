@@ -188,6 +188,7 @@
                 });
                 //todo
             }else if (obj.event === "run") {
+                var  business = parseInt(data.business_code)
                 $.ajax({
                     type: 'POST',
                     url: "/case_set/run_by_id",
@@ -197,6 +198,7 @@
                     contentType: "application/json;charset=utf-8",
                     data: JSON.stringify({
                         "id": data.id,
+                        "business":business
                     }),
                     success: function (data) {
                         window.location.href = "/report/show_run_record"

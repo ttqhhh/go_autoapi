@@ -2,6 +2,7 @@ package case_set
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/constants"
@@ -249,7 +250,7 @@ func (c *CaseSetController) runById() {
 				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 				break
 			}
-			caseSet.Parameter = string(caseParamStr)
+			caseSet.Parameter = string(caseParamStr) //todo ?为什么要覆盖公共case的参数？
 
 			// case执行
 			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.INSPECTION, runBy)
@@ -257,29 +258,39 @@ func (c *CaseSetController) runById() {
 			// 当Case集合中某条Case不通过时，不再继续往下执行该场景测试
 			if !isOk {
 				break
+			} else {
+				logs.Info("执行成功")
 			}
 			// 通过jsonpath路径去响应中提取值，并放入setParamMap公共参数中
 			extractRespMap := map[string]string{}
-			err = json.Unmarshal([]byte(setCase.ExtractResp), &extractRespMap)
-			if err != nil {
-				logs.Error("场景自动化测试时，从响应中提取数据的配置转换json报错, err: ", err)
-				reason := "场景自动化测试时，从响应中提取数据的配置转换json报错"
-				// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
-				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
-				break
-			}
-			// value为jsonpath
-			for key, value := range extractRespMap {
-				valueInResp, err := jsonpath.JSONPath([]byte(resp), value)
+			if setCase.ExtractResp != "" { //="" 说明为最后一个case，不需提取路径
+				err = json.Unmarshal([]byte(setCase.ExtractResp), &extractRespMap)
 				if err != nil {
-					logs.Error("根据jsonpath从响应中提取value时报错, err: ", err)
-					reason := "根据jsonpath从响应中提取value时报错"
+					logs.Error("场景自动化测试时，从响应中提取数据的配置转换json报错, err: ", err)
+					reason := "场景自动化测试时，从响应中提取数据的配置转换json报错"
 					// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
 					libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 					break
 				}
-				// 将提取出来的值，放入setParamMap公共区域，提供后续接口使用
-				setParamMap[key] = valueInResp
+				// value为jsonpath
+				for key, value := range extractRespMap {
+					valueInResp, err := jsonpath.JSONPath([]byte(resp), value)
+					fmt.Print(valueInResp)
+					fmt.Print(valueInResp[0])
+					if err != nil {
+						logs.Error("根据jsonpath从响应中提取value时报错, err: ", err)
+						reason := "根据jsonpath从响应中提取value时报错"
+						// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
+						libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+						break
+					}
+					// 将提取出来的值，放入setParamMap公共区域，提供后续接口使用
+					//todo 对valueInResp做类型转换
+					str := fmt.Sprintf("%v", valueInResp[0])
+					setParamMap[key] = str
+					fmt.Print(setParamMap[key])
+				}
+
 			}
 
 		}
