@@ -240,36 +240,37 @@ func (c *StatisticsController) getApiByBusinessNewAdd() map[string]int {
 
 	useTime := time.Now()
 	if useTime.Weekday().String() == "Friday" {
+		userTimeF := getFridayTime(useTime)
 		for _, one := range result {
 			caseCreateTime, _ := time.ParseInLocation(Layout, one.CreatedAt, time.Local) //获取报告的创建时间 转换为data
 			api := strings.Split(one.ApiUrl, "?")[0]
 			switch one.BusinessCode {
 			case "0": //最右
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					zuiyou_list_new = append(zuiyou_list_new, api)
 				}
 			case "1": //皮皮
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					pipi_list_new = append(pipi_list_new, api)
 				}
 			case "2": //海外
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					haiwai_list_new = append(haiwai_list_new, api)
 				}
 			case "3": //中东
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					zhongdong_list_new = append(zhongdong_list_new, api)
 				}
 			case "4": //麻团
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					shangyehuai_list_new = append(shangyehuai_list_new, api)
 				}
 			case "5": //商业化
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					matuan_list_new = append(matuan_list_new, api)
 				}
 			case "6": //海外-us
-				if caseCreateTime.After(useTime.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
+				if caseCreateTime.After(userTimeF.AddDate(0, 0, -7)) { //如果是周五，则获取前7天报告
 					haiwaiUS_list_new = append(haiwaiUS_list_new, api)
 				}
 			default:
@@ -373,7 +374,9 @@ func RemoveRepeatedElement(arr []string) (newArr []string) {
 
 func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一个周五的0点
 	if nowTime.Weekday().String() == "Friday" {
-		return nowTime
+		nowTimeStr := nowTime.Format("2006-01-02")
+		nowTime0, _ := time.Parse("2006-01-02", nowTimeStr)
+		return nowTime0
 	} else {
 		for i := 1; i <= 7; i++ {
 			if nowTime.AddDate(0, 0, -i).Weekday().String() == "Friday" {
