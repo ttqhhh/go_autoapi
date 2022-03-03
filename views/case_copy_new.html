@@ -98,8 +98,16 @@
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">需要提取的参数</label>
             <div class="layui-input-block">
-    <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="extract_resp"
-              name="extract_resp"></textarea>
+    <textarea placeholder='请输入参数名及其对应的jsonPath
+
+基本格式：{"变量名"："jsonpath"}
+例如：{
+       "post_id":"$.data.list.post_id",
+       "token":"$.data.token"
+              }
+                           '
+              class="layui-textarea" style="height: 200px" id="extract_resp"
+              name="extract_resp" ></textarea>
             </div>
         </div>
         <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">

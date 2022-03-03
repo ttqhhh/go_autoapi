@@ -130,18 +130,21 @@ func (c *CaseSetController) addCaseSet() {
 	//
 	//// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
 	param := caseSet.Parameter
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
+	if param != "" { //当公共参数不为空的时候去校验
+		v := make(map[string]interface{})
+		err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+		if err != nil {
+			logs.Error("发送冒烟请求前，解码json报错，err：", err)
+			c.ErrorJson(-1, "公共参数配置有误，请检查", nil)
+		}
+		paramByte, err := json.Marshal(v)
+		if err != nil {
+			logs.Error("保存Case时，处理请求json报错， err:", err)
+			c.ErrorJson(-1, "保存Case出错啦", nil)
+		}
+		caseSet.Parameter = string(paramByte)
 	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("保存Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	caseSet.Parameter = string(paramByte)
+
 	if err := caseSet.AddCaseSet(caseSet); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
@@ -171,7 +174,7 @@ func (c *CaseSetController) runById() {
 	}
 	// 将CaseSet中的公共参数，读取至当前协程内存中，后续继续加入响应中提取的值，并且依据其中的值替换caseParam中的参数值
 	setParam := caseSet.Parameter
-	setParamMap := map[string]interface{}{}
+	setParamMap := map[string]interface{}{} //todo
 	err = json.Unmarshal([]byte(setParam), &setParamMap)
 	if err != nil {
 		logs.Error(-1, "解析测试用例集中的公共参数报错, err: ", err)
@@ -250,7 +253,7 @@ func (c *CaseSetController) runById() {
 				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 				break
 			}
-			caseSet.Parameter = string(caseParamStr) //todo ?为什么要覆盖公共case的参数？
+			caseSet.Parameter = string(caseParamStr)
 
 			// case执行
 			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.INSPECTION, runBy)
@@ -378,20 +381,21 @@ func (c *CaseSetController) saveEditCaseSet() {
 	csm.BusinessName = businessName
 
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	//param := csm.Parameter
-	//v := make(map[string]interface{})
-	//err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	//if err != nil {
-	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
-	//	return
-	//}
-	//paramByte, err := json.Marshal(v)
-	//if err != nil {
-	//	logs.Error("更新Case时，处理请求json报错， err:", err)
-	//	c.ErrorJson(-1, "保存Case出错啦", nil)
-	//}
-	//csm.Parameter = string(paramByte)
-	//todo 暂时不放公共参数
+	param := csm.Parameter
+	if param != "" {
+		v := make(map[string]interface{})
+		err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+		if err != nil {
+			logs.Error("发送冒烟请求前，解码json报错，err：", err)
+			c.ErrorJson(-1, "公共参数配置有误，请检查", nil)
+		}
+		paramByte, err := json.Marshal(v)
+		if err != nil {
+			logs.Error("更新Case时，处理请求json报错， err:", err)
+			c.ErrorJson(-1, "保存Case出错啦", nil)
+		}
+		csm.Parameter = string(paramByte)
+	}
 	csm, err := csm.UpdateCaseSet(csm.Id, csm)
 	if err != nil {
 		c.ErrorJson(-1, "更新测试用例集失败", nil)
@@ -474,6 +478,29 @@ func (c *CaseSetController) addSetCase() {
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	scm.Parameter = string(paramByte)
+
+	if scm.ExtractResp != "" {
+		jsonPathMap := map[string]string{} //校验jsonpath格式
+		err = json.Unmarshal([]byte(scm.ExtractResp), &jsonPathMap)
+		if err != nil {
+			logs.Error("反序列化json出错，err:", err)
+			c.ErrorJson(-1, "jsonpath编写有误，请检查", nil)
+
+		}
+		for _, v := range jsonPathMap { //校验jsonpath存在
+			value, err := jsonpath.JSONPath([]byte(scm.SmokeResponse), v)
+			if len(value) == 0 {
+				logs.Error("未从相应数据通过jsonpath获取到json")
+				c.ErrorJson(-1, "未找到对应到json值，请检查", nil)
+
+			}
+			if err != nil {
+				logs.Error("从jsonpath中获取冒烟数据中的值出错：err:", err)
+				c.ErrorJson(-1, err.Error(), nil)
+			}
+		}
+	}
+
 	if err := scm.AddSetCase(scm); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
@@ -561,6 +588,29 @@ func (c *CaseSetController) saveEditSetCase() {
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
 	scm.Parameter = string(paramByte)
+
+	if scm.ExtractResp != "" {
+		jsonPathMap := map[string]string{} //校验jsonpath格式
+		err = json.Unmarshal([]byte(scm.ExtractResp), &jsonPathMap)
+		if err != nil {
+			logs.Error("反序列化json出错，err:", err)
+			c.ErrorJson(-1, "提取参数格式有误，请检查", nil)
+
+		}
+		for _, v := range jsonPathMap { //校验jsonpath存在
+			value, err := jsonpath.JSONPath([]byte(scm.SmokeResponse), v)
+			if len(value) == 0 {
+				logs.Error("未通过jsonpath获取到json")
+				c.ErrorJson(-1, "未找到对应到json值，请检查", nil)
+
+			}
+			if err != nil {
+				logs.Error("从jsonpath中获取冒烟数据中的值出错：err:", err)
+				c.ErrorJson(-1, err.Error(), nil)
+			}
+		}
+	}
+
 	scm, err = scm.UpdateSetCase(caseId, scm)
 	if err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
