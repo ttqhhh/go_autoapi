@@ -57,6 +57,7 @@ const (
 )
 const (
 	ONE_WEEK_EXPRESSION = "0 0 8 * * *" //每天早上8点
+	TUESDAY_EXPRESSION  = "0 0 8 * * 5" //每周5早上8点
 
 )
 

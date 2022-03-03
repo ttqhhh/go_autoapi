@@ -39,9 +39,11 @@ func (c *StatisticsController) Get() {
 	case "show_statistics_data":
 		c.showStatisticsData()
 	case "get_all_api_group": //获取对应业务线全接口
-		c.getAllApiGroupByBusiness()
+		c.GetAllApiGroupByBusiness()
 	case "get_api_group_new_add": //判断每周新增
 		c.getApiByBusinessNewAdd()
+	case "get_all_data":
+		c.getAllQuery()
 
 	default:
 		logs.Warn("action: %s, not implemented", do)
@@ -86,7 +88,7 @@ func (c *StatisticsController) getAllApiByBusiness() {
 
 }
 
-func (c *StatisticsController) getAllApiGroupByBusiness() {
+func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	//todo 取得平台自动化所用的全部接口by business
 	mongo := models.TestCaseMongo{}
 	result, err := mongo.GetAllCasesNoBusiness()
@@ -218,7 +220,10 @@ func (c *StatisticsController) getAllApiGroupByBusiness() {
 	respData7.AllApi = ApiCountZuiyou
 
 	respDataList = append(respDataList, respData7)
-	c.FormSuccessJson(int64(len(respDataList)), respDataList)
+	//c.FormSuccessJson(int64(len(respDataList)), respDataList) //使用这个接口获取数据 不往表单传参了
+	//c.SuccessJson(respDataList) //使用这个接口获取数据 不往表单传参了
+	return respDataList
+
 }
 
 func (c *StatisticsController) getApiByBusinessNewAdd() map[string]int {
@@ -336,6 +341,16 @@ func (c *StatisticsController) getApiByBusinessNewAdd() map[string]int {
 	resp["haiwaiUS_count_new"] = len(noRepeatHaiwaiUSList)
 
 	return resp
+
+}
+
+func (c *StatisticsController) getAllQuery() {
+	mongo := models.StatisticsMongo{}
+	list, count, err := mongo.QueryAll()
+	if err != nil {
+		logs.Error("查询出错", err)
+	}
+	c.FormSuccessJson(int64(count), list)
 
 }
 
