@@ -586,7 +586,12 @@
             const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
             sel_val.each(function() {
                 if(isNumber($(this).text())){
-                    console.log("is a number so pass")
+                    isArray = $(this).parent().attr("isArray")
+                    if (isArray == undefined) {
+                        arr.push($(this).text())
+                    } else {
+                        console.log("is a number so pass");
+                    }
                 }else{
                     arr.push($(this).text())
                 }
@@ -597,6 +602,8 @@
             if(res["isArray"] === true){
                 $(this).parent().parent().find(".data_block").append(check_sel)
                 var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                // 当isArray时，给json_head再添加一个可识别的自定义标识
+                last_json.attr("isArray", "true")
                 for (let i = 0; i < res.arrayLength; i++) {
                     last_json.append('<option value='+i+'>'+ i+'</option>')
                 }
