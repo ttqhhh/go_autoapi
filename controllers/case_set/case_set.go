@@ -286,9 +286,16 @@ func (c *CaseSetController) runById() {
 					}
 					// 将提取出来的值，放入setParamMap公共区域，提供后续接口使用
 					//todo 对valueInResp做类型转换
-					str := fmt.Sprintf("%v", valueInResp[0])
-					setParamMap[key] = str
-					fmt.Print(setParamMap[key])
+					valueType := valueInResp[0].Type()
+					if valueType == jsonpath.Numeric {
+						valueInRespStr := valueInResp[0].MustNumeric()
+						setParamMap[key] = valueInRespStr
+					} else if valueType == jsonpath.String {
+						valueInRespNum := valueInResp[0].MustString()
+						setParamMap[key] = valueInRespNum
+					} else {
+						//取出的值不是num也不是str
+					}
 				}
 
 			}
