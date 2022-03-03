@@ -60,5 +60,7 @@ func init() {
 		toolbox.AddTask("Delete_Date_1Week_Alert", Delete1WeekAlert)
 
 	}
+	Inspection7D := toolbox.NewTask("Inspection_Task_7d", inspection.TUESDAY_EXPRESSION, inspection_strategy.Statistics1Week)
+	toolbox.AddTask("Inspection_Task_h5", Inspection7D)
 	toolbox.StartTask()
 }
