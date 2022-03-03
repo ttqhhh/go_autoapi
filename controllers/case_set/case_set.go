@@ -293,11 +293,11 @@ func (c *CaseSetController) runById() {
 					//todo 对valueInResp做类型转换
 					valueType := valueInResp[0].Type()
 					if valueType == jsonpath.Numeric {
-						valueInRespStr := valueInResp[0].MustNumeric()
-						setParamMap[key] = valueInRespStr
-					} else if valueType == jsonpath.String {
-						valueInRespNum := valueInResp[0].MustString()
+						valueInRespNum := valueInResp[0].MustNumeric()
 						setParamMap[key] = valueInRespNum
+					} else if valueType == jsonpath.String {
+						valueInRespStr := valueInResp[0].MustString()
+						setParamMap[key] = valueInRespStr
 					} else {
 						//取出的值不是num也不是str
 					}
