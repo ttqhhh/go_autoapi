@@ -175,10 +175,12 @@ func (c *CaseSetController) runById() {
 	// 将CaseSet中的公共参数，读取至当前协程内存中，后续继续加入响应中提取的值，并且依据其中的值替换caseParam中的参数值
 	setParam := caseSet.Parameter
 	setParamMap := map[string]interface{}{} //todo
-	err = json.Unmarshal([]byte(setParam), &setParamMap)
-	if err != nil {
-		logs.Error(-1, "解析测试用例集中的公共参数报错, err: ", err)
-		c.ErrorJson(-1, err.Error(), nil)
+	if setParam != "" {
+		err = json.Unmarshal([]byte(setParam), &setParamMap)
+		if err != nil {
+			logs.Error(-1, "解析测试用例集中的公共参数报错, err: ", err)
+			c.ErrorJson(-1, err.Error(), nil)
+		}
 	}
 
 	setCaseMongo := models.SetCaseMongo{}
@@ -253,7 +255,7 @@ func (c *CaseSetController) runById() {
 				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 				break
 			}
-			caseSet.Parameter = string(caseParamStr)
+			setCase.Parameter = string(caseParamStr)
 
 			// case执行
 			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.INSPECTION, runBy)
