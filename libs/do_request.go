@@ -41,17 +41,21 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 
 	client := &http.Client{}
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
-		return
-	}
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//v := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
+	//	return
+	//}
+	// todo 通过字符串处理的方式，进行了json压缩，以便发生数据时服务器不报参数异常
+	handleJson := HandleJson(param)
+	paramByte := []byte(handleJson)
 	postData := bytes.NewReader(paramByte)
 	req, err := http.NewRequest("POST", url, postData)
 	if err != nil {
@@ -85,7 +89,7 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
+func DoRequestV2(domain string, url string, uuid string, param string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
 	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -115,7 +119,10 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 	}
 
 	client := &http.Client{}
-	postData := bytes.NewReader([]byte(m))
+	// todo 通过字符串处理的方式，进行了json压缩，以便发生数据时服务器不报参数异常
+	handleJson := HandleJson(param)
+	paramByte := []byte(handleJson)
+	postData := bytes.NewReader(paramByte)
 	// 对domain和url进行兼容性拼接
 	if strings.HasSuffix(domain, "/") {
 		domain = domain[:len(domain)-1]
@@ -141,7 +148,18 @@ func DoRequestV2(domain string, url string, uuid string, m string, checkPoint st
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}
-	response, _ := client.Do(req)
+	response, err := client.Do(req)
+	if err != nil {
+		logs.Error("DoRequest发起请求调用时出错, err: ", err)
+		reason := "该接口不通, 请求超时..."
+		result := models.AUTO_RESULT_FAIL
+		resp := ""
+		statusCode := 0
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
+		isPass = false
+		return
+	}
+
 	respStatus := response.StatusCode
 	var reader io.ReadCloser
 	if response.Header.Get("Content-Encoding") == "gzip" {

@@ -1,7 +1,6 @@
 package inspection
 
 import (
-	"encoding/json"
 	"github.com/astaxie/beego/logs"
 	"github.com/prometheus/common/log"
 	"go_autoapi/constants"
@@ -167,23 +166,24 @@ func (c *CaseController) updateCaseByID() {
 	apiUrl := icm.ApiUrl
 	icm.ApiUrl = strings.TrimSpace(apiUrl)
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := icm.Parameter
-	v := make(map[string]interface{})
-	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("更新Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	icm.Parameter = string(paramByte)
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//param := icm.Parameter
+	//v := make(map[string]interface{})
+	//err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("更新Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//icm.Parameter = string(paramByte)
 	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
 	//InspectionCaseMongo := icm.GetOneCase(caseId)
 	icm.IsInspection = 1
-	icm, err = icm.UpdateCase(caseId, icm)
+	icm, err := icm.UpdateCase(caseId, icm)
 	if err != nil {
 		logs.Error("更新Case报错，err: ", err)
 		c.ErrorJson(-1, "请求错误", nil)
@@ -324,19 +324,20 @@ func (c *CaseController) AddOneCase() {
 	apiUrl := acm.ApiUrl
 	acm.ApiUrl = strings.TrimSpace(apiUrl)
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := acm.Parameter
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("保存Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	acm.Parameter = string(paramByte)
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//param := acm.Parameter
+	//v := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("保存Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//acm.Parameter = string(paramByte)
 	if err := acm.AddCase(acm); err != nil {
 		logs.Error("保存Case报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
