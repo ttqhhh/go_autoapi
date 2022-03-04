@@ -258,7 +258,7 @@ func (c *CaseSetController) runById() {
 			setCase.Parameter = string(caseParamStr)
 
 			// case执行
-			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.INSPECTION, runBy)
+			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.SENCE, runBy)
 
 			// 当Case集合中某条Case不通过时，不再继续往下执行该场景测试
 			if !isOk {

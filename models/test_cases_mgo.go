@@ -17,8 +17,9 @@ const (
 )
 
 const (
-	NOT_INSPECTION = iota // 非线上巡检接口
-	INSPECTION            // 线上巡检接口
+	NOT_INSPECTION = iota // 自动化
+	INSPECTION            // 监控
+	SENCE                 //场景
 )
 const (
 	SHANG_YE_HUA_TEST = "test" //测试环境域名

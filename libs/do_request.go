@@ -106,10 +106,17 @@ func DoRequest(domain string, url string, uuid string, m string, checkPoint stri
 		icm := models.InspectionCaseMongo{}
 		icm = icm.GetOneCase(caseId)
 		businessCode = icm.BusinessCode
-	} else {
+	} else if isInspection == models.NOT_INSPECTION {
 		testCaseMongo := models.TestCaseMongo{}
 		testCaseMongo = testCaseMongo.GetOneCase(caseId)
 		businessCode = testCaseMongo.BusinessCode
+	} else {
+		setCaseMongo := models.SetCaseMongo{}
+		setCaseMongo, err := setCaseMongo.GetSetCaseById(caseId)
+		if err != nil {
+			logs.Error("获取单条case出错")
+		}
+		businessCode = setCaseMongo.BusinessCode
 	}
 	business, _ := strconv.Atoi(businessCode)
 	if business == constant.Matuan {
