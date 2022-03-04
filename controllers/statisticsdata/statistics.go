@@ -66,10 +66,11 @@ func (c *StatisticsController) Post() {
 func (c *StatisticsController) showStatisticsData() {
 	nowTime := time.Now()
 	if nowTime.Weekday().String() == "Friday" {
-		FridayTime := nowTime.AddDate(0, 0, -7)
-		timeNowstr := nowTime.Format("2006-01-02 15:04:05")
+		nowData := getFridayTime(nowTime)
+		FridayTime := nowData.AddDate(0, 0, -7)
+		nowDataStr := nowData.Format("2006-01-02 15:04:05")
 		FridayTimeStr := FridayTime.Format("2006-01-02 15:04:05")
-		c.Data["now_time"] = timeNowstr
+		c.Data["now_time"] = nowDataStr
 		c.Data["check_time"] = FridayTimeStr
 		c.TplName = "show_statistics_data.html"
 
