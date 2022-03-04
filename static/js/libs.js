@@ -55,10 +55,19 @@ function analysisJson(json, path) {
             return result;
         }
     }
+
+    // 判断此时的接送为object还是string, 当为string时，证明此时为jsonarray是一个list，且其中没有键值对
+    if (typeof json == "string") {
+        result["isArray"] = isArray; // 是数组
+        result["arrayLength"] = arrayLength; // 没有数组长度字段
+        result["keys"] = new Array(); // 返回的该节点的keys为空数组
+        return result;
+    }
+
     var keys = Object.keys(json);
-    result["isArray"] = isArray // 是数组
-    result["arrayLength"] = arrayLength; // 没有数组长度字段
-    result["keys"] = keys // 返回的该节点的keys为空数组
+    result["isArray"] = isArray; // 是数组
+    result["arrayLength"] = arrayLength;
+    result["keys"] = keys;
     return result;
     // return keys;
 }
