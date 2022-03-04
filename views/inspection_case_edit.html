@@ -550,7 +550,12 @@
                             let node = ""
                             $(this).find(".data_block").find("option:selected").each(function (){
                                 if(isNumber($(this).text())){
-                                    node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                    isArray = $(this).parent().attr("isArray")
+                                    if (isArray == undefined) {
+                                        node = node + $(this).text() +"."
+                                    } else {
+                                        node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                    }
                                 }else{
                                     node = node + $(this).text() +"."
                                 }
@@ -654,11 +659,14 @@
                     last_json.append('<option value='+i+'>'+ i+'</option>')
                 }
             }
-            $(this).parent().parent().find(".data_block").append(check_sel)
-            var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
-            $.each(res.keys, function(i,v){
-                last_json.append('<option value='+v+'>'+ v+'</option>')
-            });
+            // 当不存在key元素时，不进行元素追加
+            if (res.keys.length != 0) {
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                $.each(res.keys, function(i,v){
+                    last_json.append('<option value='+v+'>'+ v+'</option>')
+                });
+            }
             form.render()
         });
 
