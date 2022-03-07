@@ -152,6 +152,7 @@ func (c *ReportController) runReportDetail() {
 	testResultList := []TestResult{}
 	inspectionCaseMongo := models.InspectionCaseMongo{}
 	testCaseMongo := models.TestCaseMongo{}
+	setCaseMongo := models.SetCaseMongo{}
 	for _, autoResult := range autoResultList {
 		result := "成功"
 		if autoResult.Result == models.AUTO_RESULT_FAIL {
@@ -180,7 +181,7 @@ func (c *ReportController) runReportDetail() {
 				Status:       result,
 				Log:          reasons,
 			}
-		} else {
+		} else if autoResult.IsInspection == models.NOT_INSPECTION {
 			testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
 			testResult = &TestResult{
 				BusinessName: testCaseMongo.BusinessName,
@@ -191,6 +192,18 @@ func (c *ReportController) runReportDetail() {
 				Status:       result,
 				Log:          reasons,
 			}
+		} else if autoResult.IsInspection == models.SENCE {
+			setCaseMongo, _ := setCaseMongo.GetSetCaseById(autoResult.CaseId)
+			testResult = &TestResult{
+				BusinessName: setCaseMongo.BusinessName,
+				ServiceName:  setCaseMongo.ServiceName,
+				CaseName:     setCaseMongo.CaseName,
+				CaseUrl:      setCaseMongo.ApiUrl,
+				SpendTime:    "-",
+				Status:       result,
+				Log:          reasons,
+			}
+
 		}
 		testResultList = append(testResultList, *testResult)
 	}
