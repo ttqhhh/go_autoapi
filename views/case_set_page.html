@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="layui-inline" style="float: right">
-            <button class="layui-btn layui-btn-radius layui-btn-warm" id="add_compose_case">添加组合case</button>
+            <button class="layui-btn layui-btn-radius layui-btn-warm" id="add_compose_case">新增场景用例</button>
         </div>
     </div>
     <table class="layui-table" lay-filter="demo" id="idTest"></table>
@@ -23,7 +23,7 @@
 <form class="layui-form" style="display: none;padding: 10px" id="add_one_case"
       action="/case_set/add_case_set/" readonly="readonly" method="post">
             <div class="layui-form-item">
-                <label class="layui-form-label">业务-服务</label>
+                <label class="layui-form-label">业务线</label>
                 <div class="layui-input-block">
                     <select name="business_code" lay-filter="business" id="business">
                         <option value="0">最右</option>
@@ -38,7 +38,7 @@
             </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label">case名称</label>
+        <label class="layui-form-label">场景名称</label>
         <div class="layui-input-block">
             <input type="text" name="case_set_name" required id="case_set_name" autocomplete="off" placeholder="请输入用例名"
                    class="layui-input">
@@ -55,7 +55,6 @@
         <label class="layui-form-label">公共参数配置</label>
         <div class="layui-input-block">
                 <textarea name="parameter" id="parameter"  autocomplete="off" placeholder='请输入公共参数
-样式：{"变量名"："变量值（string）"/ 1 (int)}
 例如：{
        "token":"TbK8NKy_8L7zjExo5SdX9t6ttdeqpr6jsN7j4"，
        "pid":1
@@ -112,8 +111,8 @@
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-cyan" lay-event="add">添加步骤用例</a>
     <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
-    <a class="layui-btn layui-btn-xs layui-btn-cyan" lay-event="add">添加</a>
     <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
@@ -137,12 +136,12 @@
                     {type: "checkbox", fixed: 'left'},
                     {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
                     {title: '业务线', field: 'business_name', width: 100},
-                    {title: '用例名称', field: 'case_set_name', width: 150},
+                    {title: '场景名称', field: 'case_set_name', width: 150},
                     {title: '用例描述', field: 'description'},
                     {title: '添加人', field: 'author', width: 100},
                     // {title: '请求方式', field: 'request_method', width: 100},
                     // {title: '报警次数', field: 'warning_number', width: 100},
-                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 350},
 
                 ]]
             });

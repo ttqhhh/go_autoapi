@@ -13,7 +13,7 @@
 </div>
 
 <div class="layui-inline">
-    <button class="layui-btn layui-btn-primary layui-border-orange" style="display: inline" id="run">运行调试</button>
+{{/*    <button class="layui-btn layui-btn-primary layui-border-orange" style="display: inline" id="run">运行调试</button>*/}}
 </div>
 
 <form class="layui-form" action="" id="test_service" style="display: none">
@@ -32,24 +32,25 @@
 
 {{/*            </div>*/}}
             <div class="layui-inline">
-                <input type="text" class="case_name layui-input" placeholder="请输case名称">
+                <input type="text" class="case_name layui-input" placeholder="输入步骤名称">
             </div>
             <div class="layui-inline">
                 <button class="layui-btn layui-btn-sm layui-border-blue layui-btn-primary" style="display: inline" id="search_btn">搜索</button>
             </div>
         </div>
     </div>
-    <div style="float: left;margin-top: 1px">
+    <div style="float: left;margin-top: 1px; width: 45%" >
     <table class="layui-table" lay-filter="demo" id="idTest" ></table>
     </div>
-    <div style="float: left;margin-top: 0px;margin-left: 180px" >
+{{/*    <div style="width:10px ; height: 100% ;color: red">分割</div>*/}}
+    <div style="float: right;margin-top: 0px;width: 45%" >
         <table class="layui-table" lay-filter="demo2" id="idTest2"></table>
     </div>
 
 
 
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="copy">添加case至当前case集合</a>
+        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="copy">添加步骤至当前场景用例</a>
     </script>
 
     <script type="text/html" id="barDemo2">
@@ -99,7 +100,7 @@
                     {title: '业务线', field:'business_name', width:100},
                     {title: '服务名称', field:'service_name', width:150},
                     {title: '用例名称', field:'case_name', width:200},
-                    {title: '操作', fixed:"right",toolbar:'#barDemo', width:180},
+                    {title: '操作', fixed:"right",toolbar:'#barDemo', width:214},
                 ]]
             })
 
