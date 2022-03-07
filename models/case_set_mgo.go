@@ -24,11 +24,13 @@ type CaseSetMongo struct {
 	Status int64  `json:"status" bson:"status"`
 }
 
-func (t *CaseSetMongo) GetCaseSetByPage(page, limit int, business_code string) (result []CaseSetMongo, totalCount int64, err error) {
+func (t *CaseSetMongo) GetCaseSetByPage(page, limit int, business_code string, caseSetName string) (result []CaseSetMongo, totalCount int64, err error) {
 	ms, c := db_proxy.Connect("auto_api", "case_set")
 	defer ms.Close()
 	var query = bson.M{"business_code": business_code, "status": status}
-
+	if caseSetName != "" {
+		query["case_set_name"] = bson.M{"$regex": caseSetName}
+	}
 	// 获取CaseSet列表
 	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).All(&result)
 	if err != nil {

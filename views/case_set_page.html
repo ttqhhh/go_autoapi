@@ -4,9 +4,7 @@
     <div>
         <div class="layui-form layui-inline" style="margin-right:10%">
             <div class="layui-inline">
-                <select name="" id="search_service">
-                    <option value="">请选择服务</option>
-                </select>
+                <input type="text" class="search_name layui-input" placeholder="输入步骤名称">
             </div>
             <div class="layui-inline">
                 <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
@@ -125,13 +123,13 @@
         var layer = layui.layer;
         var table = layui.table;
 
-        function loadTable() {
+        function loadTable(case_set_name) {
             //表格渲染
             table.render({
                 elem: '#idTest'
                 , url: "/case_set/page"
                 , page: true
-                , where: {business: {{.business}}}
+                , where: {business: {{.business}},case_set_name:case_set_name}
                 , cols: [[
                     {type: "checkbox", fixed: 'left'},
                     {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
@@ -147,6 +145,11 @@
             });
         }
         loadTable();
+
+        $(document).on("click", "#search_btn", function (){
+            let case_name = $(".search_name").val();
+            loadTable(case_name)
+        });
 
         //监听工具条
         table.on('tool(demo)', function(obj){
