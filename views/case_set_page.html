@@ -38,14 +38,14 @@
     <div class="layui-form-item">
         <label class="layui-form-label">场景名称</label>
         <div class="layui-input-block">
-            <input type="text" name="case_set_name" required id="case_set_name" autocomplete="off" placeholder="请输入用例名"
+            <input type="text" name="case_set_name" required id="case_set_name" autocomplete="off" placeholder="请输入场景名"
                    class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">用例描述</label>
+        <label class="layui-form-label">场景描述</label>
         <div class="layui-input-block">
-            <input type="text" name="description" required id="description" autocomplete="off" placeholder="请输入用例描述"
+            <input type="text" name="description" required id="description" autocomplete="off" placeholder="请输入场景描述"
                    class="layui-input">
         </div>
     </div>
@@ -73,16 +73,16 @@
     <input type="hidden" name="id" value="">
     <input type="hidden" name="business_code" value="">
     <div class="layui-form-item">
-        <label class="layui-form-label">用例名称</label>
+        <label class="layui-form-label">场景名称</label>
         <div class="layui-input-block">
-            <input type="text" name="case_set_name" id="case_set_name" autocomplete="off" placeholder="请输入文件名称"
+            <input type="text" name="case_set_name" id="case_set_name" autocomplete="off" placeholder="请输入场景名称"
                    class="layui-input">
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">用例描述</label>
+        <label class="layui-form-label">场景描述</label>
         <div class="layui-input-block">
-            <input type="text" name="description" id="description" autocomplete="off" placeholder="请输入文件名称"
+            <input type="text" name="description" id="description" autocomplete="off" placeholder="请输入场景名称"
                    class="layui-input">
         </div>
     </div>
@@ -187,7 +187,7 @@
                         $("#parameter_edit").text(data.data.parameter)
                         layer.open({
                             type: 1
-                            , title: '编辑case集合'
+                            , title: '编辑场景用例'
                             , area: ['640px', '400px']
                             , shade: 0
                             , maxmin: true
@@ -228,7 +228,7 @@
         $(document).on("click", "#add_compose_case", function () {
             layer.open({
                 type: 1
-                , title: '新增组合case'
+                , title: '新增场景用例'
                 , area: ['700px', '400px']
                 , shade: 0
                 , maxmin: true
