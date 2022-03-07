@@ -204,7 +204,7 @@ func (c *CaseSetController) runById() {
 	}
 	runReport := models.RunReportMongo{}
 	format := "20060102/150405"
-	runReport.Name = businessName + "-" + runBy + "-" + time.Now().Format(format)
+	runReport.Name = businessName + "-" + runBy + "-" + time.Now().Format(format) + "(场景测试)"
 	runReport.CreateBy = runBy
 	runReport.RunId = uuid
 	runReport.IsPass = models.RUNNING
