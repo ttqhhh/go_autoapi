@@ -65,23 +65,15 @@ func (c *StatisticsController) Post() {
 
 func (c *StatisticsController) showStatisticsData() {
 	nowTime := time.Now()
-	if nowTime.Weekday().String() == "Friday" {
-		nowData := getFridayTime(nowTime)
-		FridayTime := nowData.AddDate(0, 0, -7)
-		nowDataStr := nowData.Format("2006-01-02 15:04:05")
-		FridayTimeStr := FridayTime.Format("2006-01-02 15:04:05")
-		c.Data["now_time"] = nowDataStr
-		c.Data["check_time"] = FridayTimeStr
-		c.TplName = "show_statistics_data.html"
-
-	} else {
-		FridayTime := getFridayTime(nowTime)
-		timeNowstr := nowTime.Format("2006-01-02 15:04:05")
-		FridayTimeStr := FridayTime.Format("2006-01-02 15:04:05")
-		c.Data["now_time"] = timeNowstr
-		c.Data["check_time"] = FridayTimeStr
-		c.TplName = "show_statistics_data.html"
-	}
+	nowData := getFridayTime(nowTime)
+	nowDatanew := nowData.AddDate(0, 0, -1)
+	FridayTime := nowData.AddDate(0, 0, -7)
+	nowDataStr := nowDatanew.Format("2006-01-02 15:04:05")
+	showTimeStr := strings.Split(nowDataStr, " ")[0] + " " + "23:59:59"
+	FridayTimeStr := FridayTime.Format("2006-01-02 15:04:05")
+	c.Data["now_time"] = showTimeStr
+	c.Data["check_time"] = FridayTimeStr
+	c.TplName = "show_statistics_data.html"
 
 }
 func (c *StatisticsController) getAllApiByBusiness() {
