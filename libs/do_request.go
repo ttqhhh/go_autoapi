@@ -162,9 +162,9 @@ func DoRequest(domain string, url string, uuid string, param string, checkPoint 
 		logs.Error("DoRequest发起请求调用时出错, err: ", err)
 		reason := "该接口不通, 请求超时..."
 		result := models.AUTO_RESULT_FAIL
-		resp := ""
+		resp = ""
 		statusCode := 0
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
 		isPass = false
 		return
 	}

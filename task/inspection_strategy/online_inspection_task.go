@@ -5,11 +5,9 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/blinkbean/dingtalk"
 	uuid "github.com/satori/go.uuid"
-	constant "go_autoapi/constants"
 	controllers "go_autoapi/controllers/autotest"
 	"go_autoapi/libs"
 	"go_autoapi/models"
-	"go_autoapi/utils"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -127,9 +125,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					time.Sleep(5 * time.Second)
 				}
 				// 获取用例执行进度时使用
-				r := utils.GetRedis()
-				defer r.Close()
-				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				//r := utils.GetRedis()
+				//defer r.Close()
+				//r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wgInner.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
