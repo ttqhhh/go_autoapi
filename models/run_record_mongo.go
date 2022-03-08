@@ -46,6 +46,7 @@ func (mongo *RunReportMongo) Insert(service RunReportMongo) (int64, error) {
 	defer ms.Close()
 
 	r := utils.GetRedis()
+	defer r.Close()
 	id, err := r.Incr(constants.RUN_RECORD_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("新增运行记录时报错, err:", err)

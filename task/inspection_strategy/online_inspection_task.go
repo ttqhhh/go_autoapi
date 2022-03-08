@@ -128,6 +128,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				}
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
+				defer r.Close()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wgInner.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)

@@ -51,6 +51,7 @@ func InsertResult(uuid string, case_id int64, isInspection int, result int, reas
 	ar := AutoResult{}
 	//id := GetId("result")
 	r := utils.GetRedis()
+	defer r.Close()
 	id, err := r.Incr(auto_result_primary_key).Result()
 	if err != nil {
 		logs.Error("auto_result新增数据时，从redis获取自增主键错误, err:", err)

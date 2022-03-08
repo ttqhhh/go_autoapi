@@ -206,6 +206,7 @@ func Excute(serviceCode string, timestamp int64) {
 					// 告警记录落库
 					mongo := models.RtDetailAlertMongo{}
 					r := utils.GetRedis()
+					defer r.Close()
 					id, err := r.Incr(constants.RT_DETAIL_ALERT_PRIMARY_KEY).Result()
 					if err != nil {
 						logs.Error("保存接口响应时间报警数据时，从redis获取唯一主键报错，err: ", err)
@@ -252,6 +253,7 @@ func Excute(serviceCode string, timestamp int64) {
 				// 告警记录落库
 				mongo := models.RtDetailAlertMongo{}
 				r := utils.GetRedis()
+				defer r.Close()
 				id, err := r.Incr(constants.RT_DETAIL_ALERT_PRIMARY_KEY).Result()
 				if err != nil {
 					logs.Error("保存接口响应时间报警数据时，从redis获取唯一主键报错，err: ", err)
