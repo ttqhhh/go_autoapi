@@ -46,6 +46,7 @@ func (a *RtDetailAlertMongo) Insert(rtDetailAlert RtDetailAlertMongo) error {
 	// 当没有Id主键时，进行Id赋值
 	if rtDetailAlert.Id == 0 {
 		r := utils.GetRedis()
+		defer r.Close()
 		id, err := r.Incr(constants.RT_DETAIL_PRIMARY_KEY).Result()
 		if err != nil {
 			logs.Error("保存接口响应详情时，从redis获取唯一主键报错，err: ", err)

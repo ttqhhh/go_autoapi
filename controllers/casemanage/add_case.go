@@ -39,6 +39,7 @@ func (c *CaseManageController) AddOneCase() {
 	acm.ServiceId = id64
 	//acm.Id = models.GetId("case")
 	r := utils.GetRedis()
+	defer r.Close()
 	testCaseId, err := r.Incr(constants.TEST_CASE_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)

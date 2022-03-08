@@ -20,6 +20,7 @@ func (c *AutoTestController) getProcess() {
 		c.ErrorJson(-1, "请求参数错误", nil)
 	}
 	r := utils.GetRedis()
+	defer r.Close()
 	hasCount, _ := r.Get(constant.RUN_RECORD_CASE_DONE_NUM + dp.Uuid).Int64()
 	progress := decimal.NewFromFloat(float64(hasCount)).Div(decimal.NewFromFloat(float64(dp.Count)))
 	c.SuccessJsonWithMsg(map[string]interface{}{"progress": progress}, "OK")

@@ -11,17 +11,16 @@ import (
 
 const domainCollection = "domain"
 
-
 type Domain struct {
-	Id           	int64  `json:"id" bson:"_id"`
-	Business 		int8 `json:"business" bson:"business" form:"business"`
-	DomainName   	string `json:"domain_name" bson:"domain_name" form:"domain_name"`
-	Author 			string `json:"author"  bson:"author" form:"author"`
+	Id         int64  `json:"id" bson:"_id"`
+	Business   int8   `json:"business" bson:"business" form:"business"`
+	DomainName string `json:"domain_name" bson:"domain_name" form:"domain_name"`
+	Author     string `json:"author"  bson:"author" form:"author"`
 	//0：正常，1：删除
-	Status 			int    `json:"status"  bson:"status"`
+	Status int `json:"status"  bson:"status"`
 	// omitempty 表示该字段为空时，不返回
-	CreatedAt 		string `json:"created_at,omitempty" bson:"created_at"`
-	UpdatedAt 		string `json:"updated_at,omitempty" bson:"updated_at"`
+	CreatedAt string `json:"created_at,omitempty" bson:"created_at"`
+	UpdatedAt string `json:"updated_at,omitempty" bson:"updated_at"`
 }
 
 func init() {
@@ -34,13 +33,13 @@ func (d *Domain) TableName() string {
 }
 
 // 增加
-func (d *Domain) DomainInsert(ab Domain) error{
+func (d *Domain) DomainInsert(ab Domain) error {
 	ms, db := db_proxy.Connect(db, domainCollection)
 	defer ms.Close()
 	// 查询是否存在 存在则不进行插入操作
-	query := bson.M{"business":ab.Business,"domain_name":ab.DomainName}
+	query := bson.M{"business": ab.Business, "domain_name": ab.DomainName}
 	err := db.Find(query).One(&ab)
-	if err == nil{
+	if err == nil {
 		logs.Info("域名已经存在")
 		return err
 	}
@@ -50,12 +49,13 @@ func (d *Domain) DomainInsert(ab Domain) error{
 	ab.UpdatedAt = now
 	ab.Status = 0
 	r := utils.GetRedis()
+	defer r.Close()
 	id, err := r.Incr(constants.DO_MAIN_PRIMARY_KEY).Result()
 	ab.Id = id
 	if err != nil {
 		logs.Error("auto_result新增数据时，从redis获取自增主键错误, err:", err)
 	}
-	if err = db.Insert(ab) ; err != nil{
+	if err = db.Insert(ab); err != nil {
 		logs.Error("域名数据插入失败")
 	}
 	return err
@@ -73,4 +73,3 @@ func (d *Domain) GetDomainByBusiness(business int8) (domains []*Domain, err erro
 	}
 	return
 }
-

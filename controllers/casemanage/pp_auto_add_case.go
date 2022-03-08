@@ -1,6 +1,5 @@
 package controllers
 
-
 func (c *CaseManageController) PPAutoAddOneCase() {
 	//now := time.Now().Format(constants.TimeFormat)
 	//acm := models.TestCaseMongo{}
@@ -45,6 +44,7 @@ func (c *CaseManageController) PPAutoAddOneCase() {
 	//	reqPath = v["path"].(string)
 	//}
 	//r := utils.GetRedis()
+	//defer r.Close()
 	//testCaseId, err := r.Incr(constants.TEST_CASE_PRIMARY_KEY).Result()
 	//acm.Id = testCaseId
 	//acm.ApiName = "apiname"
@@ -68,5 +68,3 @@ func (c *CaseManageController) PPAutoAddOneCase() {
 	//}
 	c.SuccessJson("用例存储成功")
 }
-
-
