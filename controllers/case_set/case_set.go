@@ -452,7 +452,7 @@ func (c *CaseSetController) addSetCase() {
 	id64, _ := strconv.ParseInt(arr[0], 10, 64)
 	scm.ServiceId = id64
 	r := utils.GetRedis()
-	testCaseId, err := r.Incr(constants.TEST_CASE_PRIMARY_KEY).Result()
+	testCaseId, err := r.Incr(constants.SET_CASE_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
