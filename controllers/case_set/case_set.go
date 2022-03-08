@@ -2,7 +2,6 @@ package case_set
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/constants"
@@ -242,7 +241,7 @@ func (c *CaseSetController) runById() {
 						} else {
 							// todo 公共参数中不存在该key
 							reason := "公共参数中未找到指定的key, key=" + key
-							libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+							libs.SaveTestResult(uuid, setCase.Id, models.SENCE, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 							break
 						}
 					}
@@ -253,15 +252,13 @@ func (c *CaseSetController) runById() {
 				logs.Error("场景自动化测试时, 参数替换后json字符串转换报错, err: ", err)
 				reason := "场景自动化测试时, 参数替换后json字符串转换报错"
 				// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
-				libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+				libs.SaveTestResult(uuid, setCase.Id, models.SENCE, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
 				break
 			}
 			setCase.Parameter = string(caseParamStr)
 
 			// case执行
-			fmt.Print("参数：" + setCase.Parameter + "\n")
 			isOk, resp := libs.DoRequest(setCase.Domain, setCase.ApiUrl, uuid, setCase.Parameter, setCase.Checkpoint, setCase.Id, models.SENCE, runBy)
-			fmt.Print("响应：" + resp + "\n")
 			// 当Case集合中某条Case不通过时，不再继续往下执行该场景测试
 			if !isOk {
 				break
@@ -276,19 +273,17 @@ func (c *CaseSetController) runById() {
 					logs.Error("场景自动化测试时，从响应中提取数据的配置转换json报错, err: ", err)
 					reason := "场景自动化测试时，从响应中提取数据的配置转换json报错"
 					// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
-					libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+					libs.SaveTestResult(uuid, setCase.Id, models.SENCE, models.AUTO_RESULT_FAIL, reason, runBy, resp, 0)
 					break
 				}
 				// value为jsonpath
 				for key, value := range extractRespMap {
 					valueInResp, err := jsonpath.JSONPath([]byte(resp), value)
-					fmt.Print(valueInResp)
-					fmt.Print(valueInResp[0])
 					if err != nil {
 						logs.Error("根据jsonpath从响应中提取value时报错, err: ", err)
 						reason := "根据jsonpath从响应中提取value时报错"
 						// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
-						libs.SaveTestResult(uuid, setCase.Id, models.NOT_INSPECTION, models.AUTO_RESULT_FAIL, reason, runBy, "", 0)
+						libs.SaveTestResult(uuid, setCase.Id, models.SENCE, models.AUTO_RESULT_FAIL, reason, runBy, resp, 0)
 						break
 					}
 					// 将提取出来的值，放入setParamMap公共区域，提供后续接口使用
@@ -299,14 +294,19 @@ func (c *CaseSetController) runById() {
 						setParamMap[key] = valueInRespNum
 					} else if valueType == jsonpath.String {
 						valueInRespStr := valueInResp[0].MustString()
+						if valueInRespStr == "" {
+							logs.Error("根据jsonpath 【%v】 从响应中提取value时取到空值", value)
+							reason := "根据jsonpath 【" + value + "】 从响应中提取value时取到空值"
+							// statusCode 为0时，表示为发送请求，前置校验逻辑直接未通过。
+							libs.SaveTestResult(uuid, setCase.Id, models.SENCE, models.AUTO_RESULT_FAIL, reason, runBy, resp, 0)
+							break
+						}
 						setParamMap[key] = valueInRespStr
 					} else {
 						//取出的值不是num也不是str
 					}
 				}
-
 			}
-
 		}
 
 		// 4、执行记录结果状态处理
