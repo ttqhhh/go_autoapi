@@ -33,6 +33,8 @@ func (c *CaseSetController) Get() {
 		c.getSetCaseById()
 	case "get_set_case_list_by_case_set_id":
 		c.getSetCaseListByCaseSetId()
+	case "get_set_case_num_by_case_set_id":
+		c.getSetCaseNumByCaseSetId()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
@@ -427,6 +429,22 @@ func (c *CaseSetController) getSetCaseListByCaseSetId() {
 	}
 	count := len(caseSet)
 	c.FormSuccessJson(int64(count), caseSet)
+}
+
+func (c *CaseSetController) getSetCaseNumByCaseSetId() {
+	caseSetId, err := c.GetInt64("case_set_id")
+	if err != nil {
+		logs.Error("/case_set/getSetCaseByCaseSetId接口 参数异常, err: %v", err)
+		c.ErrorJson(-1, "参数异常", nil)
+	}
+
+	setCaseMongo := models.SetCaseMongo{}
+	caseSet, err := setCaseMongo.GetSetCaseListByCaseSetId(caseSetId)
+	if err != nil {
+		c.ErrorJson(-1, "服务查询数据异常", nil)
+	}
+	count := len(caseSet)
+	c.SuccessJson(count)
 }
 
 // 向CaseSet新增Case

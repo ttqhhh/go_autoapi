@@ -110,7 +110,25 @@
                 if(obj.event === 'detail'){
                     layer.msg('ID：'+ data.id + ' 的查看操作');
                 }else if(obj.event === 'copy'){
-                    window.open("/case/show_copy_case_set?id="+data.id+"&business={{.business}}"+"&case_set_id="+{{.id}},"_blank");
+                    // 先判断当前CaseSet下有几个setcase（限制条件：一个场景用例下，只能有两个步骤）
+                    is_jump=true
+                    $.ajax({
+                        type: 'GET',
+                        url: "/case_set/get_set_case_num_by_case_set_id?case_set_id="+{{.id}},
+                        async: false,
+                        success: function (data) {
+                            num = data.data
+                            if (num > 1) {
+                                is_jump = false
+                            }
+                        }
+                    });
+
+                    if (is_jump) {
+                        window.open("/case/show_copy_case_set?id="+data.id+"&business={{.business}}"+"&case_set_id="+{{.id}},"_blank");
+                    } else {
+                        layer.msg("每个场景测试用例最多只能有2个步骤");
+                    }
                 }
                 layui.close(obj);
             });
