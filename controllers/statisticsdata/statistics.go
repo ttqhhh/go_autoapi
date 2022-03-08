@@ -14,13 +14,6 @@ type StatisticsController struct {
 }
 
 const Layout = "2006-01-02 15:04:05" //时间常量
-const ApiCountZuiyou = 200           //每条业务线接口总数
-const ApiCountPipi = 200
-const ApiCountHaiwai = 200
-const ApiCountZhongdong = 200
-const ApiCountMatuan = 200
-const ApiCountShangyehua = 200
-const ApiCountHaiwaiUS = 200
 
 type respData struct {
 	BusinessName       string  `form:"business_name" json:"business_name"`
@@ -91,7 +84,7 @@ func (c *StatisticsController) getAllApiByBusiness() {
 
 func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	//todo 取得平台自动化所用的全部接口by business
-	data := zenfangfa()
+	data := getAllApi()
 	var zuiyouAllCount float64
 	var pipiAllCount float64
 	var haiwaiAllCount float64
@@ -160,9 +153,15 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData1.NewApiConut = float64(resp2["zuiyou_count_new"])
 	respData1.AllCaseCount = len(zuiyou_list)
 	respData1.NewCaseConut = resp2["zuiyou_new_case"]
-	str := strconv.FormatFloat(float64(respData1.AllApiCount/zuiyouAllCount)*100, 'f', 2, 64)
+	str := strconv.FormatFloat(float64(float64(respData1.AllCaseCount)/zuiyouAllCount)*100, 'f', 2, 64)
 	respData1.AllApi = int(zuiyouAllCount)
-	respData1.DegreeOfCompletion = str + "%"
+	if zuiyouAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData1.DegreeOfCompletion = "0%"
+	} else if (float64(respData1.AllCaseCount) / zuiyouAllCount) > 1 {
+		respData1.DegreeOfCompletion = "100%"
+	} else {
+		respData1.DegreeOfCompletion = str + "%"
+	}
 
 	respDataList = append(respDataList, respData1)
 
@@ -172,10 +171,16 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData2.NewApiConut = float64(resp2["pipi_count_new"])
 	respData2.AllCaseCount = len(pipi_list)
 	respData2.NewCaseConut = resp2["pipi_new_case"]
-	str2 := strconv.FormatFloat(float64(respData2.AllApiCount/pipiAllCount)*100, 'f', 2, 64)
+	str2 := strconv.FormatFloat(float64(float64(respData2.AllCaseCount)/pipiAllCount)*100, 'f', 2, 64)
 	respData2.DegreeOfCompletion = str2 + "%"
 	respData2.AllApi = int(pipiAllCount)
-
+	if pipiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData2.DegreeOfCompletion = "0%"
+	} else if (float64(respData2.AllCaseCount) / pipiAllCount) > 1 {
+		respData2.DegreeOfCompletion = "100%"
+	} else {
+		respData2.DegreeOfCompletion = str + "%"
+	}
 	respDataList = append(respDataList, respData2)
 
 	respData3 := respData
@@ -184,9 +189,16 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData3.NewApiConut = float64(resp2["haiwai_count_new"])
 	respData3.AllCaseCount = len(haiwai_list)
 	respData3.NewCaseConut = resp2["haiwai_new_case"]
-	str3 := strconv.FormatFloat(float64(respData3.AllApiCount/haiwaiAllCount)*100, 'f', 2, 64)
+	str3 := strconv.FormatFloat(float64(float64(respData3.AllCaseCount)/haiwaiAllCount)*100, 'f', 2, 64)
 	respData3.DegreeOfCompletion = str3 + "%"
 	respData3.AllApi = int(haiwaiAllCount)
+	if haiwaiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData3.DegreeOfCompletion = "0%"
+	} else if (float64(respData3.AllCaseCount) / haiwaiAllCount) > 1 {
+		respData3.DegreeOfCompletion = "100%"
+	} else {
+		respData3.DegreeOfCompletion = str + "%"
+	}
 
 	respDataList = append(respDataList, respData3)
 
@@ -196,9 +208,16 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData4.NewApiConut = float64(resp2["zhongdong_count_new"])
 	respData4.AllCaseCount = len(zhongdong_list)
 	respData4.NewCaseConut = resp2["zhongdong_new_case"]
-	str4 := strconv.FormatFloat(float64(respData4.AllApiCount/zhongdongAllCount)*100, 'f', 2, 64)
+	str4 := strconv.FormatFloat(float64(float64(respData4.AllCaseCount)/zhongdongAllCount)*100, 'f', 2, 64)
 	respData4.DegreeOfCompletion = str4 + "%"
 	respData4.AllApi = int(zhongdongAllCount)
+	if zhongdongAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData4.DegreeOfCompletion = "0%"
+	} else if (float64(respData4.AllCaseCount) / zhongdongAllCount) > 1 {
+		respData4.DegreeOfCompletion = "100%"
+	} else {
+		respData4.DegreeOfCompletion = str + "%"
+	}
 
 	respDataList = append(respDataList, respData4)
 
@@ -208,11 +227,11 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData5.NewApiConut = float64(resp2["matuan_count_new"])
 	respData5.AllCaseCount = len(matuan_list)
 	respData5.NewCaseConut = resp2["matuan_new_case"]
-	str5 := strconv.FormatFloat(float64(respData5.AllApiCount/matuanAllConut)*100, 'f', 2, 64)
+	str5 := strconv.FormatFloat(float64(float64(respData5.AllCaseCount)/matuanAllConut)*100, 'f', 2, 64)
 	respData5.DegreeOfCompletion = str5 + "%"
 	respData5.AllApi = int(matuanAllConut)
 
-	respDataList = append(respDataList, respData5)
+	//respDataList = append(respDataList, respData5)
 
 	respData6 := respData
 	respData6.BusinessName = "商业化"
@@ -220,9 +239,16 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData6.NewApiConut = float64(resp2["shangyehua_count_new"])
 	respData6.AllCaseCount = len(shangyehuai_list)
 	respData6.NewCaseConut = resp2["shangyehua_new_case"]
-	str6 := strconv.FormatFloat(float64(respData6.AllApiCount/shangyehuaAllCount)*100, 'f', 2, 64)
+	str6 := strconv.FormatFloat(float64(float64(respData6.AllCaseCount)/shangyehuaAllCount)*100, 'f', 2, 64)
 	respData6.DegreeOfCompletion = str6 + "%"
 	respData6.AllApi = int(shangyehuaAllCount)
+	if shangyehuaAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData6.DegreeOfCompletion = "0%"
+	} else if (float64(respData6.AllCaseCount) / shangyehuaAllCount) > 1 {
+		respData6.DegreeOfCompletion = "100%"
+	} else {
+		respData6.DegreeOfCompletion = str + "%"
+	}
 
 	respDataList = append(respDataList, respData6)
 
@@ -232,9 +258,16 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData7.NewApiConut = float64(resp2["haiwaiUS_count_new"])
 	respData7.AllCaseCount = len(haiwaiUS_list)
 	respData7.NewCaseConut = resp2["haiwaiUS_new_case"]
-	str7 := strconv.FormatFloat(float64(respData7.AllApiCount/haiwaiUSAllCount)*100, 'f', 2, 64)
+	str7 := strconv.FormatFloat(float64(float64(respData7.AllCaseCount)/haiwaiUSAllCount)*100, 'f', 2, 64)
 	respData7.DegreeOfCompletion = str7 + "%"
 	respData7.AllApi = int(haiwaiUSAllCount)
+	if haiwaiUSAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
+		respData7.DegreeOfCompletion = "0%"
+	} else if (float64(respData7.AllCaseCount) / haiwaiUSAllCount) > 1 {
+		respData7.DegreeOfCompletion = "100%"
+	} else {
+		respData7.DegreeOfCompletion = str + "%"
+	}
 
 	respDataList = append(respDataList, respData7)
 	return respDataList
@@ -407,8 +440,15 @@ func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一�
 
 }
 
-func zenfangfa() map[string]float64 {
+func getAllApi() map[string]float64 {
 	data := make(map[string]float64)
+	//data["0"] = 200
+	//data["1"] = 200
+	//data["2"] = 200
+	//data["3"] = 200
+	//data["4"] = 200
+	//data["5"] = 200
+	//data["6"] = 200
 
 	return data
 
