@@ -91,6 +91,22 @@ func (c *StatisticsController) getAllApiByBusiness() {
 
 func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	//todo 取得平台自动化所用的全部接口by business
+	data := zenfangfa()
+	var zuiyouAllCount float64
+	var pipiAllCount float64
+	var haiwaiAllCount float64
+	var zhongdongAllCount float64
+	var matuanAllConut float64
+	var shangyehuaAllCount float64
+	var haiwaiUSAllCount float64
+	zuiyouAllCount = data["0"]
+	pipiAllCount = data["1"]
+	haiwaiAllCount = data["2"]
+	zhongdongAllCount = data["3"]
+	matuanAllConut = data["4"]
+	shangyehuaAllCount = data["5"]
+	haiwaiUSAllCount = data["6"]
+
 	mongo := models.TestCaseMongo{}
 	result, err := mongo.GetAllCasesNoBusiness()
 	if err != nil {
@@ -144,8 +160,8 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData1.NewApiConut = float64(resp2["zuiyou_count_new"])
 	respData1.AllCaseCount = len(zuiyou_list)
 	respData1.NewCaseConut = resp2["zuiyou_new_case"]
-	str := strconv.FormatFloat(float64(respData1.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
-	respData1.AllApi = ApiCountZuiyou
+	str := strconv.FormatFloat(float64(respData1.AllApiCount/zuiyouAllCount)*100, 'f', 2, 64)
+	respData1.AllApi = int(zuiyouAllCount)
 	respData1.DegreeOfCompletion = str + "%"
 
 	respDataList = append(respDataList, respData1)
@@ -156,9 +172,9 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData2.NewApiConut = float64(resp2["pipi_count_new"])
 	respData2.AllCaseCount = len(pipi_list)
 	respData2.NewCaseConut = resp2["pipi_new_case"]
-	str2 := strconv.FormatFloat(float64(respData2.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str2 := strconv.FormatFloat(float64(respData2.AllApiCount/pipiAllCount)*100, 'f', 2, 64)
 	respData2.DegreeOfCompletion = str2 + "%"
-	respData2.AllApi = ApiCountZuiyou
+	respData2.AllApi = int(pipiAllCount)
 
 	respDataList = append(respDataList, respData2)
 
@@ -168,9 +184,9 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData3.NewApiConut = float64(resp2["haiwai_count_new"])
 	respData3.AllCaseCount = len(haiwai_list)
 	respData3.NewCaseConut = resp2["haiwai_new_case"]
-	str3 := strconv.FormatFloat(float64(respData3.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str3 := strconv.FormatFloat(float64(respData3.AllApiCount/haiwaiAllCount)*100, 'f', 2, 64)
 	respData3.DegreeOfCompletion = str3 + "%"
-	respData3.AllApi = ApiCountZuiyou
+	respData3.AllApi = int(haiwaiAllCount)
 
 	respDataList = append(respDataList, respData3)
 
@@ -180,9 +196,9 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData4.NewApiConut = float64(resp2["zhongdong_count_new"])
 	respData4.AllCaseCount = len(zhongdong_list)
 	respData4.NewCaseConut = resp2["zhongdong_new_case"]
-	str4 := strconv.FormatFloat(float64(respData4.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str4 := strconv.FormatFloat(float64(respData4.AllApiCount/zhongdongAllCount)*100, 'f', 2, 64)
 	respData4.DegreeOfCompletion = str4 + "%"
-	respData4.AllApi = ApiCountZuiyou
+	respData4.AllApi = int(zhongdongAllCount)
 
 	respDataList = append(respDataList, respData4)
 
@@ -192,9 +208,9 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData5.NewApiConut = float64(resp2["matuan_count_new"])
 	respData5.AllCaseCount = len(matuan_list)
 	respData5.NewCaseConut = resp2["matuan_new_case"]
-	str5 := strconv.FormatFloat(float64(respData5.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str5 := strconv.FormatFloat(float64(respData5.AllApiCount/matuanAllConut)*100, 'f', 2, 64)
 	respData5.DegreeOfCompletion = str5 + "%"
-	respData5.AllApi = ApiCountZuiyou
+	respData5.AllApi = int(matuanAllConut)
 
 	respDataList = append(respDataList, respData5)
 
@@ -204,9 +220,9 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData6.NewApiConut = float64(resp2["shangyehua_count_new"])
 	respData6.AllCaseCount = len(shangyehuai_list)
 	respData6.NewCaseConut = resp2["shangyehua_new_case"]
-	str6 := strconv.FormatFloat(float64(respData6.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str6 := strconv.FormatFloat(float64(respData6.AllApiCount/shangyehuaAllCount)*100, 'f', 2, 64)
 	respData6.DegreeOfCompletion = str6 + "%"
-	respData6.AllApi = ApiCountZuiyou
+	respData6.AllApi = int(shangyehuaAllCount)
 
 	respDataList = append(respDataList, respData6)
 
@@ -216,13 +232,11 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData7.NewApiConut = float64(resp2["haiwaiUS_count_new"])
 	respData7.AllCaseCount = len(haiwaiUS_list)
 	respData7.NewCaseConut = resp2["haiwaiUS_new_case"]
-	str7 := strconv.FormatFloat(float64(respData7.AllApiCount/ApiCountZuiyou)*100, 'f', 2, 64)
+	str7 := strconv.FormatFloat(float64(respData7.AllApiCount/haiwaiUSAllCount)*100, 'f', 2, 64)
 	respData7.DegreeOfCompletion = str7 + "%"
-	respData7.AllApi = ApiCountZuiyou
+	respData7.AllApi = int(haiwaiUSAllCount)
 
 	respDataList = append(respDataList, respData7)
-	//c.FormSuccessJson(int64(len(respDataList)), respDataList) //使用这个接口获取数据 不往表单传参了
-	//c.SuccessJson(respDataList) //使用这个接口获取数据 不往表单传参了
 	return respDataList
 
 }
@@ -390,5 +404,12 @@ func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一�
 		}
 		return nowTime
 	}
+
+}
+
+func zenfangfa() map[string]float64 {
+	data := make(map[string]float64)
+
+	return data
 
 }
