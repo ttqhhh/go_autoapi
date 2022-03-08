@@ -30,6 +30,7 @@
         <div class="layui-inline" style="float: right">
             <button class="layui-btn open_service_list">按服务执行用例</button>
             <button class="layui-btn run_all_case_by_business">执行当前业务下全部用例</button>
+            <button class="layui-btn add_case" >添加用例</button>
         </div>
     </div>
 
@@ -208,11 +209,18 @@
                     },
                     {title: '请求方式', field: 'request_method', width: 100},
                     {title: '报警次数', field: 'warning_number', width: 100},
-                    {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
+                    // {title: '是否巡检', field:'is_inspection',width:100, templet:function (d) {
+                    //         if (d.is_inspection == 1) {
+                    //             return "<div onclick='inspection(this, " + d.id+ ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked/></div>";
+                    //         } else if(d.is_inspection == 0){
+                    //             return "<div onclick='inspection(this, " + d.id+ ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
+                    //         }
+                    //     }},
+                    {title: '状态', field:'is_inspection',width:100, templet:function (d) {
                             if (d.is_inspection == 1) {
-                                return "<div onclick='inspection(this, " + d.id+ ", 0)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo' checked/></div>";
+                                return "<div onclick='inspection(this, " + d.id+ ", 0)'><input type='checkbox' lay-skin='switch' lay-text='开启|关闭' lay-filter='ifNullDemo' checked/></div>";
                             } else if(d.is_inspection == 0){
-                                return "<div onclick='inspection(this, " + d.id+ ", 1)'><input type='checkbox' lay-skin='switch' lay-text='是|否' lay-filter='ifNullDemo'/></div>";
+                                return "<div onclick='inspection(this, " + d.id+ ", 1)'><input type='checkbox' lay-skin='switch' lay-text='开启|关闭' lay-filter='ifNullDemo'/></div>";
                             }
                         }},
                     {title: '操作', fixed: "right", toolbar: '#barDemo', width: 250},
@@ -234,7 +242,8 @@
             table.on('tool(demo)', function(obj){
                 var data = obj.data;
                 if(obj.event === 'detail'){
-                    window.location.href="/inspection/show_case_detail?id="+data.id+"&business={{.business}}"
+                    // window.location.href="/inspection/show_case_detail?id="+data.id+"&business={{.business}}"
+                    window.open("/inspection/show_case_detail?id="+data.id+"&business={{.business}}","_blank");
                 } else if(obj.event === 'del'){
                     layer.confirm('真的删除行么', function(index){
                         // obj.del();
@@ -251,9 +260,11 @@
                         window.location.reload()
                     });
                 } else if(obj.event === 'edit'){
-                    window.location.href="/inspection/show_edit_case?id="+data.id+"&business={{.business}}"
+                    // window.location.href="/inspection/show_edit_case?id="+data.id+"&business={{.business}}"
+                    window.open("/inspection/show_edit_case?id="+data.id+"&business={{.business}}","_blank");
                 }else if(obj.event === 'copy'){
-                    window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+                    // window.location.href="/case/show_copy_case?id="+data.id+"&business={{.business}}"
+                    window.open("/case/show_copy_case?id="+data.id+"&business={{.business}}","_blank");
                 }
                 else if (obj.event === "run") {
                     var arr = new Array();
@@ -339,7 +350,8 @@
             });
 
             $(document).on("click",".add_case", function (){
-                window.location.href= "/case/show_add_case"
+                // window.location.href= "/inspection/show_add_inspection_case"
+                window.open("/inspection/show_add_inspection_case","_blank");
             });
 
             let needJump = true

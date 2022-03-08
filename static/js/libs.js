@@ -4,11 +4,86 @@
  * 入参：json对象（不要传字符串）、path数组对象
  */
 
+// function analysisJson(json, path) {
+//     var result = {}
+//     var isArray = false
+//     if (path != "undefined" && path != null) {
+//         for (let i = 0; i < path.length; i++) {
+//             if (json == undefined) {
+//                 result["isArray"] = isArray // 不是数组
+//                 result["arrayLength"] = null // 没有数组长度字段
+//                 result["keys"] = new Array() // 返回的该节点的keys为空数组
+//                 return result;
+//             }
+//             if (Array.isArray(json)) {
+//                 if (json.length > 0) {
+//                     // 当json为一个数组时，取数组第一层
+//                     json = json[0];
+//                 } else {
+//                     // 当json数组中没有数据时，再去取深层节点肯定报错，所以，直接返回
+//                     result["isArray"] = isArray // 是数组
+//                     result["arrayLength"] = null // 没有数组长度字段
+//                     result["keys"] = new Array() // 返回的该节点的keys为空数组
+//                     return result;
+//                 }
+//             }
+//             json = json[path[i]];
+//         }
+//     }
+//     // 获取相关层级的所有子节点
+//     // 首先验证undefined
+//     if (json == undefined) {
+//         result["isArray"] = isArray // 是数组
+//         result["arrayLength"] = null // 没有数组长度字段
+//         result["keys"] = new Array() // 返回的该节点的keys为空数组
+//         return result;
+//     }
+//     // alert("是否数组？？" + Array.isArray(json) + "\n\n" + json);
+//     var isArray = Array.isArray(json);
+//     // 取出来数组的长度
+//     var arrayLength = null
+//     if (isArray) {
+//         arrayLength = json.length
+//         if (json.length > 0) {
+//             // 确保数组中有第一个元素
+//             json = json[0];
+//         } else {
+//             // 返回空数组
+//             result["isArray"] = isArray // 是数组
+//             result["arrayLength"] = 0 // 没有数组长度字段
+//             result["keys"] = new Array() // 返回的该节点的keys为空数组
+//             return result;
+//         }
+//     }
+//
+//     // 判断此时的接送为object还是string, 当为string时，证明此时为jsonarray是一个list，且其中没有键值对
+//     if (typeof json == "string") {
+//         result["isArray"] = isArray; // 是数组
+//         result["arrayLength"] = arrayLength; // 没有数组长度字段
+//         result["keys"] = new Array(); // 返回的该节点的keys为空数组
+//         return result;
+//     }
+//
+//     var keys = Object.keys(json);
+//     result["isArray"] = isArray; // 是数组
+//     result["arrayLength"] = arrayLength;
+//     result["keys"] = keys;
+//     return result;
+//     // return keys;
+// }
+
+/**
+ * 升级版本的json解析
+ * @param json
+ * @param path
+ * @returns {{}}
+ */
 function analysisJson(json, path) {
     var result = {}
     var isArray = false
     if (path != "undefined" && path != null) {
         for (let i = 0; i < path.length; i++) {
+            onePath = path[i]
             if (json == undefined) {
                 result["isArray"] = isArray // 不是数组
                 result["arrayLength"] = null // 没有数组长度字段
@@ -17,8 +92,11 @@ function analysisJson(json, path) {
             }
             if (Array.isArray(json)) {
                 if (json.length > 0) {
-                    // 当json为一个数组时，取数组第一层
-                    json = json[0];
+                    // 当json为一个数组时，取数组第jsonpath中指定的相应下标元素
+                    field_name = onePath.split("[")[0]
+                    json = json[field_name]
+                    index = onePath.split("[")[1].split("]")[0]
+                    json = json[index]
                 } else {
                     // 当json数组中没有数据时，再去取深层节点肯定报错，所以，直接返回
                     result["isArray"] = isArray // 是数组
@@ -27,7 +105,16 @@ function analysisJson(json, path) {
                     return result;
                 }
             }
-            json = json[path[i]];
+            // 判断当前层级是否为array类型
+            // if (onePath.contains("[") && onePath.contains("]")) {
+            if (onePath.indexOf("[") != -1 && onePath.indexOf("]") != -1) {
+                field_name = onePath.split("[")[0]
+                json = json[field_name]
+                index = onePath.split("[")[1].split("]")[0]
+                json = json[index]
+            } else {
+                json = json[onePath];
+            }
         }
     }
     // 获取相关层级的所有子节点
@@ -55,10 +142,19 @@ function analysisJson(json, path) {
             return result;
         }
     }
+
+    // 判断此时的接送为object还是string, 当为string时，证明此时为jsonarray是一个list，且其中没有键值对
+    if (typeof json == "string") {
+        result["isArray"] = isArray; // 是数组
+        result["arrayLength"] = arrayLength; // 没有数组长度字段
+        result["keys"] = new Array(); // 返回的该节点的keys为空数组
+        return result;
+    }
+
     var keys = Object.keys(json);
-    result["isArray"] = isArray // 是数组
-    result["arrayLength"] = arrayLength; // 没有数组长度字段
-    result["keys"] = keys // 返回的该节点的keys为空数组
+    result["isArray"] = isArray; // 是数组
+    result["arrayLength"] = arrayLength;
+    result["keys"] = keys;
     return result;
     // return keys;
 }

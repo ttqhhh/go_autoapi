@@ -19,13 +19,16 @@ pre = '        <div class="json-nb">\n' +
     '\n' +
     '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
     '                <select name="check_type" id="check_type">\n' +
-    '                    <option value="eq" selected>eq</option>\n' +
-    '                    <option value="in">in</option>\n' +
-    '                    <option value="exist">exist</option>\n' +
-    '                    <option value="lt">lt</option>\n' +
-    '                    <option value="gt">gt</option>\n' +
-    '                    <option value="lte">lte</option>\n' +
-    '                    <option value="gte">gte</option>\n' +
+    '                    <option value="eq" selected>等于</option>\n' +
+    '                    <option value="neq">不等于</option>\n' +
+    '                    <option value="in">包含于</option>\n' +
+    '                    <option value="exist">存在此字段</option>\n' +
+    '                    <option value="lt">小于</option>\n' +
+    '                    <option value="gt">大于</option>\n' +
+    '                    <option value="lte">小于等于</option>\n' +
+    '                    <option value="gte">大于等于</option>\n' +
+    '                    <option value="isTrue">为真</option>\n' +
+    '                    <option value="isFalse">为假</option>\n' +
     '                </select>\n' +
     '            </div>\n' +
     '\n' +
@@ -57,18 +60,21 @@ first_pre = '        <div class="json-nb">\n' +
     '\n' +
     '            <div class="layui-inline" style="margin:0">\n' +
     '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="right_add" style="margin: 0">＋</button>\n' +
-    // '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+    '                <button class="layui-btn layui-btn-normal layui-btn-sm" type="button" id="left_rm" style="margin: 0">－</button>\n' +
     '            </div>\n' +
     '\n' +
     '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
     '                <select name="check_type" id="check_type">\n' +
-    '                    <option value="eq" selected>eq</option>\n' +
-    '                    <option value="in">in</option>\n' +
-    '                    <option value="exist">exist</option>\n' +
-    '                    <option value="lt">lt</option>\n' +
-    '                    <option value="gt">gt</option>\n' +
-    '                    <option value="lte">lte</option>\n' +
-    '                    <option value="gte">gte</option>\n' +
+    '                    <option value="eq" selected>等于</option>\n' +
+    '                    <option value="neq">不等于</option>\n' +
+    '                    <option value="in">包含于</option>\n' +
+    '                    <option value="exist">存在此字段</option>\n' +
+    '                    <option value="lt">小于</option>\n' +
+    '                    <option value="gt">大于</option>\n' +
+    '                    <option value="lte">小于等于</option>\n' +
+    '                    <option value="gte">大于等于</option>\n' +
+    '                    <option value="isTrue">为真</option>\n' +
+    '                    <option value="isFalse">为假</option>\n' +
     '                </select>\n' +
     '            </div>\n' +
     '\n' +

@@ -14,6 +14,7 @@ import (
 	"go_autoapi/controllers/monitor"
 	"go_autoapi/controllers/presstest"
 	"go_autoapi/controllers/report"
+	"go_autoapi/controllers/statisticsdata"
 	"go_autoapi/controllers/tuijian"
 	"go_autoapi/controllers/web_report"
 	_ "go_autoapi/controllers/web_report"
@@ -21,7 +22,8 @@ import (
 
 func init() {
 	beego.Router("/", &controllers.MainController{})
-	beego.Router("/api/*", &api.ApiController{}) // 对外暴露Api接口
+	beego.Router("/api/*", &api.ApiController{})     // 对外暴露Api接口
+	beego.Router("/tools/*", &api.ToolsController{}) // 对外暴露Tools Api接口
 	beego.Router("/user/*", &controllers.UserController{})
 	beego.Router("/auto/*", &auto.AutoTestController{})
 	beego.Router("/case/*", &casemanage.CaseManageController{})
@@ -38,4 +40,5 @@ func init() {
 	beego.Router("/h5report/*", &h5report.H5ReportController{})
 	beego.Router("/allview/*", &auto.AllviewController{})
 	beego.Router("/case_set/*", &case_set.CaseSetController{})
+	beego.Router("/statistics/*", &statisticsdata.StatisticsController{}) //用于统计接口数量
 }

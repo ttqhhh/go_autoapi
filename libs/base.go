@@ -34,6 +34,7 @@ var withoutLoginApi = []string{
 	"/flowreplay/collect_flow_file",
 	"/api/prepare",
 	"/auto/perform_tests",
+	"/tools/flush_token",
 }
 
 //// todo 该方法不要注释掉，不然登录功能就没意义了
@@ -41,10 +42,8 @@ func (b *BaseController) Prepare() {
 	one, err := b.GetSecureCookie(constant.CookieSecretKey, "user_id")
 	methodName := b.GetMethodName()
 	if err == false && methodName != "login" && methodName != "to_login" {
-		//logs.Error("not login")
-		//b.ErrorJson(-1, "not login", nil)
 		isNeedCheck := true
-		uri := b.Ctx.Request.RequestURI
+		uri := b.Ctx.Request.URL.Path
 		for _, api := range withoutLoginApi {
 			if api == uri {
 				isNeedCheck = false

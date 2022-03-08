@@ -71,6 +71,7 @@ func (c *AutoTestController) login() {
 	loginUser, err := au.GetUserInfoByName(u.UserName)
 	if err == mgo.ErrNotFound {
 		r := utils.GetRedis()
+		defer r.Close()
 		autoUserId, err := r.Incr(constant.AUTO_USER_PRIMARY_KEY).Result()
 		au := models.AutoUser{CreatedAt: timestamp, UpdatedAt: timestamp, Id: autoUserId, UserName: u.UserName, Email: u.UserName + "2014@xiaochuankeji.cn"}
 		err = au.InsertUser(au)

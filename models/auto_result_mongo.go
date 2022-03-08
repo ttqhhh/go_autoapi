@@ -51,6 +51,7 @@ func InsertResult(uuid string, case_id int64, isInspection int, result int, reas
 	ar := AutoResult{}
 	//id := GetId("result")
 	r := utils.GetRedis()
+	defer r.Close()
 	id, err := r.Incr(auto_result_primary_key).Result()
 	if err != nil {
 		logs.Error("auto_result新增数据时，从redis获取自增主键错误, err:", err)
@@ -113,12 +114,14 @@ func (a *AutoResult) GetFailCount(uuid string) (failCount int64, err error) {
 	defer ms.Close()
 
 	var query interface{} = bson.M{"run_id": uuid, "result": AUTO_RESULT_FAIL}
-	count, err := db.Find(query).Count()
+	var allFail = []AutoResult{}
+	// 查询分页列表数据
+	err = db.Find(query).All(&allFail)
+	noReapetFail := RemoveRepeatedElement(allFail)
 	if err != nil {
-		logs.Error("查询失败用例条数失败, err: ", err)
-		return 0, err
+		logs.Error("获取全部数据出错，err:", err)
 	}
-	failCount = int64(count)
+	failCount = int64(len(noReapetFail))
 	return
 
 }
@@ -140,7 +143,7 @@ func (a *AutoResult) DeleteResult(id string) error {
 
 //查询一周之前的的报告结果
 func (a *AutoResult) QueryResult() ([]AutoResult, error) {
-	nowTimeStr := time.Now().AddDate(0, 0, -8).Format("2006-01-02 15:04:0")
+	nowTimeStr := time.Now().AddDate(0, 0, -2).Format("2006-01-02 15:04:0")
 	ms, db := db_proxy.Connect(db, result_collection)
 	defer ms.Close()
 	query := bson.M{

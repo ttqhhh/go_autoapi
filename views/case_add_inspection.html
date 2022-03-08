@@ -1,6 +1,6 @@
 {{template "head.html" .}}
 
-<form class="layui-form layui-form-pane" action="/case/add_one_case/" method="post" enctype="" style="padding: 1%">
+<form class="layui-form layui-form-pane" action="/inspection/add_one_case/" method="post" enctype="" style="padding: 1%">
 
     <input type="text" name="api_name" value="api_name" style="display: none">
     <input type="text" name="level" value="none" style="display: none">
@@ -25,6 +25,17 @@
 
 <!--        隐藏作者-->
         <input type="text" name="author" style="display: none" value={{.Author}}>
+        <!-- 巡检策略 -->
+        <div class="layui-inline">
+            <label class="layui-form-label">巡检策略</label>
+            <div class="layui-input-block">
+                <select name="strategy" lay-filter="strategy" id="strategy">
+                </select>
+                <!--                <select name="strategy" lay-filter="strategy" id="strategy">-->
+                <!--                    &lt;!&ndash;                    <option selected>{{.a.ServiceName}}</option>&ndash;&gt;-->
+                <!--                </select>-->
+            </div>
+        </div>
 <!--        隐藏response-->
         <input type="text" name="smoke_response" style="display: none" id="smoke_response">
         
@@ -209,6 +220,29 @@
                     })
                 }
             });
+            /** 初始化线上巡检策略 */
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/inspection/get_all_strategy",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var strategy = data.data
+                    $.each(strategy, function (n, val) {
+                        let option1;
+                        {{/*if(val["name"] === "{{.a.BusinessName}}"){*/}}
+                        {{/*    first_business = val["code"]*/}}
+                        {{/*    option1 = '<option selected value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}else{*/}}
+                        {{/*    option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';*/}}
+                        {{/*}*/}}
+                        option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
+                        $("#strategy").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
             /** 默认加载一列服务 **/
             get_service_by_business(first_business)
             /** 默认加载一列域名 **/
@@ -381,7 +415,7 @@
             }
             // 当不存在key元素时，不进行元素追加
             if (res.keys.length != 0) {
-                $(this).parent().parent().find(".data_block").append(check_sel);
+                $(this).parent().parent().find(".data_block").append(check_sel)
                 var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
                 $.each(res.keys, function(i,v){
                     last_json.append('<option value='+v+'>'+ v+'</option>')

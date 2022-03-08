@@ -10,6 +10,7 @@ import (
 	"go_autoapi/libs"
 	"go_autoapi/models"
 	"go_autoapi/utils"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -98,9 +99,10 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 					if err := recover(); err != nil {
 						logs.Error("完犊子了，大概率又特么的有个童鞋写了个垃圾Case, 去执行记录页面瞧瞧，他的执行记录会一直处于运行中的状态。。。")
 						DingSendWrongCase("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl) //发送出问题的case
-						logs.Error("【线上巡检】case异常\n该case编写不正确，请重新编写\n。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + "\n业务线：" + businessName + "\n服务名" + serviceName + "\ncase名称：" + val.CaseName + "\nurl：" + val.ApiUrl)
+						logs.Error("【线上巡检】case异常: 该case编写不正确，请重新编写。caseid:" + strconv.FormatInt(val.TestCaseId, 10) + " 业务线：" + businessName + " 服务名" + serviceName + " case名称：" + val.CaseName + " url：" + val.ApiUrl)
 						wgInner.Done() //执行或defer后触发线程关闭！！！！！
-						// todo 可以往外推送一个钉钉消息，通报一下这个不会写Case的同学
+						logs.Error("Case: %v, 导致协程Panic, Error为: %v", val.TestCaseId, err)
+						logs.Error("Case: %v, 导致协程Panic, Stack为: %v", val.TestCaseId, string(debug.Stack()))
 					}
 				}()
 				// 当巡检用例执行失败时，再进行2次补偿重试
@@ -126,6 +128,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				}
 				// 获取用例执行进度时使用
 				r := utils.GetRedis()
+				defer r.Close()
 				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wgInner.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
@@ -153,7 +156,7 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				//break
 			}
 		}
-		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://172.16.2.86:8080/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
+		baseMsg := fmt.Sprintf("【业务线】: %s, 【服务】: %s。 报告链接: http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=%d;\n\n", businessName, serviceName, id)
 		restrainBaseMsg := fmt.Sprintf("==========  ==========\n【业务线】: %s, 【服务】: %s。\n==========  ==========\n", businessName, serviceName)
 		// 遍历case2ResultMap，哪个caseId对应的value长度为3，则该条Case为失败Case
 		msg := ""
@@ -188,6 +191,9 @@ func PerformInspection(businessId int8, serviceId int64, msgChannel chan string,
 				// todo 发送钉钉消息时，注意频次，预防被封群
 				msg += fmt.Sprintf("【Case名称】: %s;\n【接口路径】: %s;\n【请求状态码】: %d;\n【失败原因】: %s;\n\n", caseName, uri, statusCode, reason)
 			}
+		}
+		if isPass == models.RUNNING {
+			isPass = models.SUCCESS
 		}
 		if msg != "" {
 			logs.Info("开始向通道发送消息")

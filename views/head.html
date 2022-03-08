@@ -11,6 +11,7 @@
           type="image/x-icon"/>
     <link rel="stylesheet" href="/static/layui/css/layui.css"  media="all">
     <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <script src="../static/js/echarts.js"></script>
     <style>
         /*html{*/
         /*    background: url(//static.ixiaochuan.cn/planck/home_background.81871fe3ab.jpg) no-repeat;*/
@@ -139,7 +140,7 @@
             },{
                 title: '海外埋点测试'
                 ,id: 101
-                ,href: 'http://192.168.10.254:8080/auto/check_points' //开启超链接
+                ,href: 'http://192.168.25.171:8080/auto/check_points' //开启超链接
                 ,target: '_blank' //新窗口方式打开
             },]
             ,id: 'demo1'
@@ -155,12 +156,12 @@
     <!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
     <img src="/static/img/zuiyouicon.png" alt="" style="margin-top: -2px;">
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
-        <a href="javascript:;">测试用例管理</a>
+        <a href="javascript:;">线下自动化</a>
         <dl class="layui-nav-child" id="business_list">
         </dl>
     </li>
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
-        <a href="javascript:;">巡检用例管理</a>
+        <a href="javascript:;">线上监控</a>
         <dl class="layui-nav-child" id="inspection_business_list">
         </dl>
     </li>
@@ -171,9 +172,9 @@
     </li>
     <!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
     <!--{{/*    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>*/}}-->
-    <li class="layui-nav-item" id="/report/show_run_record"><a href="/report/show_run_record">测试报告</a></li>
+    <li class="layui-nav-item" id="/report/show_run_record"><a href="/report/show_run_record">自动化报告</a></li>
 git
-    <li class="layui-nav-item" id="/show_run_record_inspection"><a href="/report/show_run_record_inspection">巡检报告</a></li>
+    <li class="layui-nav-item" id="/show_run_record_inspection"><a href="/report/show_run_record_inspection">监控报告</a></li>
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
         <a href="javascript:;">h5监控</a>
         <dl class="layui-nav-child" id="h5_business_list">
@@ -192,6 +193,8 @@ git
     <li class="layui-nav-item"><a href="http://172.16.2.86:8094/ ">Case平台</a></li>
     <li class="layui-nav-item"id="/flowreplay/index"><a href="/flowreplay/index">推荐工具</a></li>
     <li class="layui-nav-item"id="/presstest/index"><a href="/presstest/index">压测工具</a></li>
+    <li class="layui-nav-item"id="/presstest/index"><a href="/statistics/show_statistics_data">数据统计</a></li>
+
 
 
     <!--    <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>-->

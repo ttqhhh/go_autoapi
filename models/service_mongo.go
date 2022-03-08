@@ -98,26 +98,17 @@ func (mongo *ServiceMongo) Update(service ServiceMongo) error {
 
 // todo 根据服务名模糊查询待实现
 // 分页查询
-func (mongo *ServiceMongo) QueryByPage(businesses []int, serviceName string, pageNo int, pageSize int) ([]ServiceMongo, int, error) {
+func (mongo *ServiceMongo) QueryByPage(business int8, serviceName string, pageNo int, pageSize int) ([]ServiceMongo, int, error) {
 	ms, db := db_proxy.Connect(db, collection)
 	defer ms.Close()
 
 	// 查询分页数据
 	query := bson.M{"status": 0}
-	//if business != -1 {
-	//	query["business"] = business
-	//}
+	if business != -1 {
+		query["business"] = business
+	}
 	if serviceName != "" {
 		query["service_name"] = bson.M{"$regex": serviceName}
-	}
-	// 进行业务线筛选
-	if len(businesses) > 0 {
-		//queryCond := []interface{}{bson.D{"business"}}
-		queryCond := []interface{}{}
-		for _, v := range businesses {
-			queryCond = append(queryCond, bson.M{"business": v})
-		}
-		query["$or"] = queryCond
 	}
 
 	serviceList := []ServiceMongo{}

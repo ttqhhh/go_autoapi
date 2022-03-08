@@ -298,10 +298,14 @@
                     contentType: 'application/json;charset=UTF-8',
                     data: JSON.stringify(data),
                     success: function (data) {
-                        layer.msg("删除成功");
-                        // tableInit();
-                        layer.close(index);
-                        window.location.reload()
+                        if (data.code == 200) {
+                            layer.msg("删除成功");
+                            // tableInit();
+                            layer.close(index);
+                            window.location.reload()
+                        } else {
+                            layer.msg(data.msg);
+                        }
                     }
                 })
                 // layer.close(index);

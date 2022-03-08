@@ -42,17 +42,21 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 
 	client := &http.Client{}
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
-		return
-	}
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//v := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，处理请求json报错， err:", err)
+	//	return
+	//}
+	// todo 通过字符串处理的方式，进行了json压缩，以便发生数据时服务器不报参数异常
+	handleJson := HandleJson(param)
+	paramByte := []byte(handleJson)
 	postData := bytes.NewReader(paramByte)
 	req, err := http.NewRequest("POST", url, postData)
 	if err != nil {
@@ -87,7 +91,7 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 }
 
 // 发送请求函数
-func DoRequest(domain string, url string, uuid string, m string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool, resp string) {
+func DoRequest(domain string, url string, uuid string, param string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool, resp string) {
 	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -124,7 +128,10 @@ func DoRequest(domain string, url string, uuid string, m string, checkPoint stri
 	}
 
 	client := &http.Client{}
-	postData := bytes.NewReader([]byte(m))
+	// todo 通过字符串处理的方式，进行了json压缩，以便发生数据时服务器不报参数异常
+	handleJson := HandleJson(param)
+	paramByte := []byte(handleJson)
+	postData := bytes.NewReader(paramByte)
 	// 对domain和url进行兼容性拼接
 	if strings.HasSuffix(domain, "/") {
 		domain = domain[:len(domain)-1]
@@ -150,7 +157,18 @@ func DoRequest(domain string, url string, uuid string, m string, checkPoint stri
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}
-	response, _ := client.Do(req)
+	response, err := client.Do(req)
+	if err != nil {
+		logs.Error("DoRequest发起请求调用时出错, err: ", err)
+		reason := "该接口不通, 请求超时..."
+		result := models.AUTO_RESULT_FAIL
+		resp := ""
+		statusCode := 0
+		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
+		isPass = false
+		return
+	}
+
 	respStatus := response.StatusCode
 	var reader io.ReadCloser
 	if response.Header.Get("Content-Encoding") == "gzip" {
@@ -200,21 +218,75 @@ func doVerify(statusCode int, uuid string, response string, verify map[string]ma
 			reason += ";" + fmt.Sprintf("不满足【存在】, json路径：【%s】", path)
 			continue
 		}
+		/**
+			<option value="eq" selected>等于</option>	number/string
+		    <option value="neq">不等于</option>			number/string
+		    <option value="in">包含于</option>			string
+		    <option value="exist">存在此字段</option>
+		    <option value="lt">小于</option>			number
+		    <option value="gt">大于</option>			number
+		    <option value="lte">小于等于</option>		number
+		    <option value="gte">大于等于</option>		number
+			<option value="isTrue">为真</option>
+			<option value="isFalse">为假</option>
+		*/
 		for checkType, checkValue := range checkRule {
 			var vv interface{}
 			// 根据类型转换jsonpath获取的数组首位类型
-			if checkType != "exist" {
-				switch checkValue.(type) {
-				case string:
-					vv = valueInResp[0].MustString()
-				case float64:
-					vv = valueInResp[0].MustNumeric()
+			if checkType != "exist" { // 当checkType不为exist时
+				valueType := valueInResp[0].Type()
+				if valueType != jsonpath.Numeric && valueType != jsonpath.String && valueType != jsonpath.Bool { // ①确保valueInResp的value值是否为number/string/bool类型
+					logs.Error("the verify key is not last level in the response", path)
+					reason += ";" + fmt.Sprintf("按照配置的json路径取到的值非基本类型（number/string/bool）, 请重新配置。json路径：【%s】", path)
+					continue
+				} else { // ② 确保checkType和checkValue匹配，然后取出valueInResp的value值
+					if checkType == "isTrue" || checkType == "isFalse" { // 当checkType为exist/isTrue/isFalse时，不进行checkValue数据类型校验和响应值数据类型转换
+						if valueType != jsonpath.Bool {
+							logs.Error("the verify value type isn't bool", path)
+							reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型不是布尔类型, 请重新配置。json路径：【%s】", path)
+							continue
+						}
+						vv = valueInResp[0].MustBool()
+					} else { // 当checkType不为exist、isTrue和isFalse时
+						switch checkValue.(type) {
+						case string:
+							if checkType == "lt" || checkType == "gt" || checkType == "lte" || checkType == "gte" {
+								logs.Error("the check type should not string type'", path)
+								reason += ";" + fmt.Sprintf("校验类型为:【%s】时, 校验值类型不能为string。json路径：【%s】", checkType, path)
+								continue
+							}
+							if valueType != jsonpath.String {
+								logs.Error("the verify key type and value type isn't same", path)
+								reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
+								continue
+							}
+							vv = valueInResp[0].MustString()
+						case float64:
+							if checkType == "in" {
+								logs.Error("the check type should not number type'", path)
+								reason += ";" + fmt.Sprintf("校验类型为:【%s】时, 校验值类型不能为number。json路径：【%s】", checkType, path)
+								continue
+							}
+							if valueType != jsonpath.Numeric {
+								logs.Error("the verify key type and value type isn't same", path)
+								reason += ";" + fmt.Sprintf("按照配置的json路径取到的值类型与校验点中配置的值类型不符, 请重新配置。json路径：【%s】", path)
+								continue
+							}
+							vv = valueInResp[0].MustNumeric()
+						}
+					}
 				}
 			}
 			if checkType == "eq" {
 				if checkValue != vv {
 					logs.Error("not equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", path, vv, checkValue)
+					continue
+				}
+			} else if checkType == "neq" {
+				if checkValue == vv {
+					logs.Error("equal, key %s, actual value %checkRule,expected %checkRule", path, vv, checkValue)
+					reason += ";" + fmt.Sprintf("不满足【不相等】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【%v】", path, vv, checkValue)
 					continue
 				}
 			} else if checkType == "exist" {
@@ -247,6 +319,18 @@ func doVerify(statusCode int, uuid string, response string, verify map[string]ma
 				if !(vv.(float64) >= checkValue.(float64)) {
 					logs.Error("not gte, key %s, actual %checkRule >= expected %checkRule", path, vv, checkValue)
 					reason += ";" + fmt.Sprintf("不满足【大于等于】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【>=%v】", path, vv, checkValue)
+					continue
+				}
+			} else if checkType == "isTrue" {
+				if vv.(bool) != true {
+					logs.Error("not isTrue, key %s, actual %checkRule, expected True", path, vv)
+					reason += ";" + fmt.Sprintf("不满足【为真】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【true】", path, vv)
+					continue
+				}
+			} else if checkType == "isFalse" {
+				if vv.(bool) != false {
+					logs.Error("not isFalse, key %s, actual %checkRule, expected False", path, vv)
+					reason += ";" + fmt.Sprintf("不满足【为假】, json路径: 【%s】, 实际值: 【%v】, 期望值: 【false】", path, vv)
 					continue
 				}
 			} else {

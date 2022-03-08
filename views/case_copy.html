@@ -91,7 +91,7 @@
         <div class="layui-inline" style="width: 45%;">
             <label class="layui-form-label">请求参数</label>
             <div class="layui-input-block" >
-            <textarea placeholder="请输入内容" style="height: 200px" class="layui-textarea" lay-verify="required"
+            <textarea placeholder='请您输入压缩后的JSON( 如: {"username":"zhangsan","password":"123456"}); 严禁输入格式化后的JSON(即带有回车换行的JSON)' style="height: 200px" class="layui-textarea" lay-verify="required"
                       name="parameter" id="request_param">{{.a.Parameter}}</textarea>
             </div>
         </div>
@@ -142,7 +142,7 @@
                     // $("#City").html("");
                     $.each(data.data, function(key, val) {
                         let option1;
-                        if(val["service_name"] === '{{.a.ServiceName}}'){
+                        if(val["id"] === {{.a.ServiceId}}){
                             // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
                             option1 = '<option selected value='+val["id"]+";"+val["service_name"]+'>'+val["service_name"]+'</option>'
                         }else{
@@ -214,10 +214,22 @@
                     }
                 });
                 /** 非动态项 作为尾部直接加在后面就ok **/
+                var checkTypeMap = {
+                    "eq":"等于",
+                    "neq":"不等于",
+                    "in":"包含于",
+                    "exist":"存在此字段",
+                    "lt":"小于",
+                    "gt":"大于",
+                    "lte":"小于等于",
+                    "gte":"大于等于",
+                    "isTrue":"为真",
+                    "isFalse":"为假",
+                }
                 let html_butt =
                     '            <div class="layui-inline" style="margin:0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
-                    // '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
                     '            </div>\n' +
                     // '\n' +
                     // '            <div class="layui-inline">\n' +
@@ -225,14 +237,17 @@
                     '\n' +
                     '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                     '                <select name="check_type" id="check_type">\n' +
-                    '                    <option checked value=' + v.checkType + '>' + v.checkType + '</option>\n' +
-                    '                    <option value="eq">eq</option>\n' +
-                    '                    <option value="in">in</option>\n' +
-                    '                    <option value="exist">exist</option>\n' +
-                    '                    <option value="lt">lt</option>\n' +
-                    '                    <option value="gt">gt</option>\n' +
-                    '                    <option value="lte">lte</option>\n' +
-                    '                    <option value="gte">gte</option>\n' +
+                    '                    <option checked value=' + v.checkType + '>' + checkTypeMap[v.checkType] + '</option>\n' +
+                    '                    <option value="eq">等于</option>\n' +
+                    '                    <option value="neq">不等于</option>\n' +
+                    '                    <option value="in">包含于</option>\n' +
+                    '                    <option value="exist">存在此字段</option>\n' +
+                    '                    <option value="lt">小于</option>\n' +
+                    '                    <option value="gt">大于</option>\n' +
+                    '                    <option value="lte">小于等于</option>\n' +
+                    '                    <option value="gte">大于等于</option>\n' +
+                    '                    <option value="isTrue">为真</option>\n' +
+                    '                    <option value="isFalse">为假</option>\n' +
                     '                </select>\n' +
                     '            </div>\n' +
                     '\n' +
@@ -250,7 +265,7 @@
                     '            </div>\n' +
                     '            <div class="layui-inline" style="margin: 0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
-                    // '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
                     '            </div>\n' +
                     // '            <div class="layui-inline">\n' +
                     // '            </div>\n' +
@@ -482,13 +497,18 @@
                             let node = ""
                             $(this).find(".data_block").find("option:selected").each(function (){
                                 if(isNumber($(this).text())){
-                                    node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                    isArray = $(this).parent().attr("isArray")
+                                    if (isArray == undefined) {
+                                        node = node + $(this).text() +"."
+                                    } else {
+                                        node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                    }
                                 }else{
                                     node = node + $(this).text() +"."
                                 }
                             });
                             node = node.substring(0,node.length-1)
-                            const checkType = $(this).find("#check_type").find("option:selected").text();
+                            const checkType = $(this).find("#check_type").find("option:selected").val();
                             const value = $(this).find("#value").val();
                             const valueType = $(this).find("#value_type").find("option:selected").text();
                             const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
@@ -564,22 +584,37 @@
             var arr =new Array();
             const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
             sel_val.each(function() {
-                arr.push($(this).text())
+                if(isNumber($(this).text())){
+                    isArray = $(this).parent().attr("isArray")
+                    if (isArray == undefined) {
+                        arr.push($(this).text())
+                    } else {
+                        // console.log("is a number so pass");
+                        arr[arr.length - 1] = arr[arr.length - 1] + "[" + $(this).text() + "]";
+                    }
+                }else{
+                    arr.push($(this).text())
+                }
             });
             const res = analysisJson(obj, arr);
             /** 判断如果是数组则新增一列 **/
             if(res["isArray"] === true){
                 $(this).parent().parent().find(".data_block").append(check_sel)
                 var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                // 当isArray时，给json_head再添加一个可识别的自定义标识
+                last_json.attr("isArray", "true")
                 for (let i = 0; i < res.arrayLength; i++) {
                     last_json.append('<option value='+i+'>'+ i+'</option>')
                 }
             }
-            $(this).parent().parent().find(".data_block").append(check_sel)
-            var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
-            $.each(res.keys, function(i,v){
-                last_json.append('<option value='+v+'>'+ v+'</option>')
-            });
+            // 当不存在key元素时，不进行元素追加
+            if (res.keys.length != 0) {
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                $.each(res.keys, function(i,v){
+                    last_json.append('<option value='+v+'>'+ v+'</option>')
+                });
+            }
             form.render()
         });
 

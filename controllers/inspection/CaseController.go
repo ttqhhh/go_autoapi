@@ -1,7 +1,6 @@
 package inspection
 
 import (
-	"encoding/json"
 	"github.com/astaxie/beego/logs"
 	"github.com/prometheus/common/log"
 	"go_autoapi/constants"
@@ -56,7 +55,8 @@ const (
 	H5_EXPRESSION          = "0 0/5 * * * *"
 )
 const (
-	ONE_WEEK_EXPRESSION = "0 0 8 * * 1" //每周一早上8点
+	ONE_WEEK_EXPRESSION = "0 0 8 * * *" //每天早上8点
+	TUESDAY_EXPRESSION  = "0 0 8 * * 5" //每周5早上8点
 
 )
 
@@ -87,6 +87,8 @@ var StrategyCode2Expression = map[int]string{
 func (c *CaseController) Get() {
 	do := c.GetMethodName()
 	switch do {
+	case "show_add_inspection_case":
+		c.ShowAddInspectionCase()
 	case "show_cases":
 		c.ShowCases()
 	case "show_edit_case":
@@ -121,6 +123,17 @@ func (c *CaseController) Post() {
 		c.ErrorJson(-1, "不支持", nil)
 	}
 }
+
+func (c *CaseController) ShowAddInspectionCase() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	business := c.GetString("business")
+	//services := GetServiceList(business)
+	// 获取全部service
+	c.Data["Author"] = userId
+	c.Data["business"] = business
+	c.TplName = "case_add_inspection.html"
+}
+
 func (c *CaseController) updateCaseByID() {
 	icm := models.InspectionCaseMongo{}
 	dom := models.Domain{}
@@ -131,7 +144,11 @@ func (c *CaseController) updateCaseByID() {
 	dom.Author = icm.Author
 	intBus, _ := strconv.Atoi(icm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = icm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, icm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = icm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
@@ -150,29 +167,31 @@ func (c *CaseController) updateCaseByID() {
 	apiUrl := icm.ApiUrl
 	icm.ApiUrl = strings.TrimSpace(apiUrl)
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := icm.Parameter
-	v := make(map[string]interface{})
-	err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("更新Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	icm.Parameter = string(paramByte)
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//param := icm.Parameter
+	//v := make(map[string]interface{})
+	//err := json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("更新Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//icm.Parameter = string(paramByte)
 	// 查询出当前该条Case的巡检状态，并设置到将要更新的acm结构中去
 	//InspectionCaseMongo := icm.GetOneCase(caseId)
 	icm.IsInspection = 1
-	icm, err = icm.UpdateCase(caseId, icm)
+	icm, err := icm.UpdateCase(caseId, icm)
 	if err != nil {
 		logs.Error("更新Case报错，err: ", err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
 	//c.SuccessJson("更新成功")
-	c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	//c.Ctx.Redirect(302, "/inspection/show_cases?business="+business)
+	c.Ctx.Redirect(302, "/case/close_windows")
 }
 
 func (c *CaseController) ShowCaseDeatil() {
@@ -185,6 +204,27 @@ func (c *CaseController) ShowCaseDeatil() {
 	}
 	acm := models.InspectionCaseMongo{}
 	res := acm.GetOneCase(idInt)
+	result := map[string]interface{}{}
+	result["Id"] = res.Id
+	// 去查询关联的ServiceName
+	serviceMongo := models.ServiceMongo{}
+	service, err := serviceMongo.QueryById(res.ServiceId)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	result["ServiceName"] = service.ServiceName
+	result["Parameter"] = res.Parameter
+	result["Author"] = res.Author
+	result["ApiUrl"] = res.ApiUrl
+	result["BusinessName"] = res.BusinessName
+	result["CaseName"] = res.CaseName
+	result["Domain"] = res.Domain
+	result["Description"] = res.Description
+	result["Checkpoint"] = res.Checkpoint
+	result["RequestMethod"] = res.RequestMethod
+	result["SmokeResponse"] = res.SmokeResponse
+	result["Strategy"] = res.Strategy
+
 	c.Data["a"] = &res
 	//c.Data["services"] = services
 	c.TplName = "inspection_case_detail.html"
@@ -239,7 +279,11 @@ func (c *CaseController) AddOneCase() {
 	dom.Author = acm.Author
 	intBus, _ := strconv.Atoi(acm.BusinessCode)
 	dom.Business = int8(intBus)
-	dom.DomainName = acm.Domain
+	if strings.Contains(constants.TEST_DOMAIN, acm.Domain) {
+		c.ErrorJson(-1, "保存Case出错啦,线上监控禁止使用线下域名", nil)
+	} else {
+		dom.DomainName = acm.Domain
+	}
 	if err := dom.DomainInsert(dom); err != nil {
 		logs.Error("添加case的时候 domain 插入失败")
 	}
@@ -250,6 +294,7 @@ func (c *CaseController) AddOneCase() {
 	acm.ServiceId = id64
 	//acm.Id = models.GetId("case")
 	r := utils.GetRedis()
+	defer r.Close()
 	testCaseId, err := r.Incr(constants.INSPECTION_CASE_PRIMARY_KEY).Result()
 	if err != nil {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
@@ -281,19 +326,20 @@ func (c *CaseController) AddOneCase() {
 	apiUrl := acm.ApiUrl
 	acm.ApiUrl = strings.TrimSpace(apiUrl)
 	// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
-	param := acm.Parameter
-	v := make(map[string]interface{})
-	err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
-	if err != nil {
-		logs.Error("发送冒烟请求前，解码json报错，err：", err)
-		return
-	}
-	paramByte, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("保存Case时，处理请求json报错， err:", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
-	}
-	acm.Parameter = string(paramByte)
+	// todo 暂时把格式化处理的相关逻辑挪到了DoRequest中
+	//param := acm.Parameter
+	//v := make(map[string]interface{})
+	//err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+	//if err != nil {
+	//	logs.Error("发送冒烟请求前，解码json报错，err：", err)
+	//	return
+	//}
+	//paramByte, err := json.Marshal(v)
+	//if err != nil {
+	//	logs.Error("保存Case时，处理请求json报错， err:", err)
+	//	c.ErrorJson(-1, "保存Case出错啦", nil)
+	//}
+	//acm.Parameter = string(paramByte)
 	if err := acm.AddCase(acm); err != nil {
 		logs.Error("保存Case报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
