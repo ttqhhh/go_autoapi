@@ -35,8 +35,11 @@
                 <input type="text" class="case_name layui-input" placeholder="输入步骤名称">
             </div>
             <div class="layui-inline">
-                <button class="layui-btn layui-btn-sm layui-border-blue layui-btn-primary" style="display: inline" id="search_btn">搜索</button>
+                <button class="layui-btn layui-btn layui-border-blue layui-btn-primary" style="display: inline" id="search_btn">搜索</button>
             </div>
+        </div>
+        <div style="display: inline-block;margin-left: 30px">
+        <button class="layui-btn layui-btn layui-border-red layui-btn-primary" style="display: inline" id="create_new_case">新增步骤</button>
         </div>
     </div>
     <div style="float: left;margin-top: 1px; width: 45%" >
@@ -133,8 +136,9 @@
                 layui.close(obj);
             });
 
-            $(document).on("click",".add_case", function (){
-                window.location.href= "/case/show_add_case"
+            $(document).on("click", "#create_new_case", function (){
+                alert("新增")
+
             });
 
 
