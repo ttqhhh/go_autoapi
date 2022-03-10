@@ -29,6 +29,7 @@ func Statistics1Week() error {
 		mongo.AllCaseCount = one.AllCaseCount
 		mongo.NewApiConut = one.NewApiConut
 		mongo.BusinessName = one.BusinessName
+		mongo.LastWeekDegreeOfCompletion = one.LastWeekDegreeOfCompletion
 		err := mongo.Insert(mongo)
 		if err != nil {
 			logs.Error("插入数据出错")
