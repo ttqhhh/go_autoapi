@@ -171,76 +171,93 @@
         }
 
         function make_response_to_select(json){
-            $.each(json, function (i,v){
+            // todo 此处的json参数为一个jsonarray，遍历jsonarray
+            $.each(json, function (i,checkPoint){
                 let html_head =
                     '        <div class="json-nb">\n' +
                     '            <label class="layui-form-label">检查点</label>\n' +
                     '            <div class="layui-inline data_block" >\n'
-                const arr = v.node.split(".");
+                const arr = checkPoint.node.split(".");
                 const temp = new Array();
                 let html_body = ""
                 let vdIndex;
                 /** node select 层**/
-                $.each(arr, function (i,v){
+                // todo 遍历
+                $.each(arr, function (j,fieldPath){
                     /** 待优化项，select头部数据 是直接写的 而不是判断选中，会造成重复数据**/
                     /** 判断头部数据 是否含有[] 含有并分割获取 键 和 下标**/
-                    let vh;
-                    var patt1 = new RegExp("]");
-                    if (patt1.test(v)) {
-                        vh = v.split("[")[0];
-                        const vd = v.split("[")[1];
-                        vdIndex = parseInt(vd.substring(0, vd.length - 1))
-                        v = vh
-                    }
+                    // let vh;
+                    // var patt1 = new RegExp("]");
+                    // if (patt1.test(v)) {
+                    //     vh = v.split("[")[0];
+                    //     const vd = v.split("[")[1];
+                    //     vdIndex = parseInt(vd.substring(0, vd.length - 1))
+                    //     v = vh
+                    // }
                     /**---------------分割线-----------------------**/
+                    let field = fieldPath
+                    if (fieldPath.indexOf("[")!=-1 && fieldPath.indexOf("]")!=-1) {
+                        // field = fieldPath.substring(fieldPath.indexOf("[")+1, fieldPath.indexOf("]"))
+                        field = fieldPath.substring(0, fieldPath.indexOf("["))
+                    }
                     html_body = html_body +
                         '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
                         '                <select name="check_name" id="json_head">\n' +
-                        '                   <option selected value='+v+'>'+v+'</option>\n'
+                        '                   <option selected value='+field+'>'+field+'</option>\n'
                     /** option 层**/
                     if(i===0){
                         const res = analysisJson(obj)
-                        $.each(res.keys, function(i,j){
-                            html_body  = html_body  + '<option value=' + j + '>' + j + '</option>\n'
+                        $.each(res.keys, function(k,key){
+                            html_body  = html_body  + '<option value=' + key + '>' + key + '</option>\n'
                         });
                     }else{
                         const res = analysisJson(obj, temp);
-                        $.each(res.keys, function(i,v){
-                            html_body  = html_body  + '<option value='+v+'>'+ v+'</option>\n'
+                        // todo 根据analysisJson获取的keys进行html拼接
+                        $.each(res.keys, function(k,key){
+                            if (fieldPath.indexOf("[")!=-1 && fieldPath.indexOf("]")!=-1) {
+                                vdIndex = fieldPath.substring(fieldPath.indexOf("[")+1, fieldPath.indexOf("]"))
+                            }
+                            html_body  = html_body  + '<option value='+key+'>'+ key+'</option>\n'
                         });
                     }
-                    temp.push(v)
+                    temp.push(fieldPath)
                     html_body = html_body + '</select>\n</div>\n'
                     /** 判断vdindex大于0 则在后面添加一个长度的下拉框的select列 **/
                     if(vdIndex !== undefined){
                         html_body = html_body +
                             '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
-                            '                <select name="check_name" id="json_head">\n'
+                            '                <select name="check_name" id="json_head" isArray="true">\n'
+                        // const res = analysisJson(obj, temp);
+                        var tempElement = temp[temp.length-1]
+                        temp[temp.length-1] = tempElement.substring(0, tempElement.indexOf("["))
                         const res = analysisJson(obj, temp);
-                        for (let i = 0; i < res.arrayLength; i++) {
-                            if(i === vdIndex){
-                                html_body  = html_body  + '<option selected value='+i+'>'+ i+'</option>\n'
+                        for (let k = 0; k < res.arrayLength; k++) {
+                            if(k == vdIndex){
+                                html_body  = html_body  + '<option selected value='+k+'>'+ k+'</option>\n'
                             }else{
-                                html_body  = html_body  + '<option value='+i+'>'+ i+'</option>\n'
+                                html_body  = html_body  + '<option value='+k+'>'+ k+'</option>\n'
                             }
                         }
                         html_body = html_body + '</select>\n</div>\n'
                         vdIndex = undefined
+                        // 再把原路径替换回去
+                        temp[temp.length-1] = tempElement
                     }
                 });
                 /** 非动态项 作为尾部直接加在后面就ok **/
+                    // 定义一个checkType的code和name的映射关系
                 var checkTypeMap = {
-                    "eq":"等于",
-                    "neq":"不等于",
-                    "in":"包含于",
-                    "exist":"存在此字段",
-                    "lt":"小于",
-                    "gt":"大于",
-                    "lte":"小于等于",
-                    "gte":"大于等于",
-                    "isTrue":"为真",
-                    "isFalse":"为假",
-                }
+                        "eq":"等于",
+                        "neq":"不等于",
+                        "in":"包含于",
+                        "exist":"存在此字段",
+                        "lt":"小于",
+                        "gt":"大于",
+                        "lte":"小于等于",
+                        "gte":"大于等于",
+                        "isTrue":"为真",
+                        "isFalse":"为假",
+                    }
                 let html_butt =
                     '            <div class="layui-inline" style="margin:0">\n' +
                     '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
@@ -252,7 +269,7 @@
                     '\n' +
                     '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
                     '                <select name="check_type" id="check_type">\n' +
-                    '                    <option checked value=' + v.checkType + '>' + checkTypeMap[v.checkType] + '</option>\n' +
+                    '                    <option checked value=' + checkPoint.checkType + '>' + checkTypeMap[checkPoint.checkType] + '</option>\n' +
                     '                    <option value="eq">等于</option>\n' +
                     '                    <option value="neq">不等于</option>\n' +
                     '                    <option value="in">包含于</option>\n' +
@@ -267,12 +284,12 @@
                     '            </div>\n' +
                     '\n' +
                     '            <div class="layui-inline" style="margin: 0;">\n' +
-                    '                <input type="text" id="value" value=' + v.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
+                    '                <input type="text" id="value" value=' + checkPoint.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
                     '            </div>\n' +
                     '\n' +
                     '            <div class="layui-inline" style="width: 150px;margin: 0">\n' +
                     '                <select name="value_type" id="value_type">\n' +
-                    '                    <option checked value='+v.valueType+'>' + v.valueType + '</option>\n' +
+                    '                    <option checked value='+checkPoint.valueType+'>' + checkPoint.valueType + '</option>\n' +
                     '                    <option value="请选择数据类型">请选择数据类型</option>\n' +
                     '                    <option value="number">number</option>\n' +
                     '                    <option value="string">string</option>\n' +
