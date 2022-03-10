@@ -1,9 +1,13 @@
 package statisticsdata
 
 import (
+	"encoding/json"
+	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/prometheus/common/log"
 	"go_autoapi/libs"
 	"go_autoapi/models"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -182,6 +186,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData2.DegreeOfCompletion = "100%"
 	} else {
 		respData2.DegreeOfCompletion = str2 + "%"
+
 	}
 
 	strLast2 := strconv.FormatFloat(float64(float64(respData2.AllCaseCount-respData2.NewCaseConut)/pipiAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
@@ -192,6 +197,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData2.LastWeekDegreeOfCompletion = "100%"
 	} else {
 		respData2.LastWeekDegreeOfCompletion = strLast2 + "%"
+
 	}
 	respDataList = append(respDataList, respData2)
 
@@ -239,6 +245,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData4.DegreeOfCompletion = "100%"
 	} else {
 		respData4.DegreeOfCompletion = str4 + "%"
+
 	}
 
 	strLast4 := strconv.FormatFloat(float64(float64(respData4.AllCaseCount-respData4.NewCaseConut)/zhongdongAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
@@ -280,6 +287,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData6.DegreeOfCompletion = "100%"
 	} else {
 		respData6.DegreeOfCompletion = str6 + "%"
+
 	}
 
 	strLast6 := strconv.FormatFloat(float64(float64(respData6.AllCaseCount-respData6.NewCaseConut)/shangyehuaAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
@@ -290,6 +298,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData6.LastWeekDegreeOfCompletion = "100%"
 	} else {
 		respData6.LastWeekDegreeOfCompletion = strLast6 + "%"
+
 	}
 
 	respDataList = append(respDataList, respData6)
@@ -309,6 +318,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData7.DegreeOfCompletion = "100%"
 	} else {
 		respData7.DegreeOfCompletion = str7 + "%"
+
 	}
 
 	strLast7 := strconv.FormatFloat(float64(float64(respData7.AllCaseCount-respData7.NewCaseConut)/haiwaiUSAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
@@ -319,6 +329,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 		respData7.LastWeekDegreeOfCompletion = "100%"
 	} else {
 		respData7.LastWeekDegreeOfCompletion = strLast7 + "%"
+
 	}
 
 	respDataList = append(respDataList, respData7)
@@ -494,14 +505,323 @@ func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一�
 
 func getAllApi() map[string]float64 {
 	data := make(map[string]float64)
-	//data["0"] = 200
-	//data["1"] = 200
-	//data["2"] = 200
-	//data["3"] = 200
-	//data["4"] = 200
-	//data["5"] = 200
-	//data["6"] = 200
-
+	cookie := getLogin()
+	cookiehaiwai := getLoginHaiWai()
+	cookiehaiwaius := getLoginHaiWaiUS()
+	cookiezd := getLoginZhongDong()
+	//商业化
+	shangyehua := getSyhAllApiCount(cookie)
+	////最右
+	zuiyou := getZyAllApiCount(cookie)
+	pipi := getPPAllApiCount(cookie)
+	haiwai := gethaiwaiAllApiCount(cookiehaiwai)
+	haiwaius := gethaiwaiUSAllApiCount(cookiehaiwaius)
+	zd := getzhongdongAllApiCount(cookiezd)
+	data["0"] = zuiyou
+	data["1"] = pipi
+	data["2"] = haiwai
+	data["3"] = zd  //中东
+	data["4"] = 200 //麻团
+	data["5"] = shangyehua
+	data["6"] = haiwaius
 	return data
 
+}
+
+//-----------------------------------------------------------------
+
+//用到的常量
+const ZY_grafana_login_url = "http://grafana.ixiaochuan.cn/login"
+const HW_grafana_login_url = "http://dashboard.icocofun.net/login"
+const HWUS_grafana_login_url = "http://grafanaus.icocofun.net/login"
+const ZD_grafana_login_url = "http://grafana.mehiya.com/login"
+const AD_gateway_path_url = "http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200"
+
+//解析json所需要的结构体
+type JsonData struct {
+	Status string `json:"status"`
+	Data   Data   `json:"data"`
+}
+
+type Data struct {
+	ResultType string   `json:"resultType"`
+	Result     []Result `json:"result"`
+}
+
+type Result struct {
+	Meturc Metruc          `json:"metric"`
+	Values [][]interface{} `json:"values"`
+}
+
+type Metruc struct {
+	Uri string `json:"uri"`
+}
+
+// 4个登录获取cookie的方法
+func getLogin() *http.Cookie {
+	req := httplib.Post(ZY_grafana_login_url)
+	req.Param("user", "wangzhen01")
+	req.Param("password", "Iepohg5go4iawoo")
+	req.Param("email", "")
+	resp, err := req.Response()
+	if err != nil {
+	}
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		return cookie
+	}
+	return nil
+}
+
+func getLoginHaiWai() *http.Cookie {
+	req := httplib.Post(HW_grafana_login_url)
+	req.Param("user", "wangzhen01")
+	req.Param("password", "Iepohg5go4iawoo")
+	resp, err := req.Response()
+	if err != nil {
+	}
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		return cookie
+	}
+	return nil
+}
+
+func getLoginHaiWaiUS() *http.Cookie {
+	req := httplib.Post(HWUS_grafana_login_url)
+	req.Param("user", "wangzhen01")
+	req.Param("password", "Iepohg5go4iawoo")
+	resp, err := req.Response()
+	if err != nil {
+	}
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		return cookie
+	}
+	return nil
+}
+
+func getLoginZhongDong() *http.Cookie {
+	req := httplib.Post(ZD_grafana_login_url)
+	req.Param("user", "chengxiaojing")
+	req.Param("password", "ls51HGb8y0MA")
+	resp, err := req.Response()
+	if err != nil {
+	}
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		return cookie
+	}
+	return nil
+}
+
+//获取各个业务线活跃接口的方法
+
+func getSyhAllApiCount(cookie *http.Cookie) float64 {
+	respData := doReq(AD_gateway_path_url, cookie)
+	toJson := JsonData{}
+	err := json.Unmarshal([]byte(respData), &toJson)
+	if err != nil {
+
+	}
+	count := 0
+	for _, one := range toJson.Data.Result {
+		for _, ones := range one.Values {
+			if ones[1] != "0" {
+				count++
+				break
+			}
+
+		}
+	}
+	return float64(count)
+}
+
+func getZyAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	zuiyouURLlsit := []string{
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rec_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rev_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_cfg_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_danmaku_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_misc_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway_native_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway-nearby_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_zy_gateway_teamchat_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+	}
+	for _, i := range zuiyouURLlsit {
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+			log.Error("转换类型出错", err)
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					count++
+					break
+				}
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func getPPAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	//PPlist :=[]string { //使用循环遍历拼接的方法 会出现bad request 400
+	//	"pp-gateway-acnt","pp-gateway-internal"," pp-gateway-misc","pp-gateway-point "," pp-gateway-post","pp-gateway-rec ","pp-gateway-review",
+	//	"pp-gateway-topic","pp-gateway-town",
+	//}
+	pipiURLlsit := []string{
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-misc%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-acnt%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-internal%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-point%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-post%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-rec%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-review%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-topic%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-town%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+	}
+	for _, i := range pipiURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					count++
+					break
+				}
+
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func gethaiwaiAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	haiwaiURLlsit := []string{
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_index_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_review_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+	}
+	for _, i := range haiwaiURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					count++
+					break
+				}
+
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	haiwaiUSURLlsit := []string{
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_chatsrv_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_account_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+	}
+	for _, i := range haiwaiUSURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					count++
+					break
+				}
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	ZhongDongURLlsit := []string{
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_account_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_privilege_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_user_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_chat-gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_turntable_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_family_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_pk_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_misc_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_trade_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_relation_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+	}
+	for _, i := range ZhongDongURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					count++
+					break
+				}
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func doReq(url string, cookie *http.Cookie) string {
+	req := httplib.Get(url)
+	req.SetCookie(cookie)
+	str, err := req.String()
+	if err != nil {
+		logs.Error("请求失败，err:", err)
+	}
+	return str
 }
