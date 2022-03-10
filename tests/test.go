@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/httplib"
+	"github.com/prometheus/common/log"
 	"net/http"
+	"strconv"
 )
 
 const ZY_grafana_login_url = "http://grafana.ixiaochuan.cn/login"
 const HW_grafana_login_url = "http://dashboard.icocofun.net/login"
 const HWUS_grafana_login_url = "http://grafanaus.icocofun.net/login"
 const AD_gateway_path_url = "http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200"
+const ZD_grafana_login_url = "http://grafana.mehiya.com/login"
 
 type JsonData struct {
 	Status string `json:"status"`
@@ -78,6 +81,20 @@ func getLoginHaiWaiUS() *http.Cookie {
 	return nil
 }
 
+func getLoginZhongDong() *http.Cookie {
+	req := httplib.Post(ZD_grafana_login_url)
+	req.Param("user", "chengxiaojing")
+	req.Param("password", "ls51HGb8y0MA")
+	resp, err := req.Response()
+	if err != nil {
+	}
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		return cookie
+	}
+	return nil
+}
+
 func doReq(url string, cookie *http.Cookie) string {
 	req := httplib.Get(url)
 	req.SetCookie(cookie)
@@ -100,14 +117,19 @@ func main() {
 	haiwai := gethaiwaiAllApiCount(cookiehaiwai)
 	haiwaius := gethaiwaiUSAllApiCount(cookiehaiwaius)
 	fmt.Print(shangyehua)
-	fmt.Print("\n")
+	fmt.Print("\n" + "商业化")
 	fmt.Print(zuiyou)
-	fmt.Print("\n")
+	fmt.Print("\n" + "最右")
 	fmt.Print(pipi)
-	fmt.Print("\n")
+	fmt.Print("\n" + "皮皮")
 	fmt.Print(haiwai)
-	fmt.Print("\n")
+	fmt.Print("\n" + "海外")
 	fmt.Print(haiwaius)
+	fmt.Print("\n" + "海外US")
+	cookieZD := getLoginZhongDong()
+	zhcount := getzhongdongAllApiCount(cookieZD)
+	fmt.Print(zhcount)
+	fmt.Print("\n" + "中东")
 
 }
 
@@ -121,7 +143,12 @@ func getSyhAllApiCount(cookie *http.Cookie) float64 {
 	count := 0
 	for _, one := range toJson.Data.Result {
 		for _, ones := range one.Values {
-			if ones[1] != "0" {
+			str_one := fmt.Sprintf("%v", ones[1])
+			float_one, err := strconv.ParseFloat(str_one, 64)
+			if err != nil {
+				log.Error("类型转换出错", err)
+			}
+			if float_one > 1 {
 				count++
 				break
 			}
@@ -146,7 +173,12 @@ func getZyAllApiCount(cookie *http.Cookie) float64 {
 		}
 		for _, one := range toJson.Data.Result {
 			for _, ones := range one.Values {
-				if ones[1] != "0" {
+				str_one := fmt.Sprintf("%v", ones[1])
+				float_one, err := strconv.ParseFloat(str_one, 64)
+				if err != nil {
+					log.Error("类型转换出错", err)
+				}
+				if float_one > 1 {
 					count++
 					break
 				}
@@ -185,7 +217,12 @@ func getPPAllApiCount(cookie *http.Cookie) float64 {
 		}
 		for _, one := range toJson.Data.Result {
 			for _, ones := range one.Values {
-				if ones[1] != "0" {
+				str_one := fmt.Sprintf("%v", ones[1])
+				float_one, err := strconv.ParseFloat(str_one, 64)
+				if err != nil {
+					log.Error("类型转换出错", err)
+				}
+				if float_one > 1 {
 					count++
 					break
 				}
@@ -219,7 +256,12 @@ func gethaiwaiAllApiCount(cookie *http.Cookie) float64 {
 		}
 		for _, one := range toJson.Data.Result {
 			for _, ones := range one.Values {
-				if ones[1] != "0" {
+				str_one := fmt.Sprintf("%v", ones[1])
+				float_one, err := strconv.ParseFloat(str_one, 64)
+				if err != nil {
+					log.Error("类型转换出错", err)
+				}
+				if float_one > 1 {
 					count++
 					break
 				}
@@ -248,7 +290,55 @@ func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
 		}
 		for _, one := range toJson.Data.Result {
 			for _, ones := range one.Values {
-				if ones[1] != "0" {
+				str_one := fmt.Sprintf("%v", ones[1])
+				float_one, err := strconv.ParseFloat(str_one, 64)
+				if err != nil {
+					log.Error("类型转换出错", err)
+				}
+				if float_one > 1 {
+					count++
+					break
+				}
+			}
+		}
+
+	}
+
+	return float64(count)
+}
+
+func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
+	count := 0
+	ZhongDongURLlsit := []string{
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_account_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_privilege_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_user_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_chat-gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_turntable_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_family_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_pk_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_misc_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_trade_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_relation_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+	}
+	for _, i := range ZhongDongURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				str_one := fmt.Sprintf("%v", ones[1])
+				float_one, err := strconv.ParseFloat(str_one, 64)
+				if err != nil {
+					log.Error("类型转换出错", err)
+				}
+				if float_one > 1 {
 					count++
 					break
 				}
