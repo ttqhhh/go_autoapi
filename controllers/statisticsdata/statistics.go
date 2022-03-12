@@ -509,14 +509,13 @@ func getAllApi() map[string]float64 {
 	cookiehaiwai := getLoginHaiWai()
 	cookiehaiwaius := getLoginHaiWaiUS()
 	cookiezd := getLoginZhongDong()
-	//商业化
-	shangyehua := getSyhAllApiCount(cookie)
-	////最右
+
 	zuiyou := getZyAllApiCount(cookie)
 	pipi := getPPAllApiCount(cookie)
 	haiwai := gethaiwaiAllApiCount(cookiehaiwai)
-	haiwaius := gethaiwaiUSAllApiCount(cookiehaiwaius)
 	zd := getzhongdongAllApiCount(cookiezd)
+	shangyehua := getSyhAllApiCount(cookie)
+	haiwaius := gethaiwaiUSAllApiCount(cookiehaiwaius)
 	data["0"] = zuiyou
 	data["1"] = pipi
 	data["2"] = haiwai
@@ -629,6 +628,11 @@ func getSyhAllApiCount(cookie *http.Cookie) float64 {
 		for _, ones := range one.Values {
 			if ones[1] != "0" {
 				count++
+				//acm := models.AllActiveApiMongo{}
+				//acm.BusinessName = "商业化"
+				//acm.BusinessCode = constants.ShangYeHua
+				//acm.ApiName = one.Meturc.Uri
+				//acm.Insert(acm)
 				break
 			}
 
@@ -663,7 +667,13 @@ func getZyAllApiCount(cookie *http.Cookie) float64 {
 		for _, one := range toJson.Data.Result {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
-					count++
+					count++ //todo count 或许更改为 从库中拿
+					// todo 统计数量结束后 做点什么 （判断改接口是否存在库中，没有则加进去）
+					//acm := models.AllActiveApiMongo{}
+					//acm.BusinessName = "最右"
+					//acm.BusinessCode = constants.ZuiyYou
+					//acm.ApiName = one.Meturc.Uri
+					//acm.Insert(acm)
 					break
 				}
 			}
@@ -703,6 +713,11 @@ func getPPAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					count++
+					//acm := models.AllActiveApiMongo{}
+					//acm.BusinessName = "皮皮"
+					//acm.BusinessCode = constants.PiPi
+					//acm.ApiName = one.Meturc.Uri
+					//acm.Insert(acm)
 					break
 				}
 
@@ -738,6 +753,11 @@ func gethaiwaiAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					count++
+					//acm := models.AllActiveApiMongo{}
+					//acm.BusinessName = "海外"
+					//acm.BusinessCode = constants.HaiWai
+					//acm.ApiName = one.Meturc.Uri
+					//acm.Insert(acm)
 					break
 				}
 
@@ -768,6 +788,11 @@ func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					count++
+					//acm := models.AllActiveApiMongo{}
+					//acm.BusinessName = "海外US"
+					//acm.BusinessCode = constants.HaiWaiUS
+					//acm.ApiName = one.Meturc.Uri
+					//acm.Insert(acm)
 					break
 				}
 			}
@@ -806,6 +831,11 @@ func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					count++
+					//acm := models.AllActiveApiMongo{}
+					//acm.BusinessName = "中东"
+					//acm.BusinessCode = constants.ZhongDong
+					//acm.ApiName = one.Meturc.Uri
+					//acm.Insert(acm)
 					break
 				}
 			}
