@@ -48,7 +48,7 @@ func (mongo *StatisticsMongo) QueryAll() ([]StatisticsMongo, int, error) {
 	query := bson.M{}
 
 	dataList := []StatisticsMongo{}
-	err := db.Find(query).Sort("-_id").Limit(7).All(&dataList)
+	err := db.Find(query).Sort("-_id").Limit(6).All(&dataList)
 	if err != nil {
 		logs.Error("查询出错")
 	}
