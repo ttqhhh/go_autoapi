@@ -30,7 +30,7 @@
     </fieldset>
 </div>
 
-<div style="margin-left: 40%; display: inline-block">
+<div style="margin-left: 45%; display: inline-block">
     <fieldset class="layui-elem-field layui-field-title" style="float: right">
         <legend>添加的case</legend>
     </fieldset>
@@ -119,14 +119,14 @@
                 elem:'#idTest'
                 ,url:'/case/get_all_cases?business={{.business}}'
                 ,page:true
-                ,width :750
+                ,width :800
                 ,height :500
                 ,cols:[[
-                    {title: 'ID', field:'id', width:80, sort: true, fixed: true},
-                    {title: '业务线', field:'business_name', width:100},
-                    {title: '服务名称', field:'service_name', width:150},
-                    {title: '步骤名称', field:'case_name', width:200},
-                    {title: '操作', fixed:"right",toolbar:'#barDemo', width:214},
+                    {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                    {title: '业务线', field:'business_name'},
+                    {title: '服务名称', field:'service_name'},
+                    {title: '步骤名称', field:'case_name'},
+                    {title: '操作', fixed:"right",toolbar:'#barDemo'},
                 ]]
             })
 
@@ -177,14 +177,14 @@
                     elem:'#idTest'
                     ,url:'/case/get_case_by_condition?business_code={{.business}}&case_name='+case_name
                     ,page:true
-                    ,width :750
+                    ,width :800
                     ,height :500
                     ,cols:[[
-                        {title: 'ID', field:'id', width:80, sort: true, fixed: true},
-                        {title: '业务线', field:'business_name', width:100},
-                        {title: '服务名称', field:'service_name', width:150},
-                        {title: '步骤名称', field:'case_name', width:200},
-                        {title: '操作', fixed:"right",toolbar:'#barDemo', width:180},
+                        {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                        {title: '业务线', field:'business_name'},
+                        {title: '服务名称', field:'service_name'},
+                        {title: '步骤名称', field:'case_name'},
+                        {title: '操作', fixed:"right",toolbar:'#barDemo'},
                     ]]
                 })
             });
@@ -195,14 +195,14 @@
                 elem:'#idTest2'
                 ,url:'/case_set/get_set_case_list_by_case_set_id?business={{.business}}'+"&case_set_id="+{{.id}} //接口未定
                 ,page:false
-                ,width :600
+                ,width :800
                 ,height :500
                 ,cols:[[
-                    {title: 'ID', field:'id', width:80, sort: true, fixed: true},
-                    {title: '业务线', field:'business_name', width:100},
-                    {title: '服务名称', field:'service_name', width:150},
-                    {title: '步骤名称', field:'case_name', width:200},
-                    {title: '操作', fixed:"right",toolbar:'#barDemo2', width:230},
+                    {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                    {title: '业务线', width:90, field:'business_name'},
+                    {title: '服务名称', field:'service_name'},
+                    {title: '步骤名称', field:'case_name'},
+                    {title: '操作', width:220, fixed:"right",toolbar:'#barDemo2'},
                 ]],
                 done: function (res,curr,count) {
                     for(a = 0;a<count;a++){
