@@ -82,8 +82,8 @@
     <script type="text/html" id="barDemo2">
                 <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="edit">编辑</a>
                 <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="del">删除</a>
-                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="up">上移</a>
-                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="down">下移</a>
+                <a class="layui-btn layui-btn-xs layui-btn" lay-event="up">上移</a>
+                <a class="layui-btn layui-btn-xs layui-btn" lay-event="down">下移</a>
     </script>
 
     <script src="/static/layui/layui.js" charset="utf-8"></script>
@@ -244,6 +244,7 @@
                         arrNoSort[index] = arrNoSort[changeIndex]
                         arrNoSort[changeIndex] = temp
                         idString = ""
+                        idString = idString.slice(0,idString.length-1)
                         for(b = 0;b<arrNoSort.length;b++){
                             idString = idString+arrNoSort[b]+","
                         }
@@ -281,6 +282,7 @@
                         for(i=0;i<arrNoSort.length;i++){
                             idString +=arrNoSort[i]+","
                         }
+                        idString = idString.slice(0,idString.length-1)
                         requestData = {
                             "set_case_order":idString
                         }
