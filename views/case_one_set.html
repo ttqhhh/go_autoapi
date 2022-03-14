@@ -139,7 +139,7 @@
             });
 
             $(document).on("click", "#create_new_case", function (){
-                alert("新增")
+                window.open("/case_set/show_new_set_case?business={{.business}}"+"&case_set_id="+{{.id}},"_blank");
 
             });
 

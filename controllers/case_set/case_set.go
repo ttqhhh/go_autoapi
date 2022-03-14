@@ -29,6 +29,8 @@ func (c *CaseSetController) Get() {
 		c.page()
 	case "get_case_set_by_id":
 		c.getCaseSetById()
+	case "show_new_set_case":
+		c.showNewSetCase()
 	case "get_set_case_by_id":
 		c.getSetCaseById()
 	case "get_set_case_list_by_case_set_id":
@@ -502,6 +504,16 @@ func (c *CaseSetController) getSetCaseNumByCaseSetId() {
 	}
 	count := len(caseSet)
 	c.SuccessJson(count)
+}
+func (c *CaseSetController) showNewSetCase() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	caseSetId, err := c.GetInt64("case_set_id")
+	if err != nil {
+		logs.Error("获取case_set id 出错，err:", err)
+	}
+	c.Data["author"] = userId
+	c.Data["case_set_id"] = caseSetId
+	c.TplName = "add_case_new.html"
 }
 
 // 向CaseSet新增Case
