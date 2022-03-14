@@ -118,13 +118,12 @@
             <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
                       name="check_point" lay-verify="required">{{.a.Checkpoint}}</textarea>
             </div>
-        </div>
-    </div>
-
-    <div class="layui-form-item">
-        <div class="layui-input-block">
-            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
-            <!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
+            <div class="layui-form-item" style="margin-top: 5px">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
+                    <!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
+                </div>
+            </div>
         </div>
     </div>
 </form>
@@ -391,7 +390,13 @@
 
             /** 格式化数据库冒烟数据到前端展示**/
             try {
-                obj = JSON.parse($("#smoke_response").val())
+                let smoke_res=$("#smoke_response").val()
+                if (smoke_res.trim()) {
+                    obj = JSON.parse(smoke_res);
+                } else {
+                    layer.msg("当前不存在冒烟响应, 请记得点手动调试~~~")
+                    return;
+                }
             }
             catch(err){
                 alert("格式化库中的冒烟数据失败 - " + err)

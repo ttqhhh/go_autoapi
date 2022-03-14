@@ -101,6 +101,7 @@
     <div class="layui-form-item">
 
         <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1" id="submit">提交保存</button>
+        <button type="button" class="layui-btn" lay-filter="transfer" id="transfer">转换为场景步骤</button>
 
     </div>
 </form>
@@ -113,6 +114,48 @@
 
 </div>
 
+<div style="display: none;padding: 10px" id="add_one_case_set">
+    <div class="layui-form-item">
+        <label class="layui-form-label">业务线</label>
+        <div class="layui-input-block">
+            <select name="case_set_business_code" lay-filter="business" id="case_set_business_code">
+                <option value="0">最右</option>
+                <option value="1">皮皮</option>
+                <option value="2">海外</option>
+                <option value="3">中东</option>
+                <option value="4">妈妈社区</option>
+                <option value="5">商业化</option>
+                <option value="6">海外-US</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" lay-verify="required" id="case_set_name" autocomplete="off" placeholder="请输入场景名"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_description" id="case_set_description" lay-verify="required" autocomplete="off" placeholder="请输入场景描述"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="case_set_parameter" id="case_set_parameter"  autocomplete="off" placeholder='请输入公共参数
+例如：{"token":"TbK8NKy_8L7zjExo5SdX9t6ttdeqpr6jsN7j4","pid":1}' class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item" style="float: right">
+        <button class="layui-btn" id="create_sence_case">保存</button>
+    </div>
+</div>
 
 <script type="application/javascript" src="/static/js/case_json_add.js"></script>
 <script type="application/javascript" src="/static/js/jsonshow.js"></script>
@@ -229,6 +272,78 @@
             $("#hc_select").next().find("dl").css({ "display": "none" });
             form.render();
         });
+
+        // 转换Case为场景步骤
+        $(document).on('click', '#transfer', function () {
+            // 打开弹窗
+            layer.open({
+                type: 1
+                , title: '新增场景用例'
+                , area: ['700px', '400px']
+                , shade: 0
+                , maxmin: true
+                , offset: [100, 600]
+                , content: $("#add_one_case_set")
+                // , end: function () {
+                    // $("#add_one_case_set").hide();
+                // }
+            });
+        })
+
+        $(document).on('click', '#create_sence_case', function () {
+            // 用同步的ajax提交弹窗中东西
+            let case_set_id=-1
+            let case_set_business_code = $("#case_set_business_code").val()
+            let case_set_name = $("#case_set_name").val()
+            let case_set_description = $("#case_set_description").val()
+            let case_set_parameter = $("#case_set_parameter").val()
+            $.ajax({
+                type: 'POST',
+                url: "/case_set/add_case_set_ajax",
+                data: {
+                    "case_set_name":case_set_name,
+                    "business_code":case_set_business_code,
+                    "parameter":case_set_parameter,
+                    "description":case_set_description
+                },
+                success:function (data){
+                    if (data.code == 200) {
+                        // 关闭弹窗
+                        $("#add_one_case_set").hide();
+                        case_set_id = data.data;
+                        // 页面跳转，将当前Case添加页是内容初始化到新的转换页
+                        let business_code = $("[name='business_code']").val();
+                        let service_name = $("[name='service_name']").val()
+                        let service_id = service_name.split(";")[0]
+                        let author = $("[name='author']").val()
+                        let smoke_response = $("[name='smoke_response']").val()
+                        let case_name = $("[name='case_name']").val()
+                        let description = $("[name='description']").val()
+                        let request_method = $("[name='request_method']").val()
+                        let domain = $("[name='domain']").val()
+                        let api_url = $("[name='api_url']").val()
+                        let parameter = $("[name='parameter']").val()
+                        let response_param = $("[name='response_param']").val()
+                        let check_point = $("[name='check_point']").val()
+                        window.location.href = "/case/transfer_to_case_set_step?case_set_id=" + case_set_id +
+                            "&business_code=" + business_code +
+                            "&service_id=" + service_id +
+                            "&author=" + author +
+                            "&smoke_response=" + smoke_response +
+                            "&case_name=" + case_name +
+                            "&description=" + description +
+                            "&request_method=" + request_method +
+                            "&domain=" + domain +
+                            "&api_url=" + api_url +
+                            "&parameter=" + parameter +
+                            "&response_param=" + response_param +
+                            "&check_point=" + check_point;
+                    } else {
+                        layer.msg(data.msg)
+                    }
+                },
+            });
+        })
 
         /** 监听事件 */
 
@@ -432,7 +547,6 @@
                 }
             }
         });
-
     });
 </script>
 
