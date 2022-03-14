@@ -81,9 +81,9 @@
 
     <script type="text/html" id="barDemo2">
                 <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="edit">编辑</a>
-{{/*        */}}{{/*        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>*/}}
-{{/*        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="copy">添加case至当前case集合</a>*/}}
                 <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="del">删除</a>
+                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="up">上移</a>
+                <a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="down">下移</a>
     </script>
 
     <script src="/static/layui/layui.js" charset="utf-8"></script>
@@ -190,6 +190,7 @@
             });
 
             //一条caseset所对应的case
+            var arrNoSort = []
             table.render({
                 elem:'#idTest2'
                 ,url:'/case_set/get_set_case_list_by_case_set_id?business={{.business}}'+"&case_set_id="+{{.id}} //接口未定
@@ -201,8 +202,13 @@
                     {title: '业务线', field:'business_name', width:100},
                     {title: '服务名称', field:'service_name', width:150},
                     {title: '步骤名称', field:'case_name', width:200},
-                    {title: '操作', fixed:"right",toolbar:'#barDemo2', width:160},
-                ]]
+                    {title: '操作', fixed:"right",toolbar:'#barDemo2', width:230},
+                ]],
+                done: function (res,curr,count) {
+                    for(a = 0;a<count;a++){
+                        arrNoSort = arrNoSort.concat(res.data[a].id)
+                    }
+                }
             })
             table.on('tool(demo2)', function(obj){
                 var data = obj.data;
@@ -225,6 +231,72 @@
                         layer.close(index);
                         window.location.reload()
                     });
+                }else if(obj.event === 'up'){
+
+                    check_id = data.id                  //获取当前元素的id
+                                                    // 判断是向上移动还是向下移动   此时up为跟上一个元素换位置
+                    index = arrNoSort.indexOf(check_id) //根据value获取该id在数组中的索引
+                    changeIndex = index-1
+                    if(changeIndex<0){
+                        layer.msg("该条用例已经在最上方，无法上移")
+                    }else{
+                        temp = arrNoSort[index]
+                        arrNoSort[index] = arrNoSort[changeIndex]
+                        arrNoSort[changeIndex] = temp
+                        idString = ""
+                        for(b = 0;b<arrNoSort.length;b++){
+                            idString = idString+arrNoSort[b]+","
+                        }
+                        requestData = {
+                            "set_case_order":idString
+                        }
+                        // 发送ajax请求 变更数据
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/set_case_order",
+                            contentType: "application/json",
+                            dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:JSON.stringify(requestData),
+                            success:function () {
+                                window.location.reload()
+                            }
+                        });
+                    }
+
+                }else if (obj.event === 'down'){
+                    check_id = data.id                  //获取当前元素的id
+                    // 判断是向上移动还是向下移动   此时up为跟上一个元素换位置
+                    index = arrNoSort.indexOf(check_id) //根据value获取该id在数组中的索引
+                    changeIndex = index+1
+                    if(changeIndex>arrNoSort.length-1){
+                        layer.msg("该条用例已经在最下方，无法下移")
+                    }else{
+                        temp = arrNoSort[index]
+                        arrNoSort[index] = arrNoSort[changeIndex]
+                        arrNoSort[changeIndex] = temp
+
+                        idString = ""
+                        for(i=0;i<arrNoSort.length;i++){
+                            idString +=arrNoSort[i]+","
+                        }
+                        requestData = {
+                            "set_case_order":idString
+                        }
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/set_case_order",
+                            contentType: "application/json",
+                            dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:JSON.stringify(requestData),
+                            success:function () {
+                                window.location.reload()
+                            }
+                        });
+                    }
                 }
                 layui.close(obj);
             });
