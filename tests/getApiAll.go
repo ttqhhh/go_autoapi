@@ -109,51 +109,56 @@ func doReq(url string, cookie *http.Cookie) string {
 }
 
 func main() {
-	//cookie := getLogin()
-	//cookiehaiwai := getLoginHaiWai()
-	//cookiehaiwaius := getLoginHaiWaiUS()
-	//cookieZD := getLoginZhongDong()
-	//
-	////商业化
-	//getZyAllApiCount(cookie)
-	//getPPAllApiCount(cookie)
-	//gethaiwaiAllApiCount(cookiehaiwai)
-	//getzhongdongAllApiCount(cookieZD)
-	//getSyhAllApiCount(cookie)
-	//gethaiwaiUSAllApiCount(cookiehaiwaius)
+	if false { //重新统计并入库 但不会晴空之前的数据
+		cookie := getLogin()
+		cookiehaiwai := getLoginHaiWai()
+		cookiehaiwaius := getLoginHaiWaiUS()
+		cookieZD := getLoginZhongDong()
 
-	var numbers = []int64{
-		constants.ZuiyYou, constants.PiPi, constants.HaiWai, constants.ZhongDong, constants.ShangYeHua, constants.HaiWaiUS,
+		getZyAllApiCount(cookie)
+		getPPAllApiCount(cookie)
+		gethaiwaiAllApiCount(cookiehaiwai)
+		getzhongdongAllApiCount(cookieZD)
+		getSyhAllApiCount(cookie)
+		gethaiwaiUSAllApiCount(cookiehaiwaius)
+
 	}
-	for _, business_code := range numbers {
-		mongo := models.AllActiveApiMongo{}
-		apiList, err := mongo.QueryByBusiness(business_code)
-		if err != nil {
-			log.Error("根据业务线获取全部接口出错")
+
+	if true { //将数据输出exal
+		var numbers = []int64{
+			constants.ZuiyYou, constants.PiPi, constants.HaiWai, constants.ZhongDong, constants.ShangYeHua, constants.HaiWaiUS,
 		}
-		line := 1
-		f := excelize.NewFile() // 设置单元格的值
-		for _, oneApi := range apiList {
-			//开始创建excal 写入数据
-			// 这里设置表头
-			f.SetCellValue("Sheet1", "A1", "id")
-			f.SetCellValue("Sheet1", "B1", "业务线")
-			f.SetCellValue("Sheet1", "C1", "接口名")
-			f.SetCellValue("Sheet1", "D1", "是否使用")
+		for _, business_code := range numbers {
+			mongo := models.AllActiveApiMongo{}
+			apiList, err := mongo.QueryByBusiness(business_code)
+			if err != nil {
+				log.Error("根据业务线获取全部接口出错")
+			}
+			line := 1
+			f := excelize.NewFile() // 设置单元格的值
+			for _, oneApi := range apiList {
+				//开始创建excal 写入数据
+				// 这里设置表头
+				f.SetCellValue("Sheet1", "A1", "id")
+				f.SetCellValue("Sheet1", "B1", "业务线")
+				f.SetCellValue("Sheet1", "C1", "接口名")
+				f.SetCellValue("Sheet1", "D1", "是否使用")
 
-			line++
-			f.SetCellValue("Sheet1", fmt.Sprintf("A%d", line), oneApi.Id)
-			f.SetCellValue("Sheet1", fmt.Sprintf("B%d", line), oneApi.BusinessName)
-			f.SetCellValue("Sheet1", fmt.Sprintf("C%d", line), oneApi.ApiName)
-			f.SetCellValue("Sheet1", fmt.Sprintf("D%d", line), oneApi.Use)
+				line++
+				f.SetCellValue("Sheet1", fmt.Sprintf("A%d", line), oneApi.Id)
+				f.SetCellValue("Sheet1", fmt.Sprintf("B%d", line), oneApi.BusinessName)
+				f.SetCellValue("Sheet1", fmt.Sprintf("C%d", line), oneApi.ApiName)
+				f.SetCellValue("Sheet1", fmt.Sprintf("D%d", line), oneApi.Use)
 
-			// 保存文件
+				// 保存文件
 
-		}
-		file := strconv.FormatInt(business_code, 10)
-		filename := file + ".xlsx"
-		if err := f.SaveAs("/Users/tangtianqing/Desktop/active_api/" + filename); err != nil {
-			fmt.Println(err)
+			}
+			file := strconv.FormatInt(business_code, 10)
+			filename := file + ".xlsx"
+			if err := f.SaveAs("/Users/tangtianqing/Desktop/active_api/" + filename); err != nil {
+				fmt.Println(err)
+			}
+
 		}
 
 	}
@@ -345,17 +350,9 @@ func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
 func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
 	count := 0
 	ZhongDongURLlsit := []string{
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_account_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_privilege_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_user_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
 		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_chat-gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_turntable_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_family_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_pk_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_misc_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
 		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_trade_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_relation_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
 		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
 	}
 	for _, i := range ZhongDongURLlsit {
