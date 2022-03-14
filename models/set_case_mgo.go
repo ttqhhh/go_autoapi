@@ -28,6 +28,7 @@ type SetCaseMongo struct {
 	ExtractResp   string `form:"extract_resp" json:"extract_resp" bson:"extract_resp"` // 	用于从响应中提取值的配置
 	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
 	SmokeResponse string `form:"smoke_response" json:"smoke_response,omitempty" bson:"smoke_response"`
+	Order         int    `form:"order" json:"order" bson:"order"` // 顺序，用于执行和页面展示
 	Status        int64  `json:"status" bson:"status"`
 }
 
@@ -75,6 +76,19 @@ func (t *SetCaseMongo) UpdateSetCase(id int64, acm SetCaseMongo) (SetCaseMongo, 
 	return acm, err
 }
 
+// 通过id修改case（全更新）
+func (t *SetCaseMongo) UpdateSetCaseOrder(id int64, order int) error {
+	query := bson.M{"_id": id}
+	ms, db := db_proxy.Connect("auto_api", "set_case")
+	defer ms.Close()
+
+	err := db.Update(query, bson.M{"$set": bson.M{"order": order}})
+	if err != nil {
+		logs.Error("数据库设置SetCase的Order字段报错, err: ", err)
+	}
+	return err
+}
+
 // 修改status
 func (t *SetCaseMongo) DelSetCase(id int64) error {
 	query := bson.M{"_id": id}
@@ -88,14 +102,16 @@ func (t *SetCaseMongo) DelSetCase(id int64) error {
 	return err
 }
 
-// 获取指定服务集合下所有Case
+// todo 注意：该方法是根据order字段排序
+// 获取指定服务集合下所有Case,
 func (t *SetCaseMongo) GetSetCaseListByCaseSetId(caseSetId int64) (result []*SetCaseMongo, err error) {
 	ms, c := db_proxy.Connect("auto_api", "set_case")
 	defer ms.Close()
 
 	query := bson.M{"case_set_id": caseSetId, "status": status}
 	// 获取测试用例集下全部case列表, 按id升序
-	err = c.Find(query).Sort("_id").All(&result)
+	//err = c.Find(query).Sort("_id").All(&result)
+	err = c.Find(query).Sort("order").All(&result)
 	if err != nil {
 		logs.Error("查询指定服务集合下所有Case数据报错, err: ", err)
 		return nil, err

@@ -52,6 +52,8 @@ func (c *CaseSetController) Post() {
 		c.addCaseSetAjax()
 	case "save_edit_case_set":
 		c.saveEditCaseSet()
+	case "set_case_order":
+		c.SetCaseOrder()
 	case "run_by_id":
 		c.runById()
 	case "delete_by_id":
@@ -469,6 +471,35 @@ func (c *CaseSetController) saveEditCaseSet() {
 
 }
 
+type SetCaseOrderParam struct {
+	SetCaseOrder string `json:"set_case_order"`
+}
+
+func (c *CaseSetController) SetCaseOrder() {
+	param := SetCaseOrderParam{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &param)
+	if err != nil {
+		logs.Error("解析设置用场景步骤顺序入参报错, err: ", err)
+		c.ErrorJson(-1, "请求参数错误", nil)
+	}
+
+	setCaseOrder := param.SetCaseOrder
+	setCaseIdOrders := strings.Split(setCaseOrder, ",")
+	for order, setCaseIdOrder := range setCaseIdOrders {
+		setCaseId, err := strconv.ParseInt(setCaseIdOrder, 10, 64)
+		if err != nil {
+			logs.Error("设置步骤顺序时, 数据类型转换报错, err: ", err)
+			c.ErrorJson(-1, err.Error(), nil)
+		}
+		setCaseMongo := models.SetCaseMongo{}
+		err = setCaseMongo.UpdateSetCaseOrder(setCaseId, order)
+		if err != nil {
+			c.ErrorJson(-1, "设置步骤顺序时报错", nil)
+		}
+	}
+	c.SuccessJson(nil)
+}
+
 // ==================================== 用例 接口 ==========================================
 // 源Case筛选接口: /case/get_case_by_condition
 // 筛选出来源Case后，调起编辑源Case的页面接口为: /case/show_copy_case?id=750&business=0
@@ -597,6 +628,17 @@ func (c *CaseSetController) addSetCase() {
 		}
 	}
 
+	//  设置顺序
+	order := 1
+	setCaseList, err := scm.GetSetCaseListByCaseSetId(scm.CaseSetId)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	if len(setCaseList) > 0 {
+		setCaseOne := setCaseList[len(setCaseList)-1]
+		order = setCaseOne.Order + 1
+	}
+	scm.Order = order
 	if err := scm.AddSetCase(scm); err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
@@ -712,6 +754,12 @@ func (c *CaseSetController) saveEditSetCase() {
 		}
 	}
 
+	// 查询并设置order字段
+	one, err := scm.GetSetCaseById(scm.Id)
+	if err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	scm.Order = one.Order
 	scm, err = scm.UpdateSetCase(caseId, scm)
 	if err != nil {
 		c.ErrorJson(-1, err.Error(), nil)
