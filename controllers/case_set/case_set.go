@@ -46,6 +46,8 @@ func (c *CaseSetController) Post() {
 	switch do {
 	case "add_case_set":
 		c.addCaseSet()
+	case "add_case_set_ajax":
+		c.addCaseSetAjax()
 	case "save_edit_case_set":
 		c.saveEditCaseSet()
 	case "run_by_id":
@@ -102,7 +104,7 @@ func (c *CaseSetController) page() {
 	c.FormSuccessJson(count, result)
 }
 
-// Case集合添加（Form表单传参） -- Done
+// Case集合添加（Form表单传参）
 func (c *CaseSetController) addCaseSet() {
 	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
 	//todo 获取author
@@ -118,7 +120,6 @@ func (c *CaseSetController) addCaseSet() {
 		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
 		c.ErrorJson(-1, "保存Case出错啦", nil)
 	}
-	//todo xueyibing 返回增加author字段
 	caseSet.Author = userId
 	caseSet.Id = caseSetId
 	caseSet.CreatedAt = now
@@ -151,6 +152,57 @@ func (c *CaseSetController) addCaseSet() {
 		c.ErrorJson(-1, err.Error(), nil)
 	}
 	c.Ctx.Redirect(302, "/case_set/index?business="+business)
+}
+
+// ajax形式提交form表达
+func (c *CaseSetController) addCaseSetAjax() {
+	userId, _ := c.GetSecureCookie(constants.CookieSecretKey, "user_id")
+	//todo 获取author
+	now := time.Now().Format(constants.TimeFormat)
+	caseSet := models.CaseSetMongo{}
+	if err := c.ParseForm(&caseSet); err != nil { // 传入user指针
+		c.Ctx.WriteString("出错了！")
+	}
+
+	r := utils.GetRedis()
+	caseSetId, err := r.Incr(constants.CASE_SET_PRIMARY_KEY).Result()
+	if err != nil {
+		logs.Error("保存Case时，获取从redis获取唯一主键报错，err: ", err)
+		c.ErrorJson(-1, "保存Case出错啦", nil)
+	}
+	caseSet.Author = userId
+	caseSet.Id = caseSetId
+	caseSet.CreatedAt = now
+	caseSet.UpdatedAt = now
+	caseSet.Status = 0
+	business := caseSet.BusinessCode
+
+	businessCode, _ := strconv.Atoi(business)
+	businessName := controllers.GetBusinessNameByCode(businessCode)
+	caseSet.BusinessName = businessName
+	//
+	//// todo 千万不要删，用于处理json格式化问题（删了后某些服务会报504问题）
+	param := caseSet.Parameter
+	if param != "" { //当公共参数不为空的时候去校验
+		v := make(map[string]interface{})
+		err = json.Unmarshal([]byte(strings.TrimSpace(param)), &v)
+		if err != nil {
+			logs.Error("发送冒烟请求前，解码json报错，err：", err)
+			c.ErrorJson(-1, "公共参数配置有误，请检查", nil)
+		}
+		paramByte, err := json.Marshal(v)
+		if err != nil {
+			logs.Error("保存Case时，处理请求json报错， err:", err)
+			c.ErrorJson(-1, "保存Case出错啦", nil)
+		}
+		caseSet.Parameter = string(paramByte)
+	}
+
+	if err := caseSet.AddCaseSet(caseSet); err != nil {
+		c.ErrorJson(-1, err.Error(), nil)
+	}
+	//c.Ctx.Redirect(302, "/case_set/index?business="+business)
+	c.SuccessJson(caseSetId)
 }
 
 type runparam struct {
@@ -380,6 +432,11 @@ func (c *CaseSetController) saveEditCaseSet() {
 	if err := c.ParseForm(&csm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
+	// 验证公共参数中的key值和响应提取中的key值唯一性
+	ispass, key := checkUniqueKey(csm.Parameter, "case_set", csm.Id, -1)
+	if !ispass {
+		c.ErrorJson(-1, "需要从响应结果中提取的参数定义的key已存在, key: "+key, nil)
+	}
 	csm.Author = name
 	business := csm.BusinessCode
 	businessCode, _ := strconv.Atoi(business)
@@ -455,6 +512,11 @@ func (c *CaseSetController) addSetCase() {
 	dom := models.Domain{}
 	if err := c.ParseForm(&scm); err != nil { // 传入user指针
 		c.Ctx.WriteString("出错了！")
+	}
+	// 验证公共参数中的key值和响应提取中的key值唯一性
+	ispass, key := checkUniqueKey(scm.ExtractResp, "set_case", scm.CaseSetId, scm.Id)
+	if !ispass {
+		c.ErrorJson(-1, "需要从响应结果中提取的参数定义的key已存在, key: "+key, nil)
 	}
 	// 获取域名并确认是否执行
 	dom.Author = userId
@@ -575,6 +637,11 @@ func (c *CaseSetController) saveEditSetCase() {
 	if err := c.ParseForm(&scm); err != nil { //传入user指针
 		c.Ctx.WriteString("出错了！")
 	}
+	// 验证公共参数中的key值和响应提取中的key值唯一性
+	ispass, key := checkUniqueKey(scm.ExtractResp, "set_case", scm.CaseSetId, scm.Id)
+	if !ispass {
+		c.ErrorJson(-1, "需要从响应结果中提取的参数定义的key已存在, key: "+key, nil)
+	}
 	// 获取域名并确认是否执行
 	dom.Author = scm.Author
 	intBus, _ := strconv.Atoi(scm.BusinessCode)
@@ -642,4 +709,80 @@ func (c *CaseSetController) saveEditSetCase() {
 	c.Ctx.Redirect(302, "/case_set/one_case?business="+business+"&id="+strconv.FormatInt(scm.CaseSetId, 10))
 
 	//c.Ctx.Redirect(302, "/case/close_windows")
+}
+
+// 验证本次编辑后key的唯一性
+// dataType的值类型必须为：case_set/set_case
+func checkUniqueKey(keyJson string, dataType string, caseSetId int64, setCaseId int64) (ispass bool, repeatKey string) {
+	ispass = true
+	keyJsonMap := map[string]interface{}{}
+	json.Unmarshal([]byte(keyJson), &keyJsonMap)
+
+	if "case_set" == dataType {
+		// 验证本次新提交的keyJson与所有SetCase中的key是否有重合即可
+		setCaseMongo := models.SetCaseMongo{}
+		setCaseList, err := setCaseMongo.GetSetCaseListByCaseSetId(caseSetId)
+		if err != nil {
+			// 此处就不将err向上传递了，从上层表现一样能识别出错误
+			ispass = false
+			return
+		}
+		for _, setCase := range setCaseList {
+			extractResp := map[string]string{}
+			json.Unmarshal([]byte(setCase.ExtractResp), &extractResp)
+			for key, _ := range extractResp {
+				_, ok := keyJsonMap[key]
+				if ok {
+					ispass = false
+					repeatKey = key
+					return
+				}
+			}
+		}
+	} else if "set_case" == dataType {
+		// 验证本次新提交的keyJson与除自己之外的所有SetCase中的key是否有重合
+		setCaseMongo := models.SetCaseMongo{}
+		setCaseList, err := setCaseMongo.GetSetCaseListByCaseSetId(caseSetId)
+		if err != nil {
+			// 此处就不将err向上传递了，从上层表现一样能识别出错误
+			ispass = false
+			return
+		}
+		for _, setCase := range setCaseList {
+			if setCaseId == setCase.Id {
+				// 不和自己的老版本数据比较
+				continue
+			}
+			extractResp := map[string]string{}
+			json.Unmarshal([]byte(setCase.ExtractResp), &extractResp)
+			for key, _ := range extractResp {
+				_, ok := keyJsonMap[key]
+				if ok {
+					ispass = false
+					repeatKey = key
+					return
+				}
+			}
+		}
+		// 验证本次新提交的keyJson与CaseSet中的公共参数key是否有重复
+		caseSetMongo := models.CaseSetMongo{}
+		caseSet, err := caseSetMongo.CaseSetById(caseSetId)
+		if err != nil {
+			// 此处就不将err向上传递了，从上层表现一样能识别出错误
+			ispass = false
+			return
+		}
+		parameter := caseSet.Parameter
+		parameterMap := map[string]interface{}{}
+		json.Unmarshal([]byte(parameter), &parameterMap)
+		for key, _ := range parameterMap {
+			_, ok := keyJsonMap[key]
+			if ok {
+				ispass = false
+				repeatKey = key
+				return
+			}
+		}
+	}
+	return
 }
