@@ -85,8 +85,14 @@ func (c *CaseSetController) oneCase() {
 	business := c.GetString("business")
 	id, err := c.GetInt64("id")
 	if err != nil {
-		logs.Error("从前台获取数据id出错，err", err)
+		logs.Error("从前台获取数据id出错, err: ", err)
 	}
+	caseSetMongo := models.CaseSetMongo{}
+	caseSet, err := caseSetMongo.CaseSetById(id)
+	if err != nil {
+		logs.Error("根据id获取场景用例报错, err: ", err)
+	}
+	c.Data["CaseSet"] = caseSet
 	c.Data["id"] = id
 	c.Data["business"] = business
 	c.TplName = "case_one_set.html"
