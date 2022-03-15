@@ -23,12 +23,18 @@ func (c *CaseManageController) Get() {
 		c.ShowEditCase()
 	case "show_copy_case":
 		c.ShowCopyCase()
+	case "show_copy_case_set":
+		c.ShowCopyCaseSet()
+	case "transfer_to_case_set_step":
+		c.TransferToCaseSetStep()
 	case "show_inspection_case":
 		c.ShowInspectionCase()
 	case "get_all_cases":
 		c.GetAllCases()
 	case "search_case":
 		c.SearchCase()
+	case "get_case_by_condition":
+		c.GetCaseByCondition()
 	case "show_report":
 		c.ShowReport()
 	case "get_all_report":

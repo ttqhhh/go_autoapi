@@ -8,7 +8,6 @@ import (
 	constant "go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
-	"go_autoapi/utils"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -215,11 +214,11 @@ func (c *AutoTestController) performTests() {
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
+				libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.NOT_INSPECTION, runBy)
 				// 获取用例执行进度时使用
-				r := utils.GetRedis()
-				defer r.Close()
-				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				//r := utils.GetRedis()
+				//defer r.Close()
+				//r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
@@ -315,11 +314,11 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+				libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
 				// 获取用例执行进度时使用
-				r := utils.GetRedis()
-				defer r.Close()
-				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				//r := utils.GetRedis()
+				//defer r.Close()
+				//r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}
@@ -461,11 +460,11 @@ func (c *AutoTestController) performInspectTests() {
 						wg.Done()
 					}
 				}()
-				libs.DoRequestV2(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
+				libs.DoRequest(domain, url, uuid, param, checkout, caseId, models.INSPECTION, runBy)
 				// 获取用例执行进度时使用
-				r := utils.GetRedis()
-				defer r.Close()
-				r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
+				//r := utils.GetRedis()
+				//defer r.Close()
+				//r.Incr(constant.RUN_RECORD_CASE_DONE_NUM + uuid)
 				wg.Done()
 			}(val.Domain, val.ApiUrl, uuid, val.Parameter, val.Checkpoint, val.Id, userId)
 		}

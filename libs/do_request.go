@@ -22,6 +22,7 @@ func init() {
 	_ = db_proxy.InitClient()
 }
 
+// 获取冒烟响应函数
 func DoRequestWithNoneVerify(business int, url string, param string) (respStatus int, body []byte, err error) {
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -89,7 +90,8 @@ func DoRequestWithNoneVerify(business int, url string, param string) (respStatus
 	return
 }
 
-func DoRequestV2(domain string, url string, uuid string, param string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool) {
+// 发送请求函数
+func DoRequest(domain string, url string, uuid string, param string, checkPoint string, caseId int64, isInspection int, runBy string) (isPass bool, resp string) {
 	isPass = true
 	headers := map[string]string{
 		"ZYP":             "mid=248447243",
@@ -108,10 +110,17 @@ func DoRequestV2(domain string, url string, uuid string, param string, checkPoin
 		icm := models.InspectionCaseMongo{}
 		icm = icm.GetOneCase(caseId)
 		businessCode = icm.BusinessCode
-	} else {
+	} else if isInspection == models.NOT_INSPECTION {
 		testCaseMongo := models.TestCaseMongo{}
 		testCaseMongo = testCaseMongo.GetOneCase(caseId)
 		businessCode = testCaseMongo.BusinessCode
+	} else {
+		setCaseMongo := models.SetCaseMongo{}
+		setCaseMongo, err := setCaseMongo.GetSetCaseById(caseId)
+		if err != nil {
+			logs.Error("获取单条case出错")
+		}
+		businessCode = setCaseMongo.BusinessCode
 	}
 	business, _ := strconv.Atoi(businessCode)
 	if business == constant.Matuan {
@@ -153,9 +162,9 @@ func DoRequestV2(domain string, url string, uuid string, param string, checkPoin
 		logs.Error("DoRequest发起请求调用时出错, err: ", err)
 		reason := "该接口不通, 请求超时..."
 		result := models.AUTO_RESULT_FAIL
-		resp := ""
+		resp = ""
 		statusCode := 0
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, resp, statusCode)
 		isPass = false
 		return
 	}
@@ -176,19 +185,20 @@ func DoRequestV2(domain string, url string, uuid string, param string, checkPoin
 		logs.Error("checkpoint解析失败", err)
 		return
 	}
-	isPass = doVerifyV2(respStatus, uuid, string(body), verify, caseId, isInspection, runBy)
+	resp = string(body)
+	isPass = doVerify(respStatus, uuid, resp, verify, caseId, isInspection, runBy)
 	return
 }
 
-// 采用jsonpath 对结果进行验证
-func doVerifyV2(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
+// 结果验证函数
+func doVerify(statusCode int, uuid string, response string, verify map[string]map[string]interface{}, caseId int64, isInspection int, runBy string) (isPass bool) {
 	isPass = true
 	reason := ""
 	result := models.AUTO_RESULT_FAIL
 	if statusCode != 200 {
 		logs.Error("请求返回状态不是200，请求失败")
 		reason = "状态码不是200"
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 		isPass = false
 		return
 	}
@@ -197,9 +207,9 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 		valueInResp, err := jsonpath.JSONPath([]byte(response), path)
 		// 提前检查jsonpath是否存在，不存在就报错
 		if err != nil {
-			logs.Error("doVerifyV2 jsonpath error，test failed", err)
+			logs.Error("doVerify jsonpath error，test failed", err)
 			reason = "checkpoint表达式有误 OR 不满足【存在】, json路径：【" + path + "】"
-			saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+			SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 			isPass = false
 			return
 		}
@@ -340,12 +350,15 @@ func doVerifyV2(statusCode int, uuid string, response string, verify map[string]
 			reason = string(resultDescRune[1:])
 		}
 		isPass = false
-		saveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
+		SaveTestResult(uuid, caseId, isInspection, result, reason, runBy, response, statusCode)
 	}
 	return
 }
 
-func saveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string, statusCode int) {
+/**
+statusCode 为0时，表示场景测试中，前后校验逻辑 or 处理逻辑出错。
+*/
+func SaveTestResult(uuid string, caseId int64, isInspection int, result int, reason string, author string, resp string, statusCode int) {
 	err := models.InsertResult(uuid, caseId, isInspection, result, reason, author, resp, statusCode)
 	if err != nil {
 		logs.Error("save test result error,please check the db connection", err)

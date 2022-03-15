@@ -18,8 +18,9 @@ const (
 )
 
 const (
-	NOT_INSPECTION = iota // 非线上巡检接口
-	INSPECTION            // 线上巡检接口
+	NOT_INSPECTION = iota // 自动化
+	INSPECTION            // 监控
+	SENCE                 //场景
 )
 const (
 	SHANG_YE_HUA_TEST = "test" //测试环境域名
@@ -189,7 +190,7 @@ func (t *TestCaseMongo) AddCase(acm TestCaseMongo) error {
 	}
 	err = db.Insert(acm)
 	if err != nil {
-		logs.Error(1024, err)
+		logs.Error("数据库保存测试用例报错, err: ", err)
 	}
 	return err
 }
@@ -297,6 +298,40 @@ func (t *TestCaseMongo) GetAllCasesByService(serviceId int64) (result []*TestCas
 		logs.Error("查询指定服务下所有巡检Case数据报错, err: ", err)
 		return nil, err
 	}
+	return
+}
+
+func (t *TestCaseMongo) GetCasesByCondition(page, limit int, business_code string, service_code string, case_name string) (acms []*TestCaseMongo, totalCount int64, err error) {
+	ms, c := db_proxy.Connect("auto_api", "case")
+	defer ms.Close()
+
+	var query = bson.M{"status": status}
+
+	if business_code != "" {
+		query["business_code"] = business_code
+	}
+	if service_code != "" {
+		query["service"] = service_code
+	}
+	if case_name != "" {
+		query["case_name"] = bson.M{"$regex": bson.RegEx{Pattern: case_name, Options: "im"}}
+	}
+
+	// 获取指定业务线下全部case列表
+	err = c.Find(query).Sort("-_id").Skip((page - 1) * limit).Limit(limit).Select(bson.M{"_id": 1, "case_name": 1, "api_url": 1, "business_name": 1, "service_name": 1}).All(&acms)
+	if err != nil {
+		logs.Error("数据库按指定条件查询用例数据报错, err: ", err)
+		return nil, 0, err
+	}
+
+	// 查询数据总条数用于分页
+	total, err := c.Find(query).Count()
+	if err != nil {
+		logs.Error("数据库按指定条件查询用例数据条数报错, err: ", err)
+		return nil, 0, err
+	}
+
+	totalCount = int64(total)
 	return
 }
 

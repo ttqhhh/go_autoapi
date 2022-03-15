@@ -1,0 +1,243 @@
+{{template "head.html" .}}
+
+<div style="margin:1%">
+    <div>
+        <div class="layui-form layui-inline" style="margin-right:10%">
+            <div class="layui-inline">
+                <input type="text" class="search_name layui-input" placeholder="输入场景名称">
+            </div>
+            <div class="layui-inline">
+                <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
+            </div>
+        </div>
+        <div class="layui-inline" style="float: right">
+            <button class="layui-btn layui-btn-radius layui-btn" id="add_compose_case">新增场景用例</button>
+        </div>
+    </div>
+    <table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+</div>
+
+<form class="layui-form" style="display: none;padding: 10px" id="add_one_case"
+      action="/case_set/add_case_set/" readonly="readonly" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label">业务线</label>
+                <div class="layui-input-block">
+                    <select name="business_code" lay-filter="business" id="business">
+                        <option value="0">最右</option>
+                        <option value="1">皮皮</option>
+                        <option value="2">海外</option>
+                        <option value="3">中东</option>
+                        <option value="4">妈妈社区</option>
+                        <option value="5">商业化</option>
+                        <option value="6">海外-US</option>
+                    </select>
+                </div>
+            </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" required id="case_set_name" autocomplete="off" placeholder="请输入场景名"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="description" required id="description" autocomplete="off" placeholder="请输入场景描述"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="parameter" id="parameter"  autocomplete="off" placeholder='请输入公共参数
+例如：{"token":"TbK8NKy_8L7zjExo5SdX9t6ttdeqpr6jsN7j4","pid":1}'
+                          class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item" style="float: right">
+        <button class="layui-btn" lay-submit="" lay-filter="demo2">保存数据</button>
+    </div>
+</form>
+
+<form class="layui-form" method="post" style="display: none;padding: 10px" id="edit_set_case"
+      action="/case_set/save_edit_case_set/" readonly="readonly">
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="business_code" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" id="case_set_name" autocomplete="off" placeholder="请输入场景名称"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">场景描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="description" id="description" autocomplete="off" placeholder="请输入场景名称"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="parameter" id="parameter_edit"  autocomplete="off" placeholder='请输入公共参数
+例如：{"token":"TbK8NKy_8L7zjExo5SdX9t6ttdeqpr6jsN7j4","pid":1}
+'
+                          class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="float: right">
+        <button class="layui-btn" lay-submit="" lay-filter="demo2">保存数据</button>
+    </div>
+</form>
+
+<table class="layui-table" lay-filter="demo" id="idTest"></table>
+
+
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-cyan" lay-event="add">添加步骤用例</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="run">运行</a>
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script>
+
+
+
+    layui.use(['element', 'jquery',"layer"], function(){
+        var $ =layui.$;
+        var layer = layui.layer;
+        var table = layui.table;
+
+        function loadTable(case_set_name) {
+            //表格渲染
+            table.render({
+                elem: '#idTest'
+                , url: "/case_set/page"
+                , page: true
+                , where: {business: {{.business}},case_set_name:case_set_name}
+                , cols: [[
+                    {type: "checkbox", fixed: 'left'},
+                    {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
+                    {title: '业务线', field: 'business_name', width: 100},
+                    {title: '场景名称', field: 'case_set_name'},
+                    {title: '用例描述', field: 'description'},
+                    {title: '添加人', field: 'author', width: 130},
+                    // {title: '请求方式', field: 'request_method', width: 100},
+                    // {title: '报警次数', field: 'warning_number', width: 100},
+                    {title: '操作', fixed: "right", toolbar: '#barDemo', width: 350},
+
+                ]]
+            });
+        }
+        loadTable();
+
+        $(document).on("click", "#search_btn", function (){
+            let case_name = $(".search_name").val();
+            loadTable(case_name)
+        });
+
+        //监听工具条
+        table.on('tool(demo)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'add'){
+                window.location.href = '/case_set/one_case?business='+data.business_code+"&id="+data.id
+            } else if(obj.event === 'del'){
+                layer.confirm('真的删除行么', function(index){
+                    // obj.del();
+                    $.ajax({
+                        type: 'POST',
+                        url: "/case_set/delete_by_id",
+                        async:false,
+                        timeout : 500000,
+                        data:{
+                            "id": data.id,
+                        }
+                    });
+                    layer.close(index);
+                    window.location.reload()
+                });
+            } else if(obj.event === 'edit'){
+                $.ajax({
+                    type: 'GET',
+                    url: "get_case_set_by_id?id="+data.id,
+                    async: false,
+                    timeout: 500000,
+                    dataType: "json",
+                    success: function (data) {
+                        var form = $("#edit_set_case")
+                        form.find('input[name="id"]').val(data.data.id)
+                        form.find('input[name="business_code"]').val(data.data.business_code)
+                        form.find('input[name="case_set_name"]').val(data.data.case_set_name)
+                        form.find('input[name="description"]').val(data.data.description)
+                        $("#parameter_edit").text(data.data.parameter)
+                        layer.open({
+                            type: 1
+                            , title: '编辑场景用例'
+                            , area: ['640px', '400px']
+                            , shade: 0
+                            , maxmin: true
+                            , offset: [100, 600]
+                            , content: form
+                            , end: function () {
+                                form.hide();
+                            }
+                        });
+
+                    }
+                });
+                //todo
+            }else if (obj.event === "run") {
+                var  business = parseInt(data.business_code)
+                $.ajax({
+                    type: 'POST',
+                    url: "/case_set/run_by_id",
+                    async: false,
+                    timeout: 500000,
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify({
+                        "id": data.id,
+                        "business":business
+                    }),
+                    success: function (data) {
+                        window.location.href = "/report/show_run_record"
+
+                    }
+                });
+            }
+            layui.close(obj);
+        });
+
+
+
+        $(document).on("click", "#add_compose_case", function () {
+            layer.open({
+                type: 1
+                , title: '新增场景用例'
+                , area: ['700px', '400px']
+                , shade: 0
+                , maxmin: true
+                , offset: [100, 600]
+                , content: $("#add_one_case")
+                , end: function () {
+                    $("#add_one_case").hide();
+                }
+            });
+        });
+
+
+
+
+
+    });
+
+</script>
+</body>
+</html>

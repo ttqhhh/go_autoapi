@@ -85,8 +85,7 @@ func (c *CaseManageController) AddOneCase() {
 	//}
 	//acm.Parameter = string(paramByte)
 	if err := acm.AddCase(acm); err != nil {
-		logs.Error("保存Case报错，err: ", err)
-		c.ErrorJson(-1, "保存Case出错啦", nil)
+		c.ErrorJson(-1, err.Error(), nil)
 	}
 	//c.SuccessJson("添加成功")
 	//c.Ctx.Redirect(302, "/case/show_cases?business="+business)

@@ -1,0 +1,708 @@
+{{template "head.html" .}}
+
+
+
+<form class="layui-form layui-form-pane" action="/case_set/save_edit_set_case/" method="post" style="padding: 1%">
+    {{/*    <input type="text" style="display: none" name="id" class="_id" value={{.a.Id}} >*/}}
+    <input type="text" name="api_name" value="api_name" style="display: none">
+    <input type="text" name="id" value="{{.a.Id}}" style="display: none">
+    <input type="text" name="case_set_id" value="{{.a.CaseSetId}}" style="display: none">
+    <input type="text" name="level" value="none" style="display: none">
+    <!--    冒烟数据在这里，修改和展示都在这 默认隐藏 调试可以展开-->
+    <input type="text" name="smoke_response" id="smoke_response" style="display: none" value="{{.a.SmokeResponse}}">
+
+    <!--    <input type="text" name="id" value="0" style="display: none">-->
+    <!--    <input type="text" name="created_at" value="none" style="display: none">-->
+    <!--    <input type="text" name="updated_at" value="none" style="display: none">-->
+
+    <div class="layui-form-item">
+
+        <div class="layui-inline">
+            <label class="layui-form-label">业务-服务</label>
+            <div class="layui-input-inline">
+                <select name="business_code" lay-filter="business" id="business">
+                    <!--                    <option selected value={{.a.BusinessCode}}>{{.a.BusinessName}}</option>-->
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <select name="service_name" lay-filter="services" id="services">
+                    <!--                    <option selected>{{.a.ServiceName}}</option>-->
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">添加人</label>
+            <div class="layui-input-block">
+                <input type="text" name="author" lay-verify="required" autocomplete="off" placeholder="请输入标题"
+                       class="layui-input" value={{.a.Author}} >
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用例名称</label>
+        <div class="layui-input-block" style="width: 50%">
+            <input type="text" name="case_name" lay-verify="required" autocomplete="off" placeholder="请输入标题" class="layui-input"
+                   value= {{.a.CaseName}} >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用例描述</label>
+        <div class="layui-input-block" style="width: 50%">
+            <input type="text" name="description" lay-verify="required" autocomplete="off" placeholder="请输入标题" class="layui-input"
+                   value={{.a.Description}}>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">请求</label>
+        <div class="layui-input-inline">
+            <select name="request_method" id="request_method">
+                {{if eq .a.RequestMethod "POST"}}
+                    <option value="POST" selected>POST</option>
+                    <option value="GET">GET</option>
+                {{else}}
+                    <option value="POST">POST</option>
+                    <option value="GET" selected>GET</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" name="domain" id="HandoverCompany" placeholder="请输入或选择域名"
+                   class="layui-input" style="position:absolute;z-index:2;width:83%;" lay-verify="required"
+                   onkeyup="search()" autocomplete="off" value={{.a.Domain}}>
+            <select type="text" id="hc_select" lay-filter="hc_select" autocomplete="off" placeholder="移交单位全称" class="layui-select" lay-search>
+                <!--                <option value="http://api.izuiyou.com/">http://api.izuiyou.com/</option>-->
+                <!--                <option value="http://test.izuiyou.com/">http://test.izuiyou.com/</option>-->
+            </select>
+        </div>
+        <div class="layui-input-inline" style="width: 45%">
+            <input type="text" id="api_url" name="api_url" lay-verify="required"
+                   placeholder="例:http://api.izuiyou.com/index/recommend" autocomplete="off" class="layui-input" value={{.a.ApiUrl}}>
+        </div>
+        <!--        <button type="button" class="layui-btn layui-btn-normal" id="make">组合校验点</button>-->
+        <button type="button" class="layui-btn layui-btn-normal" id="edit_point">编辑校验点</button>
+        <button type="button" class="layui-btn layui-btn-normal" id="test">手动调试</button>
+    </div>
+
+
+    <div class="layui-form-item layui-form-text">
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">请求参数</label>
+            <div class="layui-input-block" >
+            <textarea placeholder='"请您输入压缩后的JSON( 如: {"username":"zhangsan","password":"123456"}"); 严禁输入格式化后的JSON(即带有回车换行的JSON)"'
+                      style="height: 200px" class="layui-textarea" lay-verify="required"
+                      name="parameter" id="request_param">{{.a.Parameter}}</textarea>
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">需要提取的参数</label>
+            <div class="layui-input-block">
+    <textarea placeholder='请输入参数名及其对应的jsonPath
+
+基本格式：{"变量名":"jsonpath"}
+例如：{"post_id":"$.data.list.post_id","token":"$.data.token"}
+                           '
+              class="layui-textarea" style="height: 200px" id="extract_resp"
+              name="extract_resp" >{{.a.ExtractResp}}</textarea>
+            </div>
+        </div>
+        <div class="layui-inline" style="width: 45%; float:right; margin-right: 8%">
+            <span id="response_param_tip">当前值为上次入库的冒烟数据</span>
+            <div class="layui-input-block" id="response_param" style="height:450px;overflow: scroll;"></div>
+        </div>
+
+        <div class="layui-inline" style="width: 45%;">
+            <label class="layui-form-label">检查点</label>
+            <div class="layui-input-block">
+            <textarea placeholder="请输入内容" class="layui-textarea" style="height: 200px" id="check_point"
+                      name="check_point" lay-verify="required">{{.a.Checkpoint}}</textarea>
+            </div>
+            <div class="layui-form-item" style="margin-top: 5px">
+                <div class="layui-input-block">
+                    <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">提交修改</button>
+                    <!--            <button type="button" class="layui-btn layui-btn-normal" id="run">运行(测试)</button>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="layui-form-item layui-form json-height" style="display: none"></div>
+
+
+<script type="application/javascript" src="/static/js/case_json_edit.js"></script>
+<script type="application/javascript" src="/static/js/jsonshow.js"></script>
+<script type="application/javascript" src="/static/js/libs.js"></script>
+<script>
+    layui.use(['form', 'layedit', 'laydate'], function() {
+        var form = layui.form
+            , layer = layui.layer
+            , $ = layui.jquery
+
+
+        let obj
+        let first_business
+        /** 通用方法 ；通过业务获取服务 ; 将jsonpath映射成校验点(有点逻辑，注释尽量写得详细些) ; 获取冒烟数据**/
+        function get_service_by_business(bus){
+            $("#services").children().remove()
+            $.ajax({
+                type: 'GET',
+                url: '/service/list?business='+bus,
+                success: function (data) {
+                    // $("#City").html("");
+                    $.each(data.data, function(key, val) {
+                        let option1;
+                        if(val["id"] === {{.a.ServiceId}}){
+                            // option1 = $("<option>").val(val["id"]+";"+val["service_name"]).text(val["service_name"]);
+                            option1 = '<option selected value='+val["id"]+";"+val["service_name"]+'>'+val["service_name"]+'</option>'
+                        }else{
+                            option1 = $("<option>").val(val["id"] + ";" + val["service_name"]).text(val["service_name"]);
+                        }
+                        $("#services").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
+        function make_response_to_select(json){
+            // todo 此处的json参数为一个jsonarray，遍历jsonarray
+            $.each(json, function (i,checkPoint){
+                let html_head =
+                    '        <div class="json-nb">\n' +
+                    '            <label class="layui-form-label">检查点</label>\n' +
+                    '            <div class="layui-inline data_block" >\n'
+                const arr = checkPoint.node.split(".");
+                const temp = new Array();
+                let html_body = ""
+                let vdIndex;
+                /** node select 层**/
+                // todo 遍历
+                $.each(arr, function (j,fieldPath){
+                    /** 待优化项，select头部数据 是直接写的 而不是判断选中，会造成重复数据**/
+                    /** 判断头部数据 是否含有[] 含有并分割获取 键 和 下标**/
+                    // let vh;
+                    // var patt1 = new RegExp("]");
+                    // if (patt1.test(v)) {
+                    //     vh = v.split("[")[0];
+                    //     const vd = v.split("[")[1];
+                    //     vdIndex = parseInt(vd.substring(0, vd.length - 1))
+                    //     v = vh
+                    // }
+                    /**---------------分割线-----------------------**/
+                    let field = fieldPath
+                    if (fieldPath.indexOf("[")!=-1 && fieldPath.indexOf("]")!=-1) {
+                        // field = fieldPath.substring(fieldPath.indexOf("[")+1, fieldPath.indexOf("]"))
+                        field = fieldPath.substring(0, fieldPath.indexOf("["))
+                    }
+                    html_body = html_body +
+                        '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+                        '                <select name="check_name" id="json_head">\n' +
+                        '                   <option selected value='+field+'>'+field+'</option>\n'
+                    /** option 层**/
+                    if(i===0){
+                        const res = analysisJson(obj)
+                        $.each(res.keys, function(k,key){
+                            html_body  = html_body  + '<option value=' + key + '>' + key + '</option>\n'
+                        });
+                    }else{
+                        const res = analysisJson(obj, temp);
+                        // todo 根据analysisJson获取的keys进行html拼接
+                        $.each(res.keys, function(k,key){
+                            if (fieldPath.indexOf("[")!=-1 && fieldPath.indexOf("]")!=-1) {
+                                vdIndex = fieldPath.substring(fieldPath.indexOf("[")+1, fieldPath.indexOf("]"))
+                            }
+                            html_body  = html_body  + '<option value='+key+'>'+ key+'</option>\n'
+                        });
+                    }
+                    temp.push(fieldPath)
+                    html_body = html_body + '</select>\n</div>\n'
+                    /** 判断vdindex大于0 则在后面添加一个长度的下拉框的select列 **/
+                    if(vdIndex !== undefined){
+                        html_body = html_body +
+                            '            <div class="layui-inline" style="margin: 0;width: 100px">\n' +
+                            '                <select name="check_name" id="json_head" isArray="true">\n'
+                        // const res = analysisJson(obj, temp);
+                        var tempElement = temp[temp.length-1]
+                        temp[temp.length-1] = tempElement.substring(0, tempElement.indexOf("["))
+                        const res = analysisJson(obj, temp);
+                        for (let k = 0; k < res.arrayLength; k++) {
+                            if(k == vdIndex){
+                                html_body  = html_body  + '<option selected value='+k+'>'+ k+'</option>\n'
+                            }else{
+                                html_body  = html_body  + '<option value='+k+'>'+ k+'</option>\n'
+                            }
+                        }
+                        html_body = html_body + '</select>\n</div>\n'
+                        vdIndex = undefined
+                        // 再把原路径替换回去
+                        temp[temp.length-1] = tempElement
+                    }
+                });
+                /** 非动态项 作为尾部直接加在后面就ok **/
+                    // 定义一个checkType的code和name的映射关系
+                var checkTypeMap = {
+                        "eq":"等于",
+                        "neq":"不等于",
+                        "in":"包含于",
+                        "exist":"存在此字段",
+                        "lt":"小于",
+                        "gt":"大于",
+                        "lte":"小于等于",
+                        "gte":"大于等于",
+                        "isTrue":"为真",
+                        "isFalse":"为假",
+                    }
+                let html_butt =
+                    '            <div class="layui-inline" style="margin:0">\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="right_add" style="margin: 0">＋</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-normal" type="button" id="left_rm" style="margin: 0">－</button>\n' +
+                    '            </div>\n' +
+                    // '\n' +
+                    // '            <div class="layui-inline">\n' +
+                    // '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="width: 100px;margin: 0">\n' +
+                    '                <select name="check_type" id="check_type">\n' +
+                    '                    <option checked value=' + checkPoint.checkType + '>' + checkTypeMap[checkPoint.checkType] + '</option>\n' +
+                    '                    <option value="eq">等于</option>\n' +
+                    '                    <option value="neq">不等于</option>\n' +
+                    '                    <option value="in">包含于</option>\n' +
+                    '                    <option value="exist">存在此字段</option>\n' +
+                    '                    <option value="lt">小于</option>\n' +
+                    '                    <option value="gt">大于</option>\n' +
+                    '                    <option value="lte">小于等于</option>\n' +
+                    '                    <option value="gte">大于等于</option>\n' +
+                    '                    <option value="isTrue">为真</option>\n' +
+                    '                    <option value="isFalse">为假</option>\n' +
+                    '                </select>\n' +
+                    '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="margin: 0;">\n' +
+                    '                <input type="text" id="value" value=' + checkPoint.value + ' name="value" lay-verify="title" autocomplete="off"  class="layui-input">\n' +
+                    '            </div>\n' +
+                    '\n' +
+                    '            <div class="layui-inline" style="width: 150px;margin: 0">\n' +
+                    '                <select name="value_type" id="value_type">\n' +
+                    '                    <option checked value='+checkPoint.valueType+'>' + checkPoint.valueType + '</option>\n' +
+                    '                    <option value="请选择数据类型">请选择数据类型</option>\n' +
+                    '                    <option value="number">number</option>\n' +
+                    '                    <option value="string">string</option>\n' +
+                    '                </select>\n' +
+                    '            </div>\n' +
+                    '            <div class="layui-inline" style="margin: 0">\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="down_add" style="margin-right: 0">↓</button>\n' +
+                    '                <button class="layui-btn layui-btn-sm layui-btn-danger" type="button" id="up_rm" style="margin-left: 0">↑</button>\n' +
+                    '            </div>\n' +
+                    // '            <div class="layui-inline">\n' +
+                    // '            </div>\n' +
+                    '        </div>'
+
+                $(".json-height").append(html_head + html_body + '</div>\n' +html_butt)
+            });
+        }
+
+        function isNumber(val) {
+            var regPos = /^\d+(\.\d+)?$/; //非负浮点数
+            var regNeg = /^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/; //负浮点数
+            if(regPos.test(val) || regNeg.test(val)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function get_domain_by_business(bus){
+            $.ajax({
+                type: 'GET',
+                url: '/case/get_domains?business='+bus,
+                success: function (data) {
+                    $("#hc_select").children().remove()
+                    $.each(data.data, function(key, val) {
+                        // alert(val["service_name"])
+                        var option1 = $("<option>").val(val["domain_name"]).text(val["domain_name"]);
+                        $("#hc_select").append(option1);
+                        form.render('select');
+                    });
+                }
+            });
+        }
+
+        function get_response(){
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            let body = ""
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url":request_url,
+                    "parameter":request_param
+                },
+                success:function (data){
+                    try {
+                        body = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        alert("冒烟失败 - " + err)
+                        return
+                    }
+                },
+            });
+            return body
+        }
+
+        /** ----------------------------分隔符---------------------------**/
+
+        /** 默认执行 **/
+
+        $(function () {
+            $.ajax({
+                type: 'GET',
+                dataType: "json",
+                url: "/business/get_user_businesses",
+                async: false,
+                timeout: 500000,
+                success: function (data) {
+                    var date = data.data.businesses
+                    $.each(date, function (n, val) {
+                        let option1;
+                        if(val["name"] === "{{.a.BusinessName}}"){
+                            first_business = val["code"]
+                            option1 = '<option selected value=' + val["code"] + '>' + val["name"] + '</option>';
+                        }else{
+                            option1 = '<option value=' + val["code"] + '>' + val["name"] + '</option>';
+                        }
+                        $("#business").append(option1);
+                        form.render('select');
+                    })
+                }
+            })
+            /** 默认映射**/
+            get_service_by_business(first_business)
+            get_domain_by_business(first_business)
+            /** todo -- 填充domain input框**/
+
+            /** 格式化数据库冒烟数据到前端展示**/
+            try {
+                obj = JSON.parse($("#smoke_response").val())
+            }
+            catch(err){
+                alert("格式化库中的冒烟数据失败 - " + err)
+                return
+            }
+            var body = JSON.stringify(obj, undefined, 4)
+            document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+
+            /**
+             * 给第一个下拉框填上默认的第一组json数据
+             */
+
+            // $.each(analysisJson(obj).keys, function(i,v){
+            //     $("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            // });
+
+            /** 返回数据映射填充 **/
+            const js_list = $("#check_point").val()
+            const res = analysisJsonPath(JSON.parse(js_list))
+            make_response_to_select(res)
+        });
+
+
+        /** ----------------------------分隔符---------------------------**/
+
+        /** 监听表单事件 **/
+        form.on('select(business)', function (data) {
+            $("#services").children().remove()
+            get_service_by_business(data.value)
+            get_domain_by_business(data.value)
+            form.render("select")
+            form.render()
+        });
+
+        form.on('select(hc_select)', function (data) {   //选择移交单位 赋值给input框
+            var select_text = data.elem[data.elem.selectedIndex].text;
+            $("#HandoverCompany").val(select_text );
+            $("#hc_select").next().find("dl").css({ "display": "none" });
+            form.render();
+        });
+
+        $(document).on('click', '#test', function () {
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            var domain = $('#HandoverCompany').val()
+            if(request_param === "" || request_url === "" || domain === ""){
+                layer.msg("请求地址,参数和域名不能为空")
+                return
+            }
+            layer.msg('手动获取冒烟数据，将清空当前页面展示的组合校验点', {
+                time: 20000, //20s后自动关闭
+                btn: ['知道了', '手滑了']
+                ,yes: function(){
+                    layer.closeAll();
+                    $.ajax({
+                        type: 'POST',
+                        contentType: "application/x-www-form-urlencoded",
+                        dataType: "json",
+                        url: "/auto/perform_smoke",
+                        async: false,
+                        timeout: 500000,
+                        data: {
+                            "api_url":domain + request_url,
+                            "parameter":request_param
+                        },
+                        success:function (data){
+                            $("#response_param").text("")
+                            $("#response_param_tip").text("当前值为主动获取的冒烟数据")
+                            $("#smoke_response").val(data.data.body)
+                            try {
+                                obj = JSON.parse(data.data.body)
+                            }
+                            catch(err){
+                                alert("冒烟失败 - " +data.data.httpCode + "--" + err)
+                                return
+                            }
+                            var body = JSON.stringify(obj, undefined, 4)
+                            document.getElementById("response_param").appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(body);
+                        }
+                    });
+                    /** 触发填充 **/
+                    $(".json-height").html("")
+                    $(".json-height").append(pre)
+                    // alert(res)
+                    $.each(analysisJson(obj).keys, function(i,v){
+                        $(".json-height").find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+                    });
+                    form.render()
+                    form.render("select")
+                }
+                ,btn2: function(){
+                    layer.closeAll();
+                }
+            });
+        });
+
+        $(document).on('click', '#run', function () {
+            var arr = new Array()
+            arr.push(parseInt("{{.a.Id}}"))
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json",
+                dataType: "json",
+                url: "/auto/perform_tests",
+                async: false,
+                timeout: 500000,
+                data: JSON.stringify({
+                    "ids": arr,
+                })
+            })
+            window.location.href = "/report/show_run_record"
+        });
+
+        $(document).on('click', '#edit_point', function () {
+            if (obj === undefined) {
+                layer.msg("请先获取调试的返回数据")
+                return
+            }
+            else{
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: '校验点配置'
+                    ,area: ['1400px', '300px']
+                    ,shade: 0
+                    ,maxmin: true
+                    ,offset: "lb"
+                    ,content: $(".json-height")
+                    ,btn: ['保存并关闭'] //只是为了演示
+                    ,yes: function(){
+                        const result_list = new Array()
+                        $(".json-nb").each(function (){
+                            let node = ""
+                            $(this).find(".data_block").find("option:selected").each(function (){
+                                if(isNumber($(this).text())){
+                                    var isArray = $(this).parent().attr("isArray")
+                                    if (isArray == undefined) {
+                                        node = node + $(this).text() +"."
+                                    } else {
+                                        node = node.substring(0,node.length-1) + "[" + $(this).text() +"]."
+                                    }
+                                }else{
+                                    node = node + $(this).text() +"."
+                                }
+                            });
+                            node = node.substring(0,node.length-1)
+                            const checkType = $(this).find("#check_type").find("option:selected").val();
+                            const value = $(this).find("#value").val();
+                            const valueType = $(this).find("#value_type").find("option:selected").text();
+                            const now = {"node":node,"checkType":checkType, "value":value, "valueType":valueType}
+                            result_list.push(now)
+                        });
+                        // 组合校验点变成json-path
+                        // alert(result_list)
+                        const result = generateJsonPath(result_list, obj)
+                        if(result.code === -1){
+                            alert(result.msg)
+                            return
+                        }
+                        $("#check_point").val(JSON.stringify(result.data))
+                        layer.closeAll();
+                    }
+                    ,zIndex: layer.zIndex //重点1
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+
+                layer.open({
+                    type: 1 //此处以iframe举例
+                    ,title: 'response数据（位置固定，无法拖动，可以滚动）'
+                    ,area: ['500px', '600px']
+                    ,shade: 0
+                    ,fixed:true
+                    ,maxmin: true
+                    ,move:false
+                    ,offset: "rt"
+                    ,content: $("#response_param")
+                    ,success: function(layero){
+                        layer.setTop(layero); //重点2
+                    }
+                });
+            }
+        });
+
+        /** 通过test变更冒烟数据 **/
+        $(document).on('click', '#test', function () {
+            var request_param = $("#request_param").val()
+            var request_url = $("#api_url").val()
+            var domain = $('#HandoverCompany').val()
+            if (request_param === "" || request_url === "" || domain === "") {
+                layer.msg("域名，请求地址,参数,不能为空")
+                return
+            }
+            $.ajax({
+                type: 'POST',
+                contentType: "application/x-www-form-urlencoded",
+                dataType: "json",
+                url: "/auto/perform_smoke",
+                async: false,
+                timeout: 500000,
+                data: {
+                    "api_url": domain + request_url,
+                    "parameter": request_param
+                },
+                success: function (data) {
+                    try {
+                        obj = JSON.parse(data.data.body)
+                    }
+                    catch(err){
+                        // alert("冒烟失败 - " + err)
+                        return
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '#right_add', function () {
+            // $(this).parent().parent().find(".data_block").append(check_sel)
+            var arr =new Array();
+            const sel_val = $(this).parent().parent().find(".data_block").find("option:selected")
+            sel_val.each(function() {
+                if(isNumber($(this).text())){
+                    var isArray = $(this).parent().attr("isArray")
+                    if (isArray == undefined) {
+                        arr.push($(this).text())
+                    } else {
+                        // console.log("is a number so pass");
+                        arr[arr.length - 1] = arr[arr.length - 1] + "[" + $(this).text() + "]";
+                    }
+                }else{
+                    arr.push($(this).text())
+                }
+            });
+            const res = analysisJson(obj, arr);
+            /** 判断如果是数组则新增一列 **/
+            if(res["isArray"] === true){
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                // 当isArray时，给json_head再添加一个可识别的自定义标识
+                last_json.attr("isArray", "true")
+                for (let i = 0; i < res.arrayLength; i++) {
+                    last_json.append('<option value='+i+'>'+ i+'</option>')
+                }
+            }
+            // 当不存在key元素时，不进行元素追加
+            if (res.keys.length != 0) {
+                $(this).parent().parent().find(".data_block").append(check_sel)
+                var last_json = $(this).parent().parent().find(".data_block").children().last().find("#json_head")
+                $.each(res.keys, function(i,v){
+                    last_json.append('<option value='+v+'>'+ v+'</option>')
+                });
+            }
+            form.render()
+        });
+
+        $(document).on('click', '#left_rm', function () {
+            $(this).parent().parent().find(".data_block").children().last().remove()
+            form.render()
+        });
+
+        $(document).on('click', '#down_add', function () {
+            // alert("down_add")
+            const these = $(this);
+            these.parent().parent().after(pre)
+            // alert($(this).parent().parent().next().find("#json_head").text())
+            $.each(analysisJson(obj).keys, function(i,v){
+                these.parent().parent().next().find("#json_head").append('<option value='+v+'>'+ v+'</option>')
+            });
+            form.render()
+            form.render("select")
+        });
+
+        $(document).on('click', '#up_rm', function () {
+            // alert("down_add")
+            $(this).parent().parent().remove()
+            form.render()
+        });
+
+        $('#HandoverCompany').bind('input propertychange', function () {
+            var value = $("#HandoverCompany").val();
+            $("#hc_select").val(value);
+            form.render();
+            $("#hc_select").next().find("dl").css({ "display": "block" });
+            var dl = $("#hc_select").next().find("dl").children();
+            var j = -1;
+            for (var i = 0; i < dl.length; i++) {
+                if (dl[i].innerHTML.indexOf(value) <= -1) {
+                    dl[i].style.display = "none";
+                    j++;
+                }
+                if (j == dl.length-1) {
+                    $("#hc_select").next().find("dl").css({ "display": "none" });
+                }
+            }
+        });
+
+    });
+
+
+</script>
+
+<style>
+    pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+    .string { color: green; }
+    .number { color: darkorange; }
+    .boolean { color: blue; }
+    .null { color: magenta; }
+    .key { color: red; }
+    #response_param::-webkit-scrollbar {
+        display: none;}
+</style>
+
+</body>

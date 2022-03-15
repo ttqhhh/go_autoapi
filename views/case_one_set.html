@@ -1,0 +1,323 @@
+{{template "head.html" .}}
+
+<div style="margin-top: 25px">
+
+    <div class="layui-form-item" style="width: 50%">
+        <label class="layui-form-label">场景名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_name" lay-verify="required" id="case_set_name" autocomplete="off" placeholder="请输入场景名" value="{{.CaseSet.CaseSetName}}" readonly
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" style="width: 50%">
+        <label class="layui-form-label">场景描述</label>
+        <div class="layui-input-block">
+            <input type="text" name="case_set_description" id="case_set_description" lay-verify="required" autocomplete="off" placeholder="请输入场景描述" value="{{.CaseSet.Description}}" readonly
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" style="width: 50%">
+        <label class="layui-form-label">公共参数配置</label>
+        <div class="layui-input-block">
+                <textarea name="case_set_parameter" id="case_set_parameter"  autocomplete="off" readonly placeholder='请输入公共参数
+例如：{"token":"TbK8NKy_8L7zjExo5SdX9t6ttdeqpr6jsN7j4","pid":1}' class="layui-textarea">{{.CaseSet.Parameter}}</textarea>
+        </div>
+    </div>
+</div>
+<div style="margin-left:15%; display: inline-block" >
+    <fieldset class="layui-elem-field layui-field-title" style="float: left">
+        <legend>源case筛选</legend>
+    </fieldset>
+</div>
+
+<div style="margin-left: 45%; display: inline-block">
+    <fieldset class="layui-elem-field layui-field-title" style="float: right">
+        <legend>添加的case</legend>
+    </fieldset>
+</div>
+
+<div class="layui-inline">
+{{/*    <button class="layui-btn layui-btn-primary layui-border-orange" style="display: inline" id="run">运行调试</button>*/}}
+</div>
+
+<form class="layui-form" action="" id="test_service" style="display: none">
+    <div class="layui-form-item" id="test_service_list">
+        <!--        <div class="layui-input-inline"><input type="checkbox" name="" title="写作" checked></div>-->
+    </div>
+</form>
+
+<div style="margin-left: 50px">
+    <div>
+        <div class="layui-form layui-inline">
+{{/*            <div class="layui-inline">*/}}
+{{/*                <select name="" id="search_service">*/}}
+{{/*                    <option value="">请选择</option>*/}}
+{{/*                </select>*/}}
+
+{{/*            </div>*/}}
+            <div class="layui-inline">
+                <input type="text" class="case_name layui-input" placeholder="输入步骤名称">
+            </div>
+            <div class="layui-inline">
+                <button class="layui-btn layui-btn layui-border-blue layui-btn-primary" style="display: inline" id="search_btn">搜索</button>
+            </div>
+        </div>
+        <div style="display: inline-block;margin-left: 30px">
+        <button class="layui-btn layui-btn layui-border-red layui-btn-primary" style="display: inline" id="create_new_case">新增步骤</button>
+        </div>
+    </div>
+    <div style="float: left;margin-top: 1px; width: 50%">
+        <table class="layui-table" lay-filter="demo" id="idTest"></table>
+    </div>
+    <div style="float: right;margin-top: 0px;width: 50%">
+        <table class="layui-table" lay-filter="demo2" id="idTest2"></table>
+    </div>
+
+
+
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="copy">添加步骤至当前场景用例</a>
+    </script>
+
+    <script type="text/html" id="barDemo2">
+                <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="del">删除</a>
+                <a class="layui-btn layui-btn-xs layui-btn" lay-event="up">上移</a>
+                <a class="layui-btn layui-btn-xs layui-btn" lay-event="down">下移</a>
+    </script>
+
+    <script src="/static/layui/layui.js" charset="utf-8"></script>
+    <script src="/static/js/public.js" charset="utf-8"></script>
+    <script>
+
+        layui.use(['table','laytpl','form'], function(){
+            const table = layui.table;
+            var form = layui.form;
+            $ = layui.jquery
+            // 获取service的方法
+            $(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: '/service/list?business={{.business}}',
+                    success: function (data) {
+                        var date = data.data
+                        var html = ""
+                        $.each(date, function (n, val) {
+                            const option1 = '<div class="layui-input-inline">' +
+                                '<input type="checkbox" name="service" value='+val["id"]+' title='+val["service_name"]+'></div>';
+                            html = html + option1
+                            $("#search_service").append('<option value='+val["service_name"]+'>'+val["service_name"]+'</option>');
+                        })
+                        $("#test_service_list").append(html);
+                        form.render();
+                    }
+                })
+            })
+
+            //表格渲染
+            table.render({
+                elem:'#idTest'
+                ,url:'/case/get_all_cases?business={{.business}}'
+                ,page:true
+                ,width :800
+                ,height :500
+                ,cols:[[
+                    {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                    {title: '业务线', field:'business_name'},
+                    {title: '服务名称', field:'service_name'},
+                    {title: '步骤名称', field:'case_name'},
+                    {title: '操作', fixed:"right",toolbar:'#barDemo'},
+                ]]
+            })
+
+            //监听工具条
+            table.on('tool(demo)', function(obj){
+                var data = obj.data;
+                if(obj.event === 'detail'){
+                    layer.msg('ID：'+ data.id + ' 的查看操作');
+                }else if(obj.event === 'copy'){
+                    // 当业务线非中东时，先判断当前CaseSet下有几个setcase（限制条件：一个场景用例下，只能有两个步骤）
+                    is_jump=true;
+                    if ('{{.business}}' != "3") {
+                        $.ajax({
+                            type: 'GET',
+                            url: "/case_set/get_set_case_num_by_case_set_id?case_set_id="+{{.id}},
+                            async: false,
+                            success: function (data) {
+                                num = data.data
+                                if (num > 1) {
+                                    is_jump = false
+                                }
+                            }
+                        });
+                    }
+
+                    if (is_jump) {
+                        window.open("/case/show_copy_case_set?id="+data.id+"&business={{.business}}"+"&case_set_id="+{{.id}},"_blank");
+                    } else {
+                        layer.msg("每个场景测试用例最多只能有2个步骤");
+                    }
+                }
+                layui.close(obj);
+            });
+
+            $(document).on("click", "#create_new_case", function (){
+                window.open("/case_set/show_new_set_case?business={{.business}}"+"&case_set_id="+{{.id}},"_blank");
+
+            });
+
+
+
+            $(document).on("click", "#search_btn", function (){
+                let case_name = $(".case_name").val();
+                // let service = $("#search_service option:selected").val()
+                if(case_name === undefined){case_name = ""}
+                // if(service === undefined){service = ""}
+                table.render({
+                    elem:'#idTest'
+                    ,url:'/case/get_case_by_condition?business_code={{.business}}&case_name='+case_name
+                    ,page:true
+                    ,width :800
+                    ,height :500
+                    ,cols:[[
+                        {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                        {title: '业务线', field:'business_name'},
+                        {title: '服务名称', field:'service_name'},
+                        {title: '步骤名称', field:'case_name'},
+                        {title: '操作', fixed:"right",toolbar:'#barDemo'},
+                    ]]
+                })
+            });
+
+            //一条caseset所对应的case
+            var arrNoSort = []
+            table.render({
+                elem:'#idTest2'
+                ,url:'/case_set/get_set_case_list_by_case_set_id?business={{.business}}'+"&case_set_id="+{{.id}} //接口未定
+                ,page:false
+                ,width :800
+                ,height :500
+                ,cols:[[
+                    {title: 'ID', width:75, field:'id', sort: true, fixed: true},
+                    {title: '业务线', width:90, field:'business_name'},
+                    {title: '服务名称', field:'service_name'},
+                    {title: '步骤名称', field:'case_name'},
+                    {title: '操作', width:220, fixed:"right",toolbar:'#barDemo2'},
+                ]],
+                done: function (res,curr,count) {
+                    for(a = 0;a<count;a++){
+                        arrNoSort = arrNoSort.concat(res.data[a].id)
+                    }
+                }
+            })
+            table.on('tool(demo2)', function(obj){
+                var data = obj.data;
+                if(obj.event === 'edit'){
+                    window.open("/case_set/get_set_case_by_id?id="+data.id,"_blank")
+                }else if(obj.event === 'del'){
+                    layer.confirm('真的删除行么', function(index){
+                        // obj.del();
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/delete_set_case_by_id",
+                            // contentType: "application/json",
+                            // dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:{
+                                "id": data.id,
+                            }
+                        });
+                        layer.close(index);
+                        window.location.reload()
+                    });
+                }else if(obj.event === 'up'){
+
+                    check_id = data.id                  //获取当前元素的id
+                                                    // 判断是向上移动还是向下移动   此时up为跟上一个元素换位置
+                    index = arrNoSort.indexOf(check_id) //根据value获取该id在数组中的索引
+                    changeIndex = index-1
+                    if(changeIndex<0){
+                        layer.msg("该条用例已经在最上方，无法上移")
+                    }else{
+                        temp = arrNoSort[index]
+                        arrNoSort[index] = arrNoSort[changeIndex]
+                        arrNoSort[changeIndex] = temp
+                        idString = ""
+                        idString = idString.slice(0,idString.length-1)
+                        for(b = 0;b<arrNoSort.length;b++){
+                            idString = idString+arrNoSort[b]+","
+                        }
+                        requestData = {
+                            "set_case_order":idString
+                        }
+                        // 发送ajax请求 变更数据
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/set_case_order",
+                            contentType: "application/json",
+                            dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:JSON.stringify(requestData),
+                            success:function () {
+                                window.location.reload()
+                            }
+                        });
+                    }
+
+                }else if (obj.event === 'down'){
+                    check_id = data.id                  //获取当前元素的id
+                    // 判断是向上移动还是向下移动   此时up为跟上一个元素换位置
+                    index = arrNoSort.indexOf(check_id) //根据value获取该id在数组中的索引
+                    changeIndex = index+1
+                    if(changeIndex>arrNoSort.length-1){
+                        layer.msg("该条用例已经在最下方，无法下移")
+                    }else{
+                        temp = arrNoSort[index]
+                        arrNoSort[index] = arrNoSort[changeIndex]
+                        arrNoSort[changeIndex] = temp
+
+                        idString = ""
+                        for(i=0;i<arrNoSort.length;i++){
+                            idString +=arrNoSort[i]+","
+                        }
+                        idString = idString.slice(0,idString.length-1)
+                        requestData = {
+                            "set_case_order":idString
+                        }
+                        $.ajax({
+                            type: 'POST',
+                            url: "/case_set/set_case_order",
+                            contentType: "application/json",
+                            dataType: "json",
+                            async:false,
+                            timeout : 500000,
+                            data:JSON.stringify(requestData),
+                            success:function () {
+                                window.location.reload()
+                            }
+                        });
+                    }
+                }
+                layui.close(obj);
+            });
+
+            $(document).on("click", "#run", function () {
+                    var set_id = {{.id}}
+                    alert(set_id)
+            });
+
+
+
+        });
+    </script>
+</div>
+</body>
+</html>
+
+<style>
+    .layui-table-grid-down {
+        display: none;
+    }
+</style>
