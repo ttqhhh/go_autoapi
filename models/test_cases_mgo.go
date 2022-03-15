@@ -163,17 +163,13 @@ func (t *TestCaseMongo) GetAllCases(page, limit int, business string) (result []
 // 通过id获取指定case
 
 func (t *TestCaseMongo) GetOneCase(id int64) TestCaseMongo {
-
-	fmt.Println(id)
 	query := bson.M{"_id": id, "status": status}
 	acm := TestCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", "case")
 	defer ms.Close()
 	err := db.Find(query).One(&acm)
-	fmt.Println(acm)
 	if err != nil {
-		logs.Info("查询case失败")
-		logs.Error(1024, err)
+		logs.Error("通过ID查询自动化Case报错, err: ", err)
 	}
 	return acm
 }

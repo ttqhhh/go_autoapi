@@ -127,17 +127,13 @@ func (t *InspectionCaseMongo) GetAllCases(page, limit int, business string, serv
 // 通过id获取指定case
 
 func (t *InspectionCaseMongo) GetOneCase(id int64) InspectionCaseMongo {
-
-	fmt.Println(id)
 	query := bson.M{"_id": id, "status": status}
 	acm := InspectionCaseMongo{}
 	ms, db := db_proxy.Connect("auto_api", inspection_collection)
 	defer ms.Close()
 	err := db.Find(query).One(&acm)
-	fmt.Println(acm)
 	if err != nil {
-		logs.Info("查询case失败")
-		logs.Error(1024, err)
+		logs.Error("通过ID查询巡检Case报错, err: ", err)
 	}
 	return acm
 }
