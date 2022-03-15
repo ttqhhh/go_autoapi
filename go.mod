@@ -15,7 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/lib/pq v1.10.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/common v0.10.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shopspring/decimal v1.2.0
@@ -23,9 +23,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spyzhov/ajson v0.4.2
 	github.com/widuu/gojson v0.0.0-20170212122013-7da9d2cd949b
-	github.com/zyx4843/gojson v0.0.0-20170207143146-74e5bb72572b // indirect
-	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	github.com/xuri/excelize/v2 v2.5.0
 	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
