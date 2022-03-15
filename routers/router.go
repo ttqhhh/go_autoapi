@@ -39,4 +39,5 @@ func init() {
 	beego.Router("/h5report/*", &h5report.H5ReportController{})
 	beego.Router("/allview/*", &auto.AllviewController{})
 	beego.Router("/statistics/*", &statisticsdata.StatisticsController{}) //用于统计接口数量
+	beego.Router("/get_data/*", &api.GetDataController{})                 //用于统计接口数量
 }

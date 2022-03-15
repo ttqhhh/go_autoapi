@@ -33,8 +33,6 @@ func (a *AllActiveApiMongo) Insert(acm AllActiveApiMongo) error {
 	}
 	acm.Id = int64(cnt) + 1
 	// 处理添加时间字段
-	// 新增时，默认status为0
-	acm.Use = 0
 	err = db.Insert(acm)
 	if err != nil {
 		logs.Error("Insert 错误: %v", err)
