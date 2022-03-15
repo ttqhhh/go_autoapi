@@ -69,15 +69,14 @@ func (c *GetDataController) ReadToData() {
 			for _, colCell := range row {
 				dataList = append(dataList, colCell)
 			}
-			if dataList[3] == "1" { //如果数据需要入库
-				mongo := models.AllActiveApiMongo{}
-				mongo.Id, err = strconv.ParseInt(dataList[0], 10, 64)
-				mongo.BusinessName = dataList[1]
-				mongo.BusinessCode = businessCode[business]
-				mongo.ApiName = dataList[2]
-				mongo.Use, err = strconv.ParseInt(dataList[3], 10, 64)
-				mongo.Insert(mongo)
-			}
+			mongo := models.AllActiveApiMongo{}
+			mongo.Id, err = strconv.ParseInt(dataList[0], 10, 64)
+			mongo.BusinessName = dataList[1]
+			mongo.BusinessCode = businessCode[business]
+			mongo.ApiName = dataList[2]
+			mongo.Use, err = strconv.ParseInt(dataList[3], 10, 64)
+			mongo.Insert(mongo)
+
 		}
 		business++
 	}
