@@ -136,9 +136,9 @@
                 if(obj.event === 'detail'){
                     layer.msg('ID：'+ data.id + ' 的查看操作');
                 }else if(obj.event === 'copy'){
-                    // 当业务线非中东时，先判断当前CaseSet下有几个setcase（限制条件：一个场景用例下，只能有两个步骤）
+                    // 当业务线非中东、非最右时，先判断当前CaseSet下有几个setcase（限制条件：一个场景用例下，只能有两个步骤）
                     is_jump=true;
-                    if ('{{.business}}' != "3") {
+                    if ('{{.business}}' != "3" && '{{.business}}' != "0") {
                         $.ajax({
                             type: 'GET',
                             url: "/case_set/get_set_case_num_by_case_set_id?case_set_id="+{{.id}},
