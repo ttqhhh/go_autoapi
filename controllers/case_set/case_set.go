@@ -309,7 +309,9 @@ func (c *CaseSetController) runById() {
 				if ok {
 					// 当前value为"${"开头，且为"}"结尾
 					if strings.HasPrefix(strValue, "${") && strings.HasSuffix(strValue, "}") {
-						valueInSetParamMap, ok := setParamMap[key]
+						newstr := strings.Trim(strValue, "${")
+						valuestr := strings.Trim(newstr, "}")
+						valueInSetParamMap, ok := setParamMap[valuestr]
 						// 当公共参数setParamMap中存在要替换的key时，进行替换；不存在时，
 						if ok {
 							caseParamMap[key] = valueInSetParamMap
