@@ -24,6 +24,15 @@
                 </select>
             </div>
             <div class="layui-inline">
+                <input type="text" id="case_id" class="layui-input" placeholder="请输入用例ID">
+            </div>
+            <div class="layui-inline">
+                <input type="text" id="case_name" class="layui-input" placeholder="请输入用例名称">
+            </div>
+            <div class="layui-inline">
+                <input type="text" id="author" class="layui-input" placeholder="请输入添加人全拼">
+            </div>
+            <div class="layui-inline">
                 <button class="layui-btn layui-btn-sm " style="display: inline" id="search_btn">搜索</button>
             </div>
         </div>
@@ -160,13 +169,13 @@
                 })
             })
 
-            function loadTable(serviceId, uri, strategy) {
+            function loadTable(serviceId, uri, strategy, case_id, case_name, author) {
                 //表格渲染
                 table.render({
                     elem: '#idTest'
                     , url: "/inspection/get_all_cases"
                     , page: true
-                    , where: {business: {{.business}}, serviceId: serviceId, uri: uri, strategy: strategy}
+                    , where: {business: {{.business}}, serviceId: serviceId, uri: uri, strategy: strategy, case_id: case_id, case_name: case_name, author: author}
             , cols: [[
                     {type: "checkbox", fixed: 'left'},
                     {title: 'ID', field: 'id', width: 80, sort: true, fixed: true},
@@ -432,13 +441,10 @@
                 let url = $(".search_input_url").val();
                 let serviceId = $("#search_service option:selected").val()
                 let strategy = $("#search_strategy option:selected").val()
-                // if(url === undefined){url = ""}
-                // if(service === undefined){service = ""}
-                // if(url === "" && service  === ""){
-                //     layer.msg("url或service至少一个不能为空")
-                //     return
-                // }
-                loadTable(serviceId, url, strategy)
+                let case_id = $("#case_id").val()
+                let case_name = $("#case_name").val()
+                let author = $("#author").val()
+                loadTable(serviceId, url, strategy, case_id, case_name, author)
             });
         });
     </script>
