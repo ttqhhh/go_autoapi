@@ -63,10 +63,18 @@ func (c *CaseManageController) SearchCase() {
 	business := c.GetString("business")
 	url := c.GetString("url")
 	service := c.GetString("service", "-1")
+	author := c.GetString("author")
+	case_name := c.GetString("case_name")
+	id := c.GetString("case_id", "-1")
+	caseId, err := strconv.Atoi(id)
+	if err != nil {
+		logs.Error("自动化Case分页接口报错, err: ", err)
+		c.ErrorJson(-1, err.Error(), nil)
+	}
 	serviceId, _ := strconv.Atoi(service)
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
-	result, count, err := acm.GetCasesByConfusedUrl(page, limit, business, url, serviceId)
+	result, count, err := acm.GetCasesByConfusedUrl(page, limit, business, url, serviceId, caseId, case_name, author)
 	if err != nil {
 		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
