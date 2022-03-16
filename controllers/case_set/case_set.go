@@ -75,7 +75,16 @@ func (c *CaseSetController) Post() {
 // 页面跳转 -- Done
 func (c *CaseSetController) index() {
 	business := c.GetString("business")
+	v := make(map[string]string)
+	v["0"] = "最右"
+	v["1"] = "皮皮"
+	v["2"] = "海外"
+	v["3"] = "中东"
+	v["4"] = "麻团"
+	v["5"] = "商业化"
+	v["6"] = "海外US"
 	c.Data["business"] = business
+	c.Data["business_name"] = v[business]
 	c.TplName = "case_set_page.html"
 }
 
