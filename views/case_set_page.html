@@ -24,13 +24,8 @@
                 <label class="layui-form-label">业务线</label>
                 <div class="layui-input-block">
                     <select name="business_code" lay-filter="business" id="business">
-                        <option value="0">最右</option>
-                        <option value="1">皮皮</option>
-                        <option value="2">海外</option>
-                        <option value="3">中东</option>
-                        <option value="4">妈妈社区</option>
-                        <option value="5">商业化</option>
-                        <option value="6">海外-US</option>
+                        <option value={{.business}}>{{.business_name}}</option>
+
                     </select>
                 </div>
             </div>
@@ -107,8 +102,16 @@
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 <script>
-
-
+var business_code = {{.business}}
+var map = {
+    "0":"最右",
+    "1":"皮皮",
+    "2":"海外",
+    "3":"中东",
+    "4":"麻团",
+    "5":"商业化",
+    "6":"海外US"
+}
 
     layui.use(['element', 'jquery',"layer"], function(){
         var $ =layui.$;
