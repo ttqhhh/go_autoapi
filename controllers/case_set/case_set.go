@@ -115,8 +115,10 @@ func (c *CaseSetController) page() {
 	caseSetName := c.GetString("case_set_name")
 	page, _ := strconv.Atoi(c.GetString("page"))
 	limit, _ := strconv.Atoi(c.GetString("limit"))
+	caseSetId, _ := strconv.Atoi(c.GetString("case_set_id", "-1"))
+	author := c.GetString("author")
 
-	result, count, err := acm.GetCaseSetByPage(page, limit, business_code, caseSetName)
+	result, count, err := acm.GetCaseSetByPage(page, limit, business_code, caseSetName, caseSetId, author)
 	if err != nil {
 		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
