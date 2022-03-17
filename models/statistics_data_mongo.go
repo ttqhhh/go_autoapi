@@ -16,6 +16,7 @@ type StatisticsMongo struct {
 	AllApi                     int     `form:"all_api" json:"all_api" bson:"all_api"` //完成度
 	DegreeOfCompletion         string  `form:"degree_of_completion" json:"degree_of_completion" bson:"degree_of_completion"`
 	LastWeekDegreeOfCompletion string  `form:"last_week_degree_of_completion" json:"last_week_degree_of_completion"` //上周完成度
+	UnUseApi                   int     `form:"un_use_api" json:"un_use_api"`                                         //废弃接口数
 }
 
 func (mongo *StatisticsMongo) TableName() string {

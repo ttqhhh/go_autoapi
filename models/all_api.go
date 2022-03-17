@@ -6,6 +6,9 @@ import (
 	"go_autoapi/db_proxy"
 )
 
+const NO_USING = 1
+const USING = 0
+
 type AllActiveApiMongo struct {
 	Id           int64  `form:"id" json:"id" bson:"id"`
 	BusinessCode int64  `form:"business_code" json:"business_code" bson:"business_code"`  // 平台链接
@@ -45,7 +48,7 @@ func (a *AllActiveApiMongo) QueryByBusiness(businessCode int64) ([]AllActiveApiM
 	ms, db := db_proxy.Connect(db, "all_active_api")
 	defer ms.Close()
 
-	query := bson.M{"business_code": businessCode, "use": 0}
+	query := bson.M{"business_code": businessCode, "use": USING}
 	apiList := []AllActiveApiMongo{}
 	err := db.Find(query).All(&apiList)
 	if err != nil {
@@ -57,4 +60,53 @@ func (a *AllActiveApiMongo) QueryByBusiness(businessCode int64) ([]AllActiveApiM
 		logs.Error("QueryByBusiness 错误: %v", err)
 	}
 	return apiList, err
+}
+
+//
+//根据业务线查询所有活跃接口的数量
+func (a *AllActiveApiMongo) QueryAllCountByBusinessCount(businessCode int64) int {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	query := bson.M{"business_code": businessCode, "use": USING}
+	count, err := db.Find(query).Count()
+	if err != nil {
+		logs.Error("查询出错err:", err)
+
+	}
+	return count
+}
+
+//判断接口是否存在与数据库
+func (a *AllActiveApiMongo) NewApiIsInDatabase(api_name string, business int64) bool {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	query := bson.M{"business_code": business, "api_name": api_name}
+	api := AllActiveApiMongo{}
+	err := db.Find(query).One(&api)
+	if err != nil {
+		if err.Error() == "not found" {
+			err = nil
+			//return nil, nil
+			return false
+		}
+		logs.Error("QueryById 错误: %v", err)
+
+	}
+	return true
+}
+
+//获得所有废弃接口数量
+func (a *AllActiveApiMongo) GetAllUnUseApiCount(business int64) int {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	query := bson.M{"business_code": business, "use": NO_USING}
+	count, err := db.Find(query).Count()
+	if err != nil {
+		logs.Error("根据业务线获取废弃接口数量出错，err:", err)
+	}
+
+	return count
 }
