@@ -7193,7 +7193,11 @@ body.skin-3 {
                         "<td>"+n["caseName"] + "</td>" +
                         "<td>"+n["caseUrl"] + "</td>" +
                         "<td>" + n["spendTime"] + "</td>" +
-                        status + "<td><button type='button' onclick='details(this)' buttonIndex='" + i + "' class='btn btn-primary btn-xs' style='margin-bottom: 0px'>展开</button></td></tr>"
+                        status +
+                        "<td>" +
+                        "<button type='button' onclick='details(this)' buttonIndex='" + i + "' class='btn btn-primary btn-xs' style='margin: 10px; letter-spacing: 10px;text-indent: 10px'>展开</button>" +
+                        "<button type='button' class='btn btn-primary btn-xs' style='margin: 10px'><a href='"+n["caseDetailUrl"]+"' style='color: white'>用例详情</a></button>" +
+                        "</td></tr>"
                     $("#detailBody").append(tr);
                 }
             });

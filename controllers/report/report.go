@@ -106,13 +106,14 @@ func (c *ReportController) runReportDetail() {
 	id, _ := c.GetInt64("id")
 
 	type TestResult struct {
-		BusinessName string   `json:"businessName"`
-		ServiceName  string   `json:"serviceName"`
-		CaseName     string   `json:"caseName"`
-		CaseUrl      string   `json:"caseUrl"`
-		SpendTime    string   `json:"spendTime"`
-		Status       string   `json:"status"`
-		Log          []string `json:"log"`
+		BusinessName  string   `json:"businessName"`
+		ServiceName   string   `json:"serviceName"`
+		CaseName      string   `json:"caseName"`
+		CaseUrl       string   `json:"caseUrl"`
+		CaseDetailUrl string   `json:"caseDetailUrl"`
+		SpendTime     string   `json:"spendTime"`
+		Status        string   `json:"status"`
+		Log           []string `json:"log"`
 	}
 
 	type TemplateResp struct {
@@ -177,9 +178,10 @@ func (c *ReportController) runReportDetail() {
 				ServiceName:  inspectionCaseMongo.ServiceName,
 				CaseName:     inspectionCaseMongo.CaseName,
 				CaseUrl:      inspectionCaseMongo.ApiUrl,
-				SpendTime:    "-",
-				Status:       result,
-				Log:          reasons,
+				CaseDetailUrl: "/inspection/show_edit_case?id="+strconv.Itoa(int(testCaseMongo.Id))+"&business="+testCaseMongo.BusinessCode,
+				SpendTime:     "-",
+				Status:        result,
+				Log:           reasons,
 			}
 		} else if autoResult.IsInspection == models.NOT_INSPECTION {
 			testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
@@ -188,6 +190,7 @@ func (c *ReportController) runReportDetail() {
 				ServiceName:  testCaseMongo.ServiceName,
 				CaseName:     testCaseMongo.CaseName,
 				CaseUrl:      testCaseMongo.ApiUrl,
+				CaseDetailUrl: "/case/show_edit_case?id="+strconv.Itoa(int(testCaseMongo.Id))+"&business="+testCaseMongo.BusinessCode,
 				SpendTime:    "-",
 				Status:       result,
 				Log:          reasons,
@@ -199,9 +202,11 @@ func (c *ReportController) runReportDetail() {
 				ServiceName:  setCaseMongo.ServiceName,
 				CaseName:     setCaseMongo.CaseName,
 				CaseUrl:      setCaseMongo.ApiUrl,
-				SpendTime:    "-",
-				Status:       result,
-				Log:          reasons,
+				//CaseDetailUrl: "/case_set/get_set_case_by_id?id="+strconv.Itoa(int(setCaseMongo.Id)),
+				CaseDetailUrl: "/case_set/one_case?business="+setCaseMongo.BusinessCode+"&id="+strconv.Itoa(int(setCaseMongo.CaseSetId)),
+				SpendTime:     "-",
+				Status:        result,
+				Log:           reasons,
 			}
 
 		}
