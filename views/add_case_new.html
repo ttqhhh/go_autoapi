@@ -1,6 +1,33 @@
 
 {{template "head.html" .}}
 
+<script type="text/javascript">
+    function checkJsonpath() {
+        let jsonpath = $("#extract_resp").val()
+        let resp =  $("#response_param").text()
+        if (jsonpath.trim() == "") {
+            return
+        }
+        if (resp.trim() == "") {
+            layer.msg("请提前获取冒烟响应数据...")
+            return;
+        }
+        $.ajax({
+            type: 'GET',
+            url: "/case_set/check_jsonpath?jsonpath=" + jsonpath + "&resp=" + resp,
+            async: false,
+            success: function (data) {
+                let code = data.code
+                if (code == 200) {
+                    layer.msg("提取到的结果为:\n" + data.data);
+                } else {
+                    layer.alert(data.msg)
+                }
+            }
+        });
+    }
+</script>
+
 <form class="layui-form layui-form-pane" action="/case_set/add_set_case/" method="post" enctype="" style="padding: 1%">
 
     <input type="text" name="case_set_id" value="{{.case_set_id}}" style="display: none">
@@ -105,7 +132,7 @@
 基本格式：{"变量名":"jsonpath"}
 例如：{"post_id":"$.data.list.post_id","token":"$.data.token"}
                            '
-              class="layui-textarea" style="height: 200px" id="extract_resp"
+              class="layui-textarea" style="height: 200px" id="extract_resp" onblur="checkJsonpath()"
               name="extract_resp" ></textarea>
             </div>
         </div>

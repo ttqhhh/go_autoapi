@@ -2,6 +2,7 @@ package case_set
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego/logs"
 	jsonpath "github.com/spyzhov/ajson"
 	"go_autoapi/constants"
@@ -27,6 +28,8 @@ func (c *CaseSetController) Get() {
 		c.oneCase()
 	case "page":
 		c.page()
+	case "check_jsonpath":
+		c.checkJsonpath()
 	case "get_case_set_by_id":
 		c.getCaseSetById()
 	case "show_new_set_case":
@@ -123,6 +126,43 @@ func (c *CaseSetController) page() {
 		c.FormErrorJson(-1, "获取测试用例列表数据失败")
 	}
 	c.FormSuccessJson(count, result)
+}
+
+func (c *CaseSetController) checkJsonpath() {
+	jsonpathExpr := c.GetString("jsonpath")
+	resp := c.GetString("resp")
+
+	var verify map[string]string
+	if err := json.Unmarshal([]byte(jsonpathExpr), &verify); err != nil {
+		logs.Error("checkpoint解析失败", err)
+		c.ErrorJson(-1, "json表达式编写有误", nil)
+	}
+	result := ""
+	for key, path := range verify {
+		valueInResp, err := jsonpath.JSONPath([]byte(resp), path)
+		// 提前检查jsonpath是否存在，不存在就报错
+		if err != nil {
+			logs.Error("checkJsonpath获取数据报错, err: ", err)
+			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: " + key, nil)
+		}
+		if len(valueInResp) == 0 {
+			logs.Error("the verify key is not exist in the response", path)
+			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: " + key, nil)
+		}
+
+		//  返回提取到的值
+		var extractValue interface{}
+		valueType := valueInResp[0].Type()
+		if valueType == jsonpath.Numeric {
+			extractValue = valueInResp[0].MustNumeric()
+		} else if valueType == jsonpath.Bool {
+			extractValue = valueInResp[0].MustBool()
+		} else if valueType == jsonpath.String {
+			extractValue = valueInResp[0].MustString()
+		}
+		result += fmt.Sprintf("%v -->  %v \n", key, extractValue)
+	}
+	c.SuccessJson(result)
 }
 
 // Case集合添加（Form表单传参）
