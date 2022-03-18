@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
+	"github.com/prometheus/common/log"
 	"go_autoapi/constants"
 	"go_autoapi/libs"
 	"go_autoapi/models"
@@ -141,7 +142,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	noRepeatHaiwaiUSList := RemoveRepeatedElement(haiwaiUS_list)
 
 	resp2 := c.getApiByBusinessNewAdd()
-
+	//最右
 	respDataList := []respData{}
 	acm := models.AllActiveApiMongo{}
 	respData := respData{}
@@ -151,86 +152,98 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData1.NewApiConut = float64(resp2["zuiyou_count_new"])
 	respData1.AllCaseCount = len(zuiyou_list)
 	respData1.NewCaseConut = resp2["zuiyou_new_case"]
-	respData1.UnUseApi = acm.GetAllUnUseApiCount(constants.ZuiyYou)                                     //获取一个废弃数
-	str := strconv.FormatFloat(float64(float64(respData1.AllCaseCount)/zuiyouAllCount)*100, 'f', 2, 64) //本周完成度
+	var EffectiveApiZY = 0           //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatZuiyouList {
+		isExist := acm.NewApiIsInDatabase(one, constants.ZuiyYou)
+		if isExist == true {
+			EffectiveApiZY++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
+	respData1.UnUseApi = acm.GetAllUnUseApiCount(constants.ZuiyYou)                             //获取一个废弃数
+	str := strconv.FormatFloat(float64(float64(EffectiveApiZY)/zuiyouAllCount)*100, 'f', 2, 64) //本周完成度
 	respData1.AllApi = int(zuiyouAllCount)
 	if zuiyouAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData1.DegreeOfCompletion = "0%"
-	} else if (float64(respData1.AllCaseCount) / zuiyouAllCount) > 1 {
+	} else if (float64(EffectiveApiZY) / zuiyouAllCount) > 1 {
 		respData1.DegreeOfCompletion = "100%"
 	} else {
 		respData1.DegreeOfCompletion = str + "%"
 	}
-	strLast := strconv.FormatFloat(float64(float64(respData1.AllCaseCount-respData1.NewCaseConut)/zuiyouAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData1.AllApi = int(zuiyouAllCount)
-	if zuiyouAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData1.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData1.AllCaseCount) / zuiyouAllCount) > 1 {
-		respData1.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData1.LastWeekDegreeOfCompletion = strLast + "%"
+	//上周覆盖率 todo 想想怎么处理
+	ac := models.StatisticsMongo{}
+	lastzuiyou, err := ac.QueryLast6ByBusiness("最右")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
-
+	respData1.LastWeekDegreeOfCompletion = lastzuiyou.DegreeOfCompletion
 	respDataList = append(respDataList, respData1)
 
+	//皮皮
 	respData2 := respData
 	respData2.BusinessName = "皮皮"
 	respData2.AllApiCount = float64(len(noRepeatPipiList))
 	respData2.NewApiConut = float64(resp2["pipi_count_new"])
 	respData2.AllCaseCount = len(pipi_list)
 	respData2.NewCaseConut = resp2["pipi_new_case"]
+	var EffectiveApiPP = 0           //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatPipiList {
+		isExist := acm.NewApiIsInDatabase(one, constants.PiPi)
+		if isExist == true {
+			EffectiveApiPP++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
 	respData2.UnUseApi = acm.GetAllUnUseApiCount(constants.PiPi) //获取一个废弃数
-	str2 := strconv.FormatFloat(float64(float64(respData2.AllCaseCount)/pipiAllCount)*100, 'f', 2, 64)
+	str2 := strconv.FormatFloat(float64(float64(EffectiveApiPP)/pipiAllCount)*100, 'f', 2, 64)
 	respData2.DegreeOfCompletion = str2 + "%"
 	respData2.AllApi = int(pipiAllCount)
 	if pipiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData2.DegreeOfCompletion = "0%"
-	} else if (float64(respData2.AllCaseCount) / pipiAllCount) > 1 {
+	} else if (float64(EffectiveApiPP) / pipiAllCount) > 1 {
 		respData2.DegreeOfCompletion = "100%"
 	} else {
 		respData2.DegreeOfCompletion = str2 + "%"
 
 	}
-
-	strLast2 := strconv.FormatFloat(float64(float64(respData2.AllCaseCount-respData2.NewCaseConut)/pipiAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData2.AllApi = int(pipiAllCount)
-	if pipiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData2.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData2.AllCaseCount) / pipiAllCount) > 1 {
-		respData2.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData2.LastWeekDegreeOfCompletion = strLast2 + "%"
-
+	lastPIPI, err := ac.QueryLast6ByBusiness("皮皮")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
+	respData1.LastWeekDegreeOfCompletion = lastPIPI.DegreeOfCompletion
 	respDataList = append(respDataList, respData2)
-
+	//海外
 	respData3 := respData
 	respData3.BusinessName = "海外"
 	respData3.AllApiCount = float64(len(noRepeatHaiwaiList))
 	respData3.NewApiConut = float64(resp2["haiwai_count_new"])
 	respData3.AllCaseCount = len(haiwai_list)
 	respData3.NewCaseConut = resp2["haiwai_new_case"]
+	var EffectiveApiHW = 0           //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatHaiwaiList {
+		isExist := acm.NewApiIsInDatabase(one, constants.HaiWai)
+		if isExist == true {
+			EffectiveApiHW++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
 	respData3.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWai) //获取一个废弃数
-	str3 := strconv.FormatFloat(float64(float64(respData3.AllCaseCount)/haiwaiAllCount)*100, 'f', 2, 64)
+	str3 := strconv.FormatFloat(float64(float64(EffectiveApiHW)/haiwaiAllCount)*100, 'f', 2, 64)
 	respData3.DegreeOfCompletion = str3 + "%"
 	respData3.AllApi = int(haiwaiAllCount)
 	if haiwaiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData3.DegreeOfCompletion = "0%"
-	} else if (float64(respData3.AllCaseCount) / haiwaiAllCount) > 1 {
+	} else if (float64(EffectiveApiHW) / haiwaiAllCount) > 1 {
 		respData3.DegreeOfCompletion = "100%"
 	} else {
 		respData3.DegreeOfCompletion = str3 + "%"
 	}
 
-	strLast3 := strconv.FormatFloat(float64(float64(respData3.AllCaseCount-respData3.NewCaseConut)/haiwaiAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData3.AllApi = int(haiwaiAllCount)
-	if haiwaiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData3.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData3.AllCaseCount) / haiwaiAllCount) > 1 {
-		respData3.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData3.LastWeekDegreeOfCompletion = strLast3 + "%"
+	lasthaiwai, err := ac.QueryLast6ByBusiness("海外")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
+	respData3.LastWeekDegreeOfCompletion = lasthaiwai.DegreeOfCompletion
 
 	respDataList = append(respDataList, respData3)
 
@@ -240,29 +253,31 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData4.NewApiConut = float64(resp2["zhongdong_count_new"])
 	respData4.AllCaseCount = len(zhongdong_list)
 	respData4.NewCaseConut = resp2["zhongdong_new_case"]
+	var EffectiveApiZD = 0           //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatZhongdongList {
+		isExist := acm.NewApiIsInDatabase(one, constants.ZhongDong)
+		if isExist == true {
+			EffectiveApiZD++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
 	respData4.UnUseApi = acm.GetAllUnUseApiCount(constants.ZhongDong) //获取一个废弃数
-	str4 := strconv.FormatFloat(float64(float64(respData4.AllCaseCount)/zhongdongAllCount)*100, 'f', 2, 64)
+	str4 := strconv.FormatFloat(float64(float64(EffectiveApiZD)/zhongdongAllCount)*100, 'f', 2, 64)
 	respData4.DegreeOfCompletion = str4 + "%"
 	respData4.AllApi = int(zhongdongAllCount)
 	if zhongdongAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData4.DegreeOfCompletion = "0%"
-	} else if (float64(respData4.AllCaseCount) / zhongdongAllCount) > 1 {
+	} else if (float64(EffectiveApiZD) / zhongdongAllCount) > 1 {
 		respData4.DegreeOfCompletion = "100%"
 	} else {
 		respData4.DegreeOfCompletion = str4 + "%"
 
 	}
-
-	strLast4 := strconv.FormatFloat(float64(float64(respData4.AllCaseCount-respData4.NewCaseConut)/zhongdongAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData4.AllApi = int(zhongdongAllCount)
-	if zhongdongAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData4.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData4.AllCaseCount) / zhongdongAllCount) > 1 {
-		respData4.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData4.LastWeekDegreeOfCompletion = strLast4 + "%"
+	lastzd, err := ac.QueryLast6ByBusiness("中东")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
-
+	respData4.LastWeekDegreeOfCompletion = lastzd.DegreeOfCompletion
 	respDataList = append(respDataList, respData4)
 
 	respData5 := respData
@@ -283,30 +298,31 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData6.NewApiConut = float64(resp2["shangyehua_count_new"])
 	respData6.AllCaseCount = len(shangyehuai_list)
 	respData6.NewCaseConut = resp2["shangyehua_new_case"]
+	var EffectiveApiSYH = 0          //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatShangyehuaList {
+		isExist := acm.NewApiIsInDatabase(one, constants.ShangYeHua)
+		if isExist == true {
+			EffectiveApiSYH++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
 	respData6.UnUseApi = acm.GetAllUnUseApiCount(constants.ShangYeHua) //获取一个废弃数
-	str6 := strconv.FormatFloat(float64(float64(respData6.AllCaseCount)/shangyehuaAllCount)*100, 'f', 2, 64)
+	str6 := strconv.FormatFloat(float64(float64(EffectiveApiSYH)/shangyehuaAllCount)*100, 'f', 2, 64)
 	respData6.DegreeOfCompletion = str6 + "%"
 	respData6.AllApi = int(shangyehuaAllCount)
 	if shangyehuaAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData6.DegreeOfCompletion = "0%"
-	} else if (float64(respData6.AllCaseCount) / shangyehuaAllCount) > 1 {
+	} else if (float64(EffectiveApiSYH) / shangyehuaAllCount) > 1 {
 		respData6.DegreeOfCompletion = "100%"
 	} else {
 		respData6.DegreeOfCompletion = str6 + "%"
 
 	}
-
-	strLast6 := strconv.FormatFloat(float64(float64(respData6.AllCaseCount-respData6.NewCaseConut)/shangyehuaAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData6.AllApi = int(shangyehuaAllCount)
-	if shangyehuaAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData6.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData6.AllCaseCount) / shangyehuaAllCount) > 1 {
-		respData6.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData6.LastWeekDegreeOfCompletion = strLast6 + "%"
-
+	lastsyh, err := ac.QueryLast6ByBusiness("商业化")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
-
+	respData6.LastWeekDegreeOfCompletion = lastsyh.DegreeOfCompletion
 	respDataList = append(respDataList, respData6)
 
 	respData7 := respData
@@ -315,30 +331,32 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	respData7.NewApiConut = float64(resp2["haiwaiUS_count_new"])
 	respData7.AllCaseCount = len(haiwaiUS_list)
 	respData7.NewCaseConut = resp2["haiwaiUS_new_case"]
+	var EffectiveApiHWUS = 0         //初始化有效接口为0
+	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	for _, one := range noRepeatHaiwaiUSList {
+		isExist := acm.NewApiIsInDatabase(one, constants.HaiWaiUS)
+		if isExist == true {
+			EffectiveApiHWUS++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
+		}
+	}
 	respData7.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWaiUS) //获取一个废弃数
-	str7 := strconv.FormatFloat(float64(float64(respData7.AllCaseCount)/haiwaiUSAllCount)*100, 'f', 2, 64)
+	str7 := strconv.FormatFloat(float64(float64(EffectiveApiHWUS)/haiwaiUSAllCount)*100, 'f', 2, 64)
 	respData7.DegreeOfCompletion = str7 + "%"
 	respData7.AllApi = int(haiwaiUSAllCount)
 	if haiwaiUSAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
 		respData7.DegreeOfCompletion = "0%"
-	} else if (float64(respData7.AllCaseCount) / haiwaiUSAllCount) > 1 {
+	} else if (float64(EffectiveApiHWUS) / haiwaiUSAllCount) > 1 {
 		respData7.DegreeOfCompletion = "100%"
 	} else {
 		respData7.DegreeOfCompletion = str7 + "%"
 
 	}
-
-	strLast7 := strconv.FormatFloat(float64(float64(respData7.AllCaseCount-respData7.NewCaseConut)/haiwaiUSAllCount)*100, 'f', 2, 64) //上周完成度  全部接口-这周新增/活跃接口
-	respData7.AllApi = int(haiwaiUSAllCount)
-	if haiwaiUSAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData7.LastWeekDegreeOfCompletion = "0%"
-	} else if (float64(respData7.AllCaseCount) / haiwaiUSAllCount) > 1 {
-		respData7.LastWeekDegreeOfCompletion = "100%"
-	} else {
-		respData7.LastWeekDegreeOfCompletion = strLast7 + "%"
-
+	//上周新增 在这里直接查后6条 因为这时还没入库
+	lastHwus, err := ac.QueryLast6ByBusiness("海外-US")
+	if err != nil {
+		logs.Error("从数据库查询后六条中数据出错")
 	}
-
+	respData7.LastWeekDegreeOfCompletion = lastHwus.DegreeOfCompletion
 	respDataList = append(respDataList, respData7)
 	return respDataList
 
@@ -632,109 +650,112 @@ func getSyhAllApiCount(cookie *http.Cookie) float64 {
 	}
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.ShangYeHua)
-	//for _, one := range toJson.Data.Result {  //todo tangtianqing  后续增量查询需要开放这段代码
-	//	for _, ones := range one.Values {
-	//		if ones[1] != "0" {
-	//			count++
-	//			//acm := models.AllActiveApiMongo{}
-	//			//acm.BusinessName = "商业化"
-	//			//acm.BusinessCode = constants.ShangYeHua
-	//			//acm.ApiName = one.Meturc.Uri
-	//			//acm.Insert(acm)
-	//			break
-	//		}
-	//
-	//	}
-	//}
+	//todo tangtianqing  后续增量查询需要开放这段代码
+	for _, one := range toJson.Data.Result {
+		for _, ones := range one.Values {
+			if ones[1] != "0" {
+				acm := models.AllActiveApiMongo{}
+				isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ShangYeHua) //传入 api_name business 查看是否存在
+				if isEsixt == false {
+					acm.BusinessName = "商业化"
+					acm.BusinessCode = constants.ShangYeHua
+					acm.ApiName = one.Meturc.Uri
+					acm.Insert(acm)
+					count++
+				}
+				break
+			}
+		}
+	}
 	return float64(count)
 }
 
 func getZyAllApiCount(cookie *http.Cookie) float64 {
-	//zuiyouURLlsit := []string{
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rec_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rev_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_cfg_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_danmaku_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_misc_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway_native_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway-nearby_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_zy_gateway_teamchat_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
-	//}
+	zuiyouURLlsit := []string{
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rec_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_rev_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_cfg_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_danmaku_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_misc_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway_native_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_snssrv_gateway-nearby_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_zy_gateway_teamchat_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200",
+	}
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.ZuiyYou)
-	//for _, i := range zuiyouURLlsit {  //todo 增量查询开放
-	//	respData := doReq(i, cookie)
-	//	toJson := JsonData{}
-	//	err := json.Unmarshal([]byte(respData), &toJson)
-	//	if err != nil {
-	//		log.Error("转换类型出错", err)
-	//	}
-	//	//for _, one := range toJson.Data.Result {
-	//	//	for _, ones := range one.Values {
-	//	//		if ones[1] != "0" {
-	//	//			count++ //todo count 或许更改为 从库中拿
-	//	//			// todo 统计数量结束后 做点什么 （判断改接口是否存在库中，没有则加进去）
-	//	//			//acm := models.AllActiveApiMongo{}
-	//	//			//acm.BusinessName = "最右"
-	//	//			//acm.BusinessCode = constants.ZuiyYou
-	//	//			//acm.ApiName = one.Meturc.Uri
-	//	//			//acm.Insert(acm)
-	//	//			break
-	//	//		}
-	//	//	}
-	//	//}
-	//
-	//}
+	for _, i := range zuiyouURLlsit { //todo 增量查询开放
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+			log.Error("转换类型出错", err)
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					acm := models.AllActiveApiMongo{}
+					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZuiyYou) //传入 api_name business 查看是否存在
+					if isEsixt == false {
+						acm.BusinessName = "最右"
+						acm.BusinessCode = constants.ZuiyYou
+						acm.ApiName = one.Meturc.Uri
+						acm.Insert(acm)
+						count++
+					}
+					break
+				}
+			}
+		}
+
+	}
 
 	return float64(count)
 }
 
 func getPPAllApiCount(cookie *http.Cookie) float64 {
-	//PPlist :=[]string { //使用循环遍历拼接的方法 会出现bad request 400
-	//	"pp-gateway-acnt","pp-gateway-internal"," pp-gateway-misc","pp-gateway-point "," pp-gateway-post","pp-gateway-rec ","pp-gateway-review",
-	//	"pp-gateway-topic","pp-gateway-town",
-	//}
-	//pipiURLlsit := []string{
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-misc%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-acnt%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-internal%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-point%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-post%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-rec%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-review%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-topic%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//	"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-town%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
-	//}
+	pipiURLlsit := []string{
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-misc%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-acnt%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-internal%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-point%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-post%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-rec%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-review%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-topic%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+		"http://grafana.ixiaochuan.cn/api/datasources/proxy/5/api/v1/query_range?query=sum%20by(uri)%20(irate(xcmetrics_httpsrv_qps%7Bjob%3D%22pp-gateway-town%22%7D%5B1m%5D))&start=1646064000&end=1648742400&step=7200",
+	}
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.PiPi)
-	//for _, i := range pipiURLlsit {
-	//	//print(i)
-	//	respData := doReq(i, cookie)
-	//	toJson := JsonData{}
-	//	err := json.Unmarshal([]byte(respData), &toJson)
-	//	if err != nil {
-	//
-	//	}
-	//	for _, one := range toJson.Data.Result {
-	//		for _, ones := range one.Values {
-	//			if ones[1] != "0" {
-	//				count++
-	//				//acm := models.AllActiveApiMongo{}
-	//				//acm.BusinessName = "皮皮"
-	//				//acm.BusinessCode = constants.PiPi
-	//				//acm.ApiName = one.Meturc.Uri
-	//				//acm.Insert(acm)
-	//				break
-	//			}
-	//
-	//		}
-	//	}
-	//
-	//}
+	for _, i := range pipiURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					acm := models.AllActiveApiMongo{}
+					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.PiPi) //传入 api_name business 查看是否存在
+					if isEsixt == false {
+						acm.BusinessName = "皮皮"
+						acm.BusinessCode = constants.PiPi
+						acm.ApiName = one.Meturc.Uri
+						acm.Insert(acm)
+						count++
+					}
+					break
+				}
+			}
+		}
+
+	}
 
 	return float64(count)
 }
@@ -742,76 +763,80 @@ func getPPAllApiCount(cookie *http.Cookie) float64 {
 func gethaiwaiAllApiCount(cookie *http.Cookie) float64 {
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.HaiWai)
-	//haiwaiURLlsit := []string{
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_index_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_review_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//	"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
-	//}
-	//for _, i := range haiwaiURLlsit {
-	//	//print(i)
-	//	respData := doReq(i, cookie)
-	//	toJson := JsonData{}
-	//	err := json.Unmarshal([]byte(respData), &toJson)
-	//	if err != nil {
-	//
-	//	}
-	//	for _, one := range toJson.Data.Result {
-	//		for _, ones := range one.Values {
-	//			if ones[1] != "0" {
-	//				count++
-	//				//acm := models.AllActiveApiMongo{}
-	//				//acm.BusinessName = "海外"
-	//				//acm.BusinessCode = constants.HaiWai
-	//				//acm.ApiName = one.Meturc.Uri
-	//				//acm.Insert(acm)
-	//				break
-	//			}
-	//
-	//		}
-	//	}
-	//
-	//}
+	haiwaiURLlsit := []string{
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_chatsrv_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_acnt_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_index_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_post_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_review_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+		"http://dashboard.icocofun.net/api/datasources/proxy/25/api/v1/query_range?query=sum(rate(xms_omg_gateway_topic_http_latency_count%5B1m%5D))by(uri)&start=1644288000&end=1646880000&step=1200&timeout=300s",
+	}
+	for _, i := range haiwaiURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					acm := models.AllActiveApiMongo{}
+					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWai) //传入 api_name business 查看是否存在
+					if isEsixt == false {
+						acm.BusinessName = "海外"
+						acm.BusinessCode = constants.HaiWai
+						acm.ApiName = one.Meturc.Uri
+						acm.Insert(acm)
+						count++
+					}
+					break
+				}
+			}
+		}
+
+	}
 
 	return float64(count)
 }
 
 func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
-	//count := 0
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.HaiWaiUS)
-	//haiwaiUSURLlsit := []string{
-	//	"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
-	//	"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_chatsrv_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
-	//	"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_account_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
-	//}
-	//for _, i := range haiwaiUSURLlsit {
-	//	//print(i)
-	//	respData := doReq(i, cookie)
-	//	toJson := JsonData{}
-	//	err := json.Unmarshal([]byte(respData), &toJson)
-	//	if err != nil {
-	//
-	//	}
-	//	for _, one := range toJson.Data.Result {
-	//		for _, ones := range one.Values {
-	//			if ones[1] != "0" {
-	//				count++
-	//				//acm := models.AllActiveApiMongo{}
-	//				//acm.BusinessName = "海外US"
-	//				//acm.BusinessCode = constants.HaiWaiUS
-	//				//acm.ApiName = one.Meturc.Uri
-	//				//acm.Insert(acm)
-	//				break
-	//			}
-	//		}
-	//	}
-	//
-	//}
+	haiwaiUSURLlsit := []string{
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_chatsrv_gateway_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+		"http://grafanaus.icocofun.net/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_maga_gateway_account_http_latency_count%7Buri!%3D%22%2Fhealthcheck%22%7D%5B1m%5D))by(uri)&start=1646496000&end=1646668680&step=120",
+	}
+	for _, i := range haiwaiUSURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					acm := models.AllActiveApiMongo{}
+					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWaiUS) //传入 api_name business 查看是否存在
+					if isEsixt == false {
+						acm.BusinessName = "海外US"
+						acm.BusinessCode = constants.HaiWaiUS
+						acm.ApiName = one.Meturc.Uri
+						acm.Insert(acm)
+						count++
+					}
+					break
+				}
+			}
+		}
+
+	}
 
 	return float64(count)
 }
@@ -820,35 +845,38 @@ func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
 
 	acm := models.AllActiveApiMongo{}
 	count := acm.QueryAllCountByBusinessCount(constants.ZhongDong)
-	//ZhongDongURLlsit := []string{
-	//	"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_chat-gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-	//	"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-	//	"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_trade_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-	//	"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
-	//}
-	//for _, i := range ZhongDongURLlsit {
-	//	//print(i)
-	//	respData := doReq(i, cookie)
-	//	toJson := JsonData{}
-	//	err := json.Unmarshal([]byte(respData), &toJson)
-	//	if err != nil {
-	//
-	//	}
-	//	for _, one := range toJson.Data.Result {
-	//		for _, ones := range one.Values {
-	//			if ones[1] != "0" {
-	//				count++
-	//				//acm := models.AllActiveApiMongo{}
-	//				//acm.BusinessName = "中东"
-	//				//acm.BusinessCode = constants.ZhongDong
-	//				//acm.ApiName = one.Meturc.Uri
-	//				//acm.Insert(acm)
-	//				break
-	//			}
-	//		}
-	//	}
-	//
-	//}
+	ZhongDongURLlsit := []string{
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_chat-gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gamestore_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_trade_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+		"http://grafana.mehiya.com/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_me_live_gateway_http_latency_count%5B1m%5D))by(uri)&start=1644303600&end=1646895600&step=1800",
+	}
+	for _, i := range ZhongDongURLlsit {
+		//print(i)
+		respData := doReq(i, cookie)
+		toJson := JsonData{}
+		err := json.Unmarshal([]byte(respData), &toJson)
+		if err != nil {
+
+		}
+		for _, one := range toJson.Data.Result {
+			for _, ones := range one.Values {
+				if ones[1] != "0" {
+					acm := models.AllActiveApiMongo{}
+					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZhongDong) //传入 api_name business 查看是否存在
+					if isEsixt == false {
+						acm.BusinessName = "中东"
+						acm.BusinessCode = constants.ZhongDong
+						acm.ApiName = one.Meturc.Uri
+						acm.Insert(acm)
+						count++
+					}
+					break
+				}
+			}
+		}
+
+	}
 
 	return float64(count)
 }
