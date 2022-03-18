@@ -29,6 +29,8 @@ type SetCaseMongo struct {
 	Checkpoint    string `form:"check_point" json:"check_point" bson:"check_point"`
 	SmokeResponse string `form:"smoke_response" json:"smoke_response,omitempty" bson:"smoke_response"`
 	Order         int    `form:"order" json:"order" bson:"order"` // 顺序，用于执行和页面展示
+	BeforeWait    int    `form:"before_wait" json:"before_wait" bson:"before_wait"` // 前置等待时间
+	AfterWait     int    `form:"after_wait" json:"after_wait" bson:"after_wait"`	//	后置等待时间
 	Status        int64  `json:"status" bson:"status"`
 }
 

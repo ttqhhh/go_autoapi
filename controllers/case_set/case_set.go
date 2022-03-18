@@ -297,6 +297,11 @@ func (c *CaseSetController) runById() {
 	go func(runReportId int64) {
 		// 3、运行测试用例集
 		for _, setCase := range setCaseList {
+			// todo 前置等待
+			beforeWait := setCase.BeforeWait
+			if beforeWait != 0 {
+				time.Sleep(time.Duration(beforeWait) * time.Second)
+			}
 			caseParam := setCase.Parameter
 
 			// 从caseParam中，取出带有$字符的参数进行替换
@@ -383,6 +388,11 @@ func (c *CaseSetController) runById() {
 						//取出的值不是num也不是str
 					}
 				}
+			}
+			// todo 后置等待
+			afterWait := setCase.AfterWait
+			if afterWait != 0 {
+				time.Sleep(time.Duration(afterWait) * time.Second)
 			}
 		}
 

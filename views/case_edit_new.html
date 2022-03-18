@@ -57,6 +57,19 @@
     </div>
 
     <div class="layui-form-item">
+        <label class="layui-form-label">前置等待(秒)</label>
+        <div class="layui-input-inline" style="width: 21.5%">
+            <input type="text" name="before_wait" autocomplete="off" placeholder="请输入前置等待时间" class="layui-input"
+                   value={{.a.BeforeWait}}>
+        </div>
+        <label class="layui-form-label">后置等待(秒)</label>
+        <div class="layui-input-inline" style="width: 21.5%">
+            <input type="text" name="after_wait" autocomplete="off" placeholder="请输入后置等待时间" class="layui-input"
+                   value={{.a.AfterWait}}>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
         <label class="layui-form-label">请求</label>
         <div class="layui-input-inline">
             <select name="request_method" id="request_method">
