@@ -178,7 +178,7 @@ func (c *ReportController) runReportDetail() {
 				ServiceName:  inspectionCaseMongo.ServiceName,
 				CaseName:     inspectionCaseMongo.CaseName,
 				CaseUrl:      inspectionCaseMongo.ApiUrl,
-				CaseDetailUrl: "/inspection/show_edit_case?id="+strconv.Itoa(int(testCaseMongo.Id))+"&business="+testCaseMongo.BusinessCode,
+				CaseDetailUrl: "/inspection/show_edit_case?id="+strconv.Itoa(int(inspectionCaseMongo.Id))+"&business="+inspectionCaseMongo.BusinessCode,
 				SpendTime:     "-",
 				Status:        result,
 				Log:           reasons,
