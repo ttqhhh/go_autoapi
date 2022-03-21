@@ -1,6 +1,7 @@
 package h5listen
 
 import (
+	constant "go_autoapi/constants"
 	"go_autoapi/models"
 	"time"
 )
@@ -32,6 +33,9 @@ func (c *H5ListenController) AddOneH5Date() {
 	acm.DataUrl = DataUrl
 	acm.Business = Business
 	acm.BusinessName = BusinessName
+	nowtime := time.Now()
+	acm.CreatedAt = nowtime.Format(constant.TimeFormat)
+
 	acm.InsertAdCase(acm)
 	c.Ctx.Redirect(302, "/h5listen/show_h5?business="+Business)
 }
