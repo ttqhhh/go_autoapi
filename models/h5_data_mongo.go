@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"go_autoapi/db_proxy"
-	"time"
 )
 
 const (
@@ -15,14 +14,14 @@ const (
 )
 
 type AdH5DataMongo struct {
-	Id           int64     `json:"id" bson:"_id"`
-	DataName     string    `json:"data_name"`
-	DataUrl      string    `json:"data_url"`
-	Status       int       `json:"status"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Business     string    `json:"business"`
-	BusinessName string    `json:"business_name"` //zuiyou,pipi,
+	Id           int64  `json:"id" bson:"_id"`
+	DataName     string `json:"data_name"`
+	DataUrl      string `json:"data_url"`
+	Status       int    `json:"status"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+	Business     string `json:"business"`
+	BusinessName string `json:"business_name"` //zuiyou,pipi,
 }
 
 func init() {
