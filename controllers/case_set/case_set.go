@@ -28,8 +28,6 @@ func (c *CaseSetController) Get() {
 		c.oneCase()
 	case "page":
 		c.page()
-	case "check_jsonpath":
-		c.checkJsonpath()
 	case "get_case_set_by_id":
 		c.getCaseSetById()
 	case "show_new_set_case":
@@ -49,6 +47,8 @@ func (c *CaseSetController) Get() {
 func (c *CaseSetController) Post() {
 	do := c.GetMethodName()
 	switch do {
+	case "check_jsonpath":
+		c.checkJsonpath()
 	case "add_case_set":
 		c.addCaseSet()
 	case "add_case_set_ajax":
@@ -128,9 +128,16 @@ func (c *CaseSetController) page() {
 	c.FormSuccessJson(count, result)
 }
 
+type checkJsonpathParam struct {
+	Jsonpath string `json:"jsonpath"` // 必填
+	Resp     string `json:"resp"`     // 必填
+}
+
 func (c *CaseSetController) checkJsonpath() {
-	jsonpathExpr := c.GetString("jsonpath")
-	resp := c.GetString("resp")
+	param := checkJsonpathParam{}
+	json.Unmarshal(c.Ctx.Input.RequestBody, &param)
+	jsonpathExpr := param.Jsonpath
+	resp := param.Resp
 
 	var verify map[string]string
 	if err := json.Unmarshal([]byte(jsonpathExpr), &verify); err != nil {
@@ -143,11 +150,11 @@ func (c *CaseSetController) checkJsonpath() {
 		// 提前检查jsonpath是否存在，不存在就报错
 		if err != nil {
 			logs.Error("checkJsonpath获取数据报错, err: ", err)
-			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: " + key, nil)
+			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: "+key, nil)
 		}
 		if len(valueInResp) == 0 {
 			logs.Error("the verify key is not exist in the response", path)
-			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: " + key, nil)
+			c.ErrorJson(-1, "jsonpath表达式编写有误, 对应的key值为: "+key, nil)
 		}
 
 		//  返回提取到的值

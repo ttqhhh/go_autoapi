@@ -715,9 +715,14 @@
             return;
         }
         $.ajax({
-            type: 'GET',
-            url: "/case_set/check_jsonpath?jsonpath=" + jsonpath + "&resp=" + resp,
+            type: 'POST',
+            contentType: "application/json",
+            url: "/case_set/check_jsonpath",
             async: false,
+            data: JSON.stringify({
+                jsonpath:jsonpath,
+                resp: resp
+            }),
             success: function (data) {
                 let code = data.code
                 if (code == 200) {
