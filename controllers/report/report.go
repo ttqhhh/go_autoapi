@@ -154,6 +154,7 @@ func (c *ReportController) runReportDetail() {
 	inspectionCaseMongo := models.InspectionCaseMongo{}
 	testCaseMongo := models.TestCaseMongo{}
 	setCaseMongo := models.SetCaseMongo{}
+	serNameMap := map[int64]string{}
 	for _, autoResult := range autoResultList {
 		result := "成功"
 		if autoResult.Result == models.AUTO_RESULT_FAIL {
@@ -171,39 +172,82 @@ func (c *ReportController) runReportDetail() {
 		}
 
 		var testResult *TestResult
+		serviceMongo := models.ServiceMongo{}
 		if autoResult.IsInspection == models.INSPECTION {
 			inspectionCaseMongo = inspectionCaseMongo.GetOneCase(autoResult.CaseId)
+			// 根据获取服务Id去服务名
+			serviceName := ""
+			serviceId := inspectionCaseMongo.ServiceId
+			if value, ok := serNameMap[serviceId]; ok {
+				serviceName = value
+			} else {
+				service, err := serviceMongo.QueryById(serviceId)
+				if err != nil {
+					serviceName = inspectionCaseMongo.ServiceName
+				} else {
+					serviceName = service.ServiceName
+					serNameMap[serviceId] = serviceName
+				}
+			}
 			testResult = &TestResult{
-				BusinessName: inspectionCaseMongo.BusinessName,
-				ServiceName:  inspectionCaseMongo.ServiceName,
-				CaseName:     inspectionCaseMongo.CaseName,
-				CaseUrl:      inspectionCaseMongo.ApiUrl,
-				CaseDetailUrl: "/inspection/show_edit_case?id="+strconv.Itoa(int(inspectionCaseMongo.Id))+"&business="+inspectionCaseMongo.BusinessCode,
+				BusinessName:  inspectionCaseMongo.BusinessName,
+				ServiceName:   serviceName,
+				CaseName:      inspectionCaseMongo.CaseName,
+				CaseUrl:       inspectionCaseMongo.ApiUrl,
+				CaseDetailUrl: "/inspection/show_edit_case?id=" + strconv.Itoa(int(inspectionCaseMongo.Id)) + "&business=" + inspectionCaseMongo.BusinessCode,
 				SpendTime:     "-",
 				Status:        result,
 				Log:           reasons,
 			}
 		} else if autoResult.IsInspection == models.NOT_INSPECTION {
 			testCaseMongo = testCaseMongo.GetOneCase(autoResult.CaseId)
+			// 根据获取服务Id去服务名
+			serviceName := ""
+			serviceId := testCaseMongo.ServiceId
+			if value, ok := serNameMap[serviceId]; ok {
+				serviceName = value
+			} else {
+				service, err := serviceMongo.QueryById(testCaseMongo.ServiceId)
+				if err != nil {
+					serviceName = inspectionCaseMongo.ServiceName
+				} else {
+					serviceName = service.ServiceName
+					serNameMap[serviceId] = serviceName
+				}
+			}
 			testResult = &TestResult{
-				BusinessName: testCaseMongo.BusinessName,
-				ServiceName:  testCaseMongo.ServiceName,
-				CaseName:     testCaseMongo.CaseName,
-				CaseUrl:      testCaseMongo.ApiUrl,
-				CaseDetailUrl: "/case/show_edit_case?id="+strconv.Itoa(int(testCaseMongo.Id))+"&business="+testCaseMongo.BusinessCode,
-				SpendTime:    "-",
-				Status:       result,
-				Log:          reasons,
+				BusinessName:  testCaseMongo.BusinessName,
+				ServiceName:   serviceName,
+				CaseName:      testCaseMongo.CaseName,
+				CaseUrl:       testCaseMongo.ApiUrl,
+				CaseDetailUrl: "/case/show_edit_case?id=" + strconv.Itoa(int(testCaseMongo.Id)) + "&business=" + testCaseMongo.BusinessCode,
+				SpendTime:     "-",
+				Status:        result,
+				Log:           reasons,
 			}
 		} else if autoResult.IsInspection == models.SENCE {
 			setCaseMongo, _ := setCaseMongo.GetSetCaseById(autoResult.CaseId)
+			// 根据获取服务Id去服务名
+			serviceName := ""
+			serviceId := setCaseMongo.ServiceId
+			if value, ok := serNameMap[serviceId]; ok {
+				serviceName = value
+			} else {
+				service, err := serviceMongo.QueryById(setCaseMongo.ServiceId)
+				if err != nil {
+					serviceName = inspectionCaseMongo.ServiceName
+				} else {
+					serviceName = service.ServiceName
+					serNameMap[serviceId] = serviceName
+				}
+			}
 			testResult = &TestResult{
 				BusinessName: setCaseMongo.BusinessName,
-				ServiceName:  setCaseMongo.ServiceName,
+				ServiceName:  serviceName,
 				CaseName:     setCaseMongo.CaseName,
 				CaseUrl:      setCaseMongo.ApiUrl,
 				//CaseDetailUrl: "/case_set/get_set_case_by_id?id="+strconv.Itoa(int(setCaseMongo.Id)),
-				CaseDetailUrl: "/case_set/one_case?business="+setCaseMongo.BusinessCode+"&id="+strconv.Itoa(int(setCaseMongo.CaseSetId)),
+				CaseDetailUrl: "/case_set/one_case?business=" + setCaseMongo.BusinessCode + "&id=" + strconv.Itoa(int(setCaseMongo.CaseSetId)),
 				SpendTime:     "-",
 				Status:        result,
 				Log:           reasons,
