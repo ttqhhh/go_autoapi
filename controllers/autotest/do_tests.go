@@ -363,6 +363,7 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 		//发布信息入库
 		mongoPubMsg := models.PublishMsg{}
 		mongoPubMsg.BusinessId = business
+		mongoPubMsg.BusinessName = businessName
 		mongoPubMsg.Kind = kind
 		mongoPubMsg.User = user
 		mongoPubMsg.Project = project
