@@ -9,12 +9,17 @@ import (
 
 //用来解析参数
 type formPubMsg struct {
-	Id int `form:"id"`
+	Id int `json:"id"`
+}
+
+func (c *AutoTestController) showPubInfo(){
+	c.TplName = "show_pub_info.html"
 }
 
 func (c *AutoTestController) getPubInfo() {
 	ac := formPubMsg{}
-	fmt.Println(ac)
+	//fmt.Println(ac)
+	//fmt.Println(c.Ctx.Input.RequestBody)
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &ac); err != nil {
 		logs.Error(1024, err)
 		c.ErrorJson(-1, "请求错误", nil)
@@ -27,5 +32,5 @@ func (c *AutoTestController) getPubInfo() {
 		fmt.Println(err)
 		c.ErrorJson(-1, "请求错误", nil)
 	}
-	c.SuccessJsonWithMsg(pmb, "OK")
+	c.ElemJson(pmb)
 }

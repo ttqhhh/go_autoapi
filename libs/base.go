@@ -70,6 +70,16 @@ func (b *BaseController) SuccessJsonWithMsg(data interface{}, msg string) {
 	b.StopRun()
 }
 
+func (b *BaseController) ElemJson(data interface{}) {
+
+	res := ReturnMsg{
+		0, "success", data,
+	}
+	b.Data["json"] = res
+	b.ServeJSON() //对json进行序列化输出
+	b.StopRun()
+}
+
 func (b *BaseController) SuccessJson(data interface{}) {
 
 	res := ReturnMsg{

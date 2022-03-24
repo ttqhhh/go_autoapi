@@ -22,6 +22,8 @@ func (c *AutoTestController) Get() {
 		c.showCheckPoints() //展示检查点页面
 	case "check":
 		c.check() //检查是否挂掉
+	case "show_pub_info":
+		c.showPubInfo() //展示发布信息页面
 	//case "login_user_detail":
 	//	c.loginUserDetail()
 	default:

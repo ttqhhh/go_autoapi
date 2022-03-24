@@ -353,13 +353,13 @@ func onlineCaseTest(caseList []*models.InspectionCaseMongo, business int8, userI
 	if strings.Contains(userId, "回归测试") {
 		nowtime := time.Now().String()
 		nowtimestring := strings.Split(nowtime, ".")
-		//baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
-		//	"【测试结果】：" + isPass
-		//msg := "【测试报告链接】" + "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
-		////DingSendShangXian(baseMsg + "\n" + msg)
-		//if isPass == "失败" {
-		//	DingSendShangXianToFail(baseMsg+"\n"+msg, business)
-		//}
+		baseMsg := "【检测到" + businessName + "服务上线】：" + "【环境】" + kind + "\n" + "【上线人】：" + user + "\n" + "【服务名】：" + project + "\n" + "【上线时间】：" + nowtimestring[0] + "\n" +
+			"【测试结果】：" + isPass
+		msg := "【测试报告链接】" + "http://interface-auto-platform.ixiaochuan.cn/report/run_report_detail?id=" + strconv.FormatInt(id, 10)
+		//DingSendShangXian(baseMsg + "\n" + msg)
+		if isPass == "失败" {
+			DingSendShangXianToFail(baseMsg+"\n"+msg, business)
+		}
 		//发布信息入库
 		mongoPubMsg := models.PublishMsg{}
 		mongoPubMsg.BusinessId = business
