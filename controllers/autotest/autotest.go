@@ -67,6 +67,8 @@ func (c *AutoTestController) Post() {
 		c.getResult()
 	case "check_points":
 		c.checkPoints()
+	case "get_pub_info":
+		c.getPubInfo()
 	default:
 		logs.Warn("action: %s, not implemented", do)
 		c.ErrorJson(-1, "不支持", nil)
