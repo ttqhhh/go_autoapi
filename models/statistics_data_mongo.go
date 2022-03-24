@@ -55,3 +55,20 @@ func (mongo *StatisticsMongo) QueryAll() ([]StatisticsMongo, int, error) {
 	}
 	return dataList, 7, err
 }
+
+func (mongo *StatisticsMongo) QueryLast6ByBusiness(business string) (StatisticsMongo, error) {
+	ms, db := db_proxy.Connect(db, "statistics_data")
+	defer ms.Close()
+
+	// 查询分页数据
+	query := bson.M{
+		"business_name": business,
+	}
+
+	data := StatisticsMongo{}
+	err := db.Find(query).Sort("-_id").Limit(6).One(&data)
+	if err != nil {
+		logs.Error("查询出错")
+	}
+	return data, err
+}
