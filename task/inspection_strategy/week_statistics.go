@@ -17,6 +17,7 @@ const ApiCountHaiwaiUS = 200
 
 func Statistics1Week() error {
 	//todo 取得平台自动化所用的全部接口by business
+	logs.Info("定时启动更新数据统计 周五0点")
 	mongo := models.StatisticsMongo{}
 	c := controllers.StatisticsController{}
 

@@ -210,7 +210,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData1.LastWeekDegreeOfCompletion = lastPIPI.DegreeOfCompletion
+	respData2.LastWeekDegreeOfCompletion = lastPIPI.DegreeOfCompletion
 	respDataList = append(respDataList, respData2)
 	//海外
 	respData3 := respData
