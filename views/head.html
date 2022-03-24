@@ -128,32 +128,8 @@
         });
     });
 </script>
-<script>
-    layui.use('dropdown', function(){
-        var dropdown = layui.dropdown
-        dropdown.render({
-            elem: '#demo1' //可绑定在任意元素中，此处以上述按钮为例
-            ,data: [{
-                title: '埋点测试'
-                ,id: 100
-                ,href: '/auto/check_points'
-            },{
-                title: '海外埋点测试'
-                ,id: 101
-                ,href: 'http://192.168.25.171:8080/auto/check_points' //开启超链接
-                ,target: '_blank' //新窗口方式打开
-            },]
-            ,id: 'demo1'
-            //菜单被点击的事件
-            ,click: function(obj){
-
-            }
-        });
-    });
-</script>
 
 <ul class="layui-nav" style="background-color: #3081FF;">
-    <!--    <li class="layui-nav-item" id="/case/show_cases"><a href="/case/show_cases">测试用例管理</a></li>-->
     <img src="/static/img/zuiyouicon.png" alt="" style="margin-top: -2px;">
     <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
         <a href="javascript:;">线下自动化</a>
@@ -170,8 +146,6 @@
         <dl class="layui-nav-child" id="compose_business_list">
         </dl>
     </li>
-    <!--    <li class="layui-nav-item" id="/case/show_add_case"><a href="/case/show_add_case">添加用例</a></li>-->
-    <!--{{/*    <li class="layui-nav-item" id="/case/show_report"><a href="/case/show_report">报告管理</a></li>*/}}-->
     <li class="layui-nav-item" id="/report/show_run_record"><a href="/report/show_run_record">自动化报告</a></li>
 git
     <li class="layui-nav-item" id="/show_run_record_inspection"><a href="/report/show_run_record_inspection">监控报告</a></li>
@@ -181,20 +155,20 @@ git
         </dl>
     </li>
     <li class="layui-nav-item" id="show_h5_report"><a href="/h5report/show_report">h5监控报告</a></li>
-    <li class="layui-nav-item"><a href="/service/index">服务管理</a></li>
-<!--    <li class="layui-nav-item" id="/web_report/show_web_report"><a href="/web_report/allwebreport">报告发送</a></li>-->
-<!--    <li class="layui-nav-item" id="/web_report/queryEmail"><a href="/web_report/allemail">邮箱组</a></li>-->
-    <button class="layui-btn" id="demo1" style="background-color: #3081FF;color: #c0d8fe">
-        埋点测试
-        <i class="layui-icon layui-icon-down layui-font-12"></i>
-    </button>
-    <li class="layui-nav-item" id="/monitor/index"><a href="/monitor/index">性能汇总</a></li>
 
-    <li class="layui-nav-item"><a href="http://172.16.2.86:8094/ ">Case平台</a></li>
-    <li class="layui-nav-item"id="/flowreplay/index"><a href="/flowreplay/index">推荐工具</a></li>
-    <li class="layui-nav-item"id="/presstest/index"><a href="/presstest/index">压测工具</a></li>
-    <li class="layui-nav-item"id="/presstest/index"><a href="/statistics/show_statistics_data">数据统计</a></li>
-
+    <li class="layui-nav-item" style="overflow: visible;z-index: 99999">
+        <a href="javascript:;">背包库</a>
+        <dl class="layui-nav-child">
+            <dd><a href="/service/index">服务管理</a></dd>
+            <dd><a href="/statistics/show_statistics_data">数据统计</a></dd>
+            <dd><a href="/monitor/index">性能汇总</a></dd>
+            <dd><a href="http://172.16.2.86:8094/ ">Case平台</a></dd>
+            <dd><a href="/flowreplay/index">推荐工具</a></dd>
+            <dd><a href="/presstest/index">压测工具</a></dd>
+            <dd><a href="/auto/check_points">埋点测试</a></dd>
+            <dd><a href="http://192.168.25.171:8080/auto/check_points">海外埋点测试</a></dd>
+        </dl>
+    </li>
 
 
     <!--    <li class="layui-nav-item"><a href="/auto/user_index">用户管理</a></li>-->
