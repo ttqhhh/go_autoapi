@@ -14,7 +14,8 @@ type AllActiveApiMongo struct {
 	BusinessCode int64  `form:"business_code" json:"business_code" bson:"business_code"`  // 平台链接
 	BusinessName string `form:"business_name"  json:"business_name" bson:"business_name"` // 平台名称
 	ApiName      string `form:"api_name" json:"api_name" bson:"api_name"`
-	Use          int64  `form:"use" json:"use" bson:"use"` //1=废弃接口
+	Use          int64  `form:"use" json:"use" bson:"use"`                   //1=废弃接口
+	Calculate    int64  `form:"calculate" json:"calculate" bson:"calculate"` //是否被用于计算接口覆盖率 0 = 没有被统计 1= 已经被统计
 }
 
 func init() {
@@ -78,7 +79,7 @@ func (a *AllActiveApiMongo) QueryAllCountByBusinessCount(businessCode int64) int
 }
 
 //判断接口是否存在与数据库
-func (a *AllActiveApiMongo) NewApiIsInDatabase(api_name string, business int64) bool {
+func (a *AllActiveApiMongo) NewApiIsInDatabase(api_name string, business int64) (AllActiveApiMongo, bool) {
 	ms, db := db_proxy.Connect(db, "all_active_api")
 	defer ms.Close()
 
@@ -89,12 +90,12 @@ func (a *AllActiveApiMongo) NewApiIsInDatabase(api_name string, business int64) 
 		if err.Error() == "not found" {
 			err = nil
 			//return nil, nil
-			return false
+			return api, false
 		}
 		logs.Error("QueryById 错误: %v", err)
 
 	}
-	return true
+	return api, true
 }
 
 //获得所有废弃接口数量
@@ -109,4 +110,24 @@ func (a *AllActiveApiMongo) GetAllUnUseApiCount(business int64) int {
 	}
 
 	return count
+}
+
+//更新数据的状态
+func (a *AllActiveApiMongo) ChangeApiCalculate(id int64, acm AllActiveApiMongo) error {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	data := bson.M{
+		"$set": bson.M{
+			"calculate": 1,
+		},
+	}
+	query := bson.M{
+		"id": id,
+	}
+	err := db.Update(query, data)
+	if err != nil {
+		logs.Error("updata出错，err", err)
+	}
+	return err
 }

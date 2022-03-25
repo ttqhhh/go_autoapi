@@ -2,6 +2,7 @@ package statisticsdata
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
 	"github.com/prometheus/common/log"
@@ -155,8 +156,11 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiZY = 0           //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatZuiyouList {
-		isExist := acm.NewApiIsInDatabase(one, constants.ZuiyYou)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.ZuiyYou)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
+			fmt.Print("参与计算的接口：" + one)
 			EffectiveApiZY++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -189,8 +193,11 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiPP = 0           //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatPipiList {
-		isExist := acm.NewApiIsInDatabase(one, constants.PiPi)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.PiPi)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
+			fmt.Print("参与计算的接口：" + one)
 			EffectiveApiPP++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -222,8 +229,10 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiHW = 0           //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatHaiwaiList {
-		isExist := acm.NewApiIsInDatabase(one, constants.HaiWai)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.HaiWai)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
 			EffectiveApiHW++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -256,8 +265,10 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiZD = 0           //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatZhongdongList {
-		isExist := acm.NewApiIsInDatabase(one, constants.ZhongDong)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.ZhongDong)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
 			EffectiveApiZD++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -301,8 +312,10 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiSYH = 0          //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatShangyehuaList {
-		isExist := acm.NewApiIsInDatabase(one, constants.ShangYeHua)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.ShangYeHua)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
 			EffectiveApiSYH++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -334,8 +347,10 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var EffectiveApiHWUS = 0         //初始化有效接口为0
 	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
 	for _, one := range noRepeatHaiwaiUSList {
-		isExist := acm.NewApiIsInDatabase(one, constants.HaiWaiUS)
+		acm, isExist := acm.NewApiIsInDatabase(one, constants.HaiWaiUS)
 		if isExist == true {
+			acm.Calculate = 0
+			acm.ChangeApiCalculate(acm.Id, acm)
 			EffectiveApiHWUS++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
 		}
 	}
@@ -655,7 +670,7 @@ func getSyhAllApiCount(cookie *http.Cookie) float64 {
 		for _, ones := range one.Values {
 			if ones[1] != "0" {
 				acm := models.AllActiveApiMongo{}
-				isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ShangYeHua) //传入 api_name business 查看是否存在
+				acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ShangYeHua) //传入 api_name business 查看是否存在
 				if isEsixt == false {
 					acm.BusinessName = "商业化"
 					acm.BusinessCode = constants.ShangYeHua
@@ -698,7 +713,7 @@ func getZyAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					acm := models.AllActiveApiMongo{}
-					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZuiyYou) //传入 api_name business 查看是否存在
+					acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZuiyYou) //传入 api_name business 查看是否存在
 					if isEsixt == false {
 						acm.BusinessName = "最右"
 						acm.BusinessCode = constants.ZuiyYou
@@ -742,7 +757,7 @@ func getPPAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					acm := models.AllActiveApiMongo{}
-					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.PiPi) //传入 api_name business 查看是否存在
+					acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.PiPi) //传入 api_name business 查看是否存在
 					if isEsixt == false {
 						acm.BusinessName = "皮皮"
 						acm.BusinessCode = constants.PiPi
@@ -785,7 +800,7 @@ func gethaiwaiAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					acm := models.AllActiveApiMongo{}
-					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWai) //传入 api_name business 查看是否存在
+					acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWai) //传入 api_name business 查看是否存在
 					if isEsixt == false {
 						acm.BusinessName = "海外"
 						acm.BusinessCode = constants.HaiWai
@@ -823,7 +838,7 @@ func gethaiwaiUSAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					acm := models.AllActiveApiMongo{}
-					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWaiUS) //传入 api_name business 查看是否存在
+					acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.HaiWaiUS) //传入 api_name business 查看是否存在
 					if isEsixt == false {
 						acm.BusinessName = "海外US"
 						acm.BusinessCode = constants.HaiWaiUS
@@ -863,7 +878,7 @@ func getzhongdongAllApiCount(cookie *http.Cookie) float64 {
 			for _, ones := range one.Values {
 				if ones[1] != "0" {
 					acm := models.AllActiveApiMongo{}
-					isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZhongDong) //传入 api_name business 查看是否存在
+					acm, isEsixt := acm.NewApiIsInDatabase(one.Meturc.Uri, constants.ZhongDong) //传入 api_name business 查看是否存在
 					if isEsixt == false {
 						acm.BusinessName = "中东"
 						acm.BusinessCode = constants.ZhongDong
