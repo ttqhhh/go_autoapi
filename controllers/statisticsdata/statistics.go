@@ -52,18 +52,6 @@ func (c *StatisticsController) Get() {
 	}
 }
 
-func (c *StatisticsController) Post() {
-	do := c.GetMethodName()
-	switch do {
-	case "get_all_api_by_business":
-		c.getAllApiByBusiness()
-
-	default:
-		logs.Warn("action: %s, not implemented", do)
-		c.ErrorJson(-1, "不支持", nil)
-	}
-}
-
 func (c *StatisticsController) showStatisticsData() {
 	nowTime := time.Now()
 	nowData := getFridayTime(nowTime)
@@ -77,13 +65,9 @@ func (c *StatisticsController) showStatisticsData() {
 	c.TplName = "show_statistics_data.html"
 
 }
-func (c *StatisticsController) getAllApiByBusiness() {
-	//todo 可能需要去请求别的接口 获取业务线下用到的全部接口
-
-}
 
 func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
-	//todo 取得平台自动化所用的全部接口by business
+	// 1.去平台获取全部活跃接口数  并且增量添加
 	data := getAllApi()
 	var zuiyouAllCount float64
 	var pipiAllCount float64
@@ -99,7 +83,8 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	matuanAllConut = data["4"]
 	shangyehuaAllCount = data["5"]
 	haiwaiUSAllCount = data["6"]
-
+	//-----------------------------------------------------------------------------------
+	//2.通过所有业务线 获取所有case 并且吧url切出来去重
 	mongo := models.TestCaseMongo{}
 	result, err := mongo.GetAllCasesNoBusiness()
 	if err != nil {
@@ -141,16 +126,17 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	noRepeatMatuanList := RemoveRepeatedElement(matuan_list)
 	noRepeatShangyehuaList := RemoveRepeatedElement(shangyehuai_list)
 	noRepeatHaiwaiUSList := RemoveRepeatedElement(haiwaiUS_list)
-
+	//-------------------------------------------------------------------
+	//3. 获取本周新增数据（这里逻辑不要动 原来是实时修改数据 后来改为定时任务）
 	resp2 := c.getApiByBusinessNewAdd()
-	//最右
-	respDataList := []respData{}
-	acm := models.AllActiveApiMongo{}
+	//--------------------------------------------------------------------
+	respDataList := []respData{}      //生命一个存放对象对数组
+	acm := models.AllActiveApiMongo{} //全局定义对象
+	//--------------------------------------------------------------------
+	//重点计算 给结构体值
 	respData := respData{}
 	respData1 := respData
 	respData1.BusinessName = "最右"
-	respData1.AllApiCount = float64(len(noRepeatZuiyouList))
-	respData1.NewApiConut = float64(resp2["zuiyou_count_new"])
 	respData1.AllCaseCount = len(zuiyou_list)
 	respData1.NewCaseConut = resp2["zuiyou_new_case"]
 	var EffectiveApiZY = 0           //初始化有效接口为0
