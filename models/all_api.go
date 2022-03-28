@@ -127,7 +127,7 @@ func (a *AllActiveApiMongo) GetAllUnUseApiCount(business int64) int {
 }
 
 //更新数据的状态
-func (a *AllActiveApiMongo) ChangeApiCalculate(id int64, acm AllActiveApiMongo) error {
+func (a *AllActiveApiMongo) ChangeApiCalculate(api_name string, acm AllActiveApiMongo) error {
 	ms, db := db_proxy.Connect(db, "all_active_api")
 	defer ms.Close()
 
@@ -137,7 +137,7 @@ func (a *AllActiveApiMongo) ChangeApiCalculate(id int64, acm AllActiveApiMongo) 
 		},
 	}
 	query := bson.M{
-		"id": id,
+		"api_name": api_name,
 	}
 	err := db.Update(query, data)
 	if err != nil {

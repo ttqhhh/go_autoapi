@@ -65,6 +65,10 @@ func (c *StatisticsController) showStatisticsData() {
 
 }
 
+//
+//http://test.icocofun.com/config/splash_config?sign=358012500b287fbef30afeeb3499a5ba
+//http://test.icocofun.com//topic/posts_list?sign=17ff6bf9de33e57b5ab6993367c69b5e
+
 func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	// 1.去平台获取全部活跃接口数  并且增量添加
 	data := getAllApi()
@@ -387,10 +391,8 @@ func (c *StatisticsController) getAllQuery() {
 func judgeApi(acm models.AllActiveApiMongo, api string, businessCode int64) {
 	acm, isExist := acm.NewApiIsInDatabase(api, businessCode)
 	if isExist == true {
-		acm.Calculate = 0
-		acm.ChangeApiCalculate(acm.Id, acm)
+		acm.ChangeApiCalculate(acm.ApiName, acm)
 	}
-
 }
 
 func GetDegreeOfCompletion(active int, all float64) string {
