@@ -65,11 +65,16 @@ func (c *StatisticsController) showStatisticsData() {
 
 }
 
-//
-//http://test.icocofun.com/config/splash_config?sign=358012500b287fbef30afeeb3499a5ba
-//http://test.icocofun.com//topic/posts_list?sign=17ff6bf9de33e57b5ab6993367c69b5e
-
 func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
+	//维护白名单
+	white_list := make(map[string][]string)
+	white_list["0"] = []string{"/planck/topic", "/planck/yo", "/hybrid/api"}
+	white_list["1"] = []string{""}
+	white_list["2"] = []string{"/uniweb/api/proxy?url=http://omg-gateway.test.icocofun.net", "/consulapi/gateway/review/get_rec_godrev_record", "/s"}
+	white_list["3"] = []string{""}
+	white_list["5"] = []string{""}
+	white_list["6"] = []string{""}
+
 	// 1.去平台获取全部活跃接口数  并且增量添加
 	data := getAllApi()
 	var zuiyouAllCount float64
@@ -101,21 +106,28 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	var matuan_list []string
 	var haiwaiUS_list []string
 	for _, one := range result {
-		api := strings.Split(one.ApiUrl, "?")[0]
+		//api := strings.Split(one.ApiUrl, "?")[0]
 		switch one.BusinessCode {
 		case "0": //最右
+			api := getRealApi(white_list["0"], one.ApiUrl)
 			zuiyou_list = append(zuiyou_list, api)
 		case "1": //皮皮
+			api := getRealApi(white_list["1"], one.ApiUrl)
 			pipi_list = append(pipi_list, api)
 		case "2": //海外
+			api := getRealApi(white_list["2"], one.ApiUrl)
 			haiwai_list = append(haiwai_list, api)
 		case "3": //中东
+			api := getRealApi(white_list["3"], one.ApiUrl)
 			zhongdong_list = append(zhongdong_list, api)
 		case "4": //麻团
+			api := getRealApi(white_list["4"], one.ApiUrl)
 			matuan_list = append(matuan_list, api)
 		case "5": //商业化
+			api := getRealApi(white_list["5"], one.ApiUrl)
 			shangyehuai_list = append(shangyehuai_list, api)
 		case "6": //海外-us
+			api := getRealApi(white_list["6"], one.ApiUrl)
 			haiwaiUS_list = append(haiwaiUS_list, api)
 		default:
 			logs.Warn("no business")
@@ -388,7 +400,20 @@ func (c *StatisticsController) getAllQuery() {
 
 }
 
+func getRealApi(list []string, api string) string {
+	for _, name := range list {
+		if strings.HasPrefix(api, name) {
+			api = strings.Split(api, name)[1]
+			break
+		}
+	}
+	apiReal := strings.Split(api, "?")[0]
+	return apiReal
+
+}
+
 func judgeApi(acm models.AllActiveApiMongo, api string, businessCode int64) {
+
 	acm, isExist := acm.NewApiIsInDatabase(api, businessCode)
 	if isExist == true {
 		acm.ChangeApiCalculate(acm.ApiName, acm)
@@ -476,6 +501,7 @@ const HWUS_grafana_login_url = "http://grafanaus.icocofun.net/login"
 const ZD_grafana_login_url = "http://grafana.mehiya.com/login"
 const AD_gateway_path_url = "http://grafana.ixiaochuan.cn/api/datasources/proxy/1/api/v1/query_range?query=sum(rate(xms_gateway_ad_http_latency_count%5B1m%5D))by(uri)&start=1646064000&end=1648742400&step=7200"
 
+var black_list = []string{"applog", "healthcheck"} // 当接口包含一下字符串时，不入库
 //解析json所需要的结构体
 type JsonData struct {
 	Status string `json:"status"`
