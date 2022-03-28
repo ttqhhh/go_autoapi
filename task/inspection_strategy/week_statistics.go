@@ -24,11 +24,9 @@ func Statistics1Week() error {
 	respDataList := c.GetAllApiGroupByBusiness()
 	for _, one := range respDataList {
 		mongo.AllApi = one.AllApi
-		mongo.AllApiCount = one.AllApiCount
 		mongo.DegreeOfCompletion = one.DegreeOfCompletion
 		mongo.NewCaseConut = one.NewCaseConut
 		mongo.AllCaseCount = one.AllCaseCount
-		mongo.NewApiConut = one.NewApiConut
 		mongo.BusinessName = one.BusinessName
 		mongo.LastWeekDegreeOfCompletion = one.LastWeekDegreeOfCompletion
 		mongo.UnUseApi = one.UnUseApi

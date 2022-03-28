@@ -122,7 +122,6 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	noRepeatPipiList := RemoveRepeatedElement(pipi_list)
 	noRepeatHaiwaiList := RemoveRepeatedElement(haiwai_list)
 	noRepeatZhongdongList := RemoveRepeatedElement(zhongdong_list)
-	noRepeatMatuanList := RemoveRepeatedElement(matuan_list)
 	noRepeatShangyehuaList := RemoveRepeatedElement(shangyehuai_list)
 	noRepeatHaiwaiUSList := RemoveRepeatedElement(haiwaiUS_list)
 	//-------------------------------------------------------------------
@@ -442,7 +441,7 @@ func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一�
 
 }
 
-func getAllApi() map[string]float64 { //从graf增量添加数据
+func getAllApi() map[string]float64 { //从graf增量添加数据 （可能需要维护一些名单 入库就废弃的接口）
 	data := make(map[string]float64)
 	cookie := getLogin()
 	cookiehaiwai := getLoginHaiWai()
