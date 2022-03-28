@@ -78,6 +78,20 @@ func (a *AllActiveApiMongo) QueryAllCountByBusinessCount(businessCode int64) int
 	return count
 }
 
+//获取所有被覆盖的接口
+func (a *AllActiveApiMongo) QueryCaseUse(businessCode int64) int {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	query := bson.M{"business_code": businessCode, "use": USING, "calculate": 1}
+	count, err := db.Find(query).Count()
+	if err != nil {
+		logs.Error("查询出错err:", err)
+
+	}
+	return count
+}
+
 //判断接口是否存在与数据库
 func (a *AllActiveApiMongo) NewApiIsInDatabase(api_name string, business int64) (AllActiveApiMongo, bool) {
 	ms, db := db_proxy.Connect(db, "all_active_api")

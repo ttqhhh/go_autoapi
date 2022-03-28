@@ -2,7 +2,6 @@ package statisticsdata
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego/httplib"
 	"github.com/astaxie/beego/logs"
 	"github.com/prometheus/common/log"
@@ -37,13 +36,13 @@ type respData struct {
 func (c *StatisticsController) Get() {
 	do := c.GetMethodName()
 	switch do {
-	case "show_statistics_data":
+	case "show_statistics_data": //展示时间
 		c.showStatisticsData()
 	case "get_all_api_group": //获取对应业务线全接口
 		c.GetAllApiGroupByBusiness()
 	case "get_api_group_new_add": //判断每周新增
 		c.getApiByBusinessNewAdd()
-	case "get_all_data":
+	case "get_all_data": //展示数据
 		c.getAllQuery()
 
 	default:
@@ -132,233 +131,127 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	//--------------------------------------------------------------------
 	respDataList := []respData{}      //生命一个存放对象对数组
 	acm := models.AllActiveApiMongo{} //全局定义对象
+	respData := respData{}
 	//--------------------------------------------------------------------
 	//重点计算 给结构体值
-	respData := respData{}
-	respData1 := respData
-	respData1.BusinessName = "最右"
-	respData1.AllCaseCount = len(zuiyou_list)
-	respData1.NewCaseConut = resp2["zuiyou_new_case"]
-	var EffectiveApiZY = 0           //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	zy := respData
+	zy.BusinessName = "最右"
+	zy.AllCaseCount = len(zuiyou_list)
+	zy.NewCaseConut = resp2["zuiyou_new_case"]
 	for _, one := range noRepeatZuiyouList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.ZuiyYou)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			fmt.Print("参与计算的接口：" + one)
-			EffectiveApiZY++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.ZuiyYou) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData1.UnUseApi = acm.GetAllUnUseApiCount(constants.ZuiyYou)                             //获取一个废弃数
-	str := strconv.FormatFloat(float64(float64(EffectiveApiZY)/zuiyouAllCount)*100, 'f', 2, 64) //本周完成度
-	respData1.AllApi = int(zuiyouAllCount)
-	if zuiyouAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData1.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiZY) / zuiyouAllCount) > 1 {
-		respData1.DegreeOfCompletion = "100%"
-	} else {
-		respData1.DegreeOfCompletion = str + "%"
-	}
-	//上周覆盖率 todo 想想怎么处理
+	EffectiveApiZY := acm.QueryCaseUse(constants.ZuiyYou)
+	zy.UnUseApi = acm.GetAllUnUseApiCount(constants.ZuiyYou) //获取一个废弃数
+	zy.AllApi = int(zuiyouAllCount)
+	zy.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiZY, zuiyouAllCount)
 	ac := models.StatisticsMongo{}
 	lastzuiyou, err := ac.QueryLast6ByBusiness("最右")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData1.LastWeekDegreeOfCompletion = lastzuiyou.DegreeOfCompletion
-	respDataList = append(respDataList, respData1)
+	zy.LastWeekDegreeOfCompletion = lastzuiyou.DegreeOfCompletion
+	respDataList = append(respDataList, zy)
 
 	//皮皮
-	respData2 := respData
-	respData2.BusinessName = "皮皮"
-	respData2.AllApiCount = float64(len(noRepeatPipiList))
-	respData2.NewApiConut = float64(resp2["pipi_count_new"])
-	respData2.AllCaseCount = len(pipi_list)
-	respData2.NewCaseConut = resp2["pipi_new_case"]
-	var EffectiveApiPP = 0           //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	pp := respData
+	pp.BusinessName = "皮皮"
+	pp.AllCaseCount = len(pipi_list)
+	pp.NewCaseConut = resp2["pipi_new_case"]
 	for _, one := range noRepeatPipiList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.PiPi)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			fmt.Print("参与计算的接口：" + one)
-			EffectiveApiPP++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.PiPi) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData2.UnUseApi = acm.GetAllUnUseApiCount(constants.PiPi) //获取一个废弃数
-	str2 := strconv.FormatFloat(float64(float64(EffectiveApiPP)/pipiAllCount)*100, 'f', 2, 64)
-	respData2.DegreeOfCompletion = str2 + "%"
-	respData2.AllApi = int(pipiAllCount)
-	if pipiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData2.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiPP) / pipiAllCount) > 1 {
-		respData2.DegreeOfCompletion = "100%"
-	} else {
-		respData2.DegreeOfCompletion = str2 + "%"
-
-	}
+	EffectiveApiPP := acm.QueryCaseUse(constants.PiPi)
+	pp.UnUseApi = acm.GetAllUnUseApiCount(constants.PiPi) //获取一个废弃数
+	pp.AllApi = int(pipiAllCount)
+	pp.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiPP, pipiAllCount)
 	lastPIPI, err := ac.QueryLast6ByBusiness("皮皮")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData2.LastWeekDegreeOfCompletion = lastPIPI.DegreeOfCompletion
-	respDataList = append(respDataList, respData2)
+	pp.LastWeekDegreeOfCompletion = lastPIPI.DegreeOfCompletion
+	respDataList = append(respDataList, pp)
 	//海外
-	respData3 := respData
-	respData3.BusinessName = "海外"
-	respData3.AllApiCount = float64(len(noRepeatHaiwaiList))
-	respData3.NewApiConut = float64(resp2["haiwai_count_new"])
-	respData3.AllCaseCount = len(haiwai_list)
-	respData3.NewCaseConut = resp2["haiwai_new_case"]
-	var EffectiveApiHW = 0           //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	hw := respData
+	hw.BusinessName = "海外"
+	hw.AllCaseCount = len(haiwai_list)
+	hw.NewCaseConut = resp2["haiwai_new_case"]
 	for _, one := range noRepeatHaiwaiList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.HaiWai)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			EffectiveApiHW++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.HaiWai) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData3.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWai) //获取一个废弃数
-	str3 := strconv.FormatFloat(float64(float64(EffectiveApiHW)/haiwaiAllCount)*100, 'f', 2, 64)
-	respData3.DegreeOfCompletion = str3 + "%"
-	respData3.AllApi = int(haiwaiAllCount)
-	if haiwaiAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData3.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiHW) / haiwaiAllCount) > 1 {
-		respData3.DegreeOfCompletion = "100%"
-	} else {
-		respData3.DegreeOfCompletion = str3 + "%"
-	}
-
+	EffectiveApiHW := acm.QueryCaseUse(constants.HaiWai)
+	hw.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWai) //获取一个废弃数
+	hw.AllApi = int(haiwaiAllCount)
+	hw.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiHW, haiwaiAllCount)
 	lasthaiwai, err := ac.QueryLast6ByBusiness("海外")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData3.LastWeekDegreeOfCompletion = lasthaiwai.DegreeOfCompletion
+	hw.LastWeekDegreeOfCompletion = lasthaiwai.DegreeOfCompletion
+	respDataList = append(respDataList, hw)
 
-	respDataList = append(respDataList, respData3)
-
-	respData4 := respData
-	respData4.BusinessName = "中东"
-	respData4.AllApiCount = float64(len(noRepeatZhongdongList))
-	respData4.NewApiConut = float64(resp2["zhongdong_count_new"])
-	respData4.AllCaseCount = len(zhongdong_list)
-	respData4.NewCaseConut = resp2["zhongdong_new_case"]
-	var EffectiveApiZD = 0           //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	zd := respData
+	zd.BusinessName = "中东"
+	zd.AllCaseCount = len(zhongdong_list)
+	zd.NewCaseConut = resp2["zhongdong_new_case"]
 	for _, one := range noRepeatZhongdongList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.ZhongDong)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			EffectiveApiZD++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.ZhongDong) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData4.UnUseApi = acm.GetAllUnUseApiCount(constants.ZhongDong) //获取一个废弃数
-	str4 := strconv.FormatFloat(float64(float64(EffectiveApiZD)/zhongdongAllCount)*100, 'f', 2, 64)
-	respData4.DegreeOfCompletion = str4 + "%"
-	respData4.AllApi = int(zhongdongAllCount)
-	if zhongdongAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData4.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiZD) / zhongdongAllCount) > 1 {
-		respData4.DegreeOfCompletion = "100%"
-	} else {
-		respData4.DegreeOfCompletion = str4 + "%"
-
-	}
+	EffectiveApiZD := acm.QueryCaseUse(constants.ZhongDong)
+	zd.UnUseApi = acm.GetAllUnUseApiCount(constants.ZhongDong) //获取一个废弃数
+	zd.AllApi = int(zhongdongAllCount)
+	zd.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiZD, zhongdongAllCount)
 	lastzd, err := ac.QueryLast6ByBusiness("中东")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData4.LastWeekDegreeOfCompletion = lastzd.DegreeOfCompletion
-	respDataList = append(respDataList, respData4)
+	zd.LastWeekDegreeOfCompletion = lastzd.DegreeOfCompletion
+	respDataList = append(respDataList, zd)
 
-	respData5 := respData
-	respData5.BusinessName = "麻团"
-	respData5.AllApiCount = float64(len(noRepeatMatuanList))
-	respData5.NewApiConut = float64(resp2["matuan_count_new"])
-	respData5.AllCaseCount = len(matuan_list)
-	respData5.NewCaseConut = resp2["matuan_new_case"]
-	str5 := strconv.FormatFloat(float64(float64(respData5.AllCaseCount)/matuanAllConut)*100, 'f', 2, 64)
-	respData5.DegreeOfCompletion = str5 + "%"
-	respData5.AllApi = int(matuanAllConut)
+	mt := respData
+	mt.BusinessName = "麻团"
+	mt.AllCaseCount = len(matuan_list)
+	mt.NewCaseConut = resp2["matuan_new_case"]
+	str5 := strconv.FormatFloat(float64(float64(mt.AllCaseCount)/matuanAllConut)*100, 'f', 2, 64)
+	mt.DegreeOfCompletion = str5 + "%"
+	mt.AllApi = int(matuanAllConut)
 
 	//respDataList = append(respDataList, respData5)
 
-	respData6 := respData
-	respData6.BusinessName = "商业化"
-	respData6.AllApiCount = float64(len(noRepeatShangyehuaList))
-	respData6.NewApiConut = float64(resp2["shangyehua_count_new"])
-	respData6.AllCaseCount = len(shangyehuai_list)
-	respData6.NewCaseConut = resp2["shangyehua_new_case"]
-	var EffectiveApiSYH = 0          //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	syh := respData
+	syh.BusinessName = "商业化"
+	syh.AllCaseCount = len(shangyehuai_list)
+	syh.NewCaseConut = resp2["shangyehua_new_case"]
 	for _, one := range noRepeatShangyehuaList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.ShangYeHua)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			EffectiveApiSYH++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.ShangYeHua) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData6.UnUseApi = acm.GetAllUnUseApiCount(constants.ShangYeHua) //获取一个废弃数
-	str6 := strconv.FormatFloat(float64(float64(EffectiveApiSYH)/shangyehuaAllCount)*100, 'f', 2, 64)
-	respData6.DegreeOfCompletion = str6 + "%"
-	respData6.AllApi = int(shangyehuaAllCount)
-	if shangyehuaAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData6.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiSYH) / shangyehuaAllCount) > 1 {
-		respData6.DegreeOfCompletion = "100%"
-	} else {
-		respData6.DegreeOfCompletion = str6 + "%"
-
-	}
+	EffectiveApiSYH := acm.QueryCaseUse(constants.ShangYeHua)
+	syh.UnUseApi = acm.GetAllUnUseApiCount(constants.ShangYeHua) //获取一个废弃数
+	syh.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiSYH, shangyehuaAllCount)
 	lastsyh, err := ac.QueryLast6ByBusiness("商业化")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData6.LastWeekDegreeOfCompletion = lastsyh.DegreeOfCompletion
-	respDataList = append(respDataList, respData6)
+	syh.LastWeekDegreeOfCompletion = lastsyh.DegreeOfCompletion
+	respDataList = append(respDataList, syh)
 
-	respData7 := respData
-	respData7.BusinessName = "海外-US"
-	respData7.AllApiCount = float64(len(noRepeatHaiwaiUSList))
-	respData7.NewApiConut = float64(resp2["haiwaiUS_count_new"])
-	respData7.AllCaseCount = len(haiwaiUS_list)
-	respData7.NewCaseConut = resp2["haiwaiUS_new_case"]
-	var EffectiveApiHWUS = 0         //初始化有效接口为0
-	acm = models.AllActiveApiMongo{} //实例化这个对象 使用他的方法来判断接口是否存在
+	hwus := respData
+	hwus.BusinessName = "海外-US"
+	hwus.AllCaseCount = len(haiwaiUS_list)
+	hwus.NewCaseConut = resp2["haiwaiUS_new_case"]
 	for _, one := range noRepeatHaiwaiUSList {
-		acm, isExist := acm.NewApiIsInDatabase(one, constants.HaiWaiUS)
-		if isExist == true {
-			acm.Calculate = 0
-			acm.ChangeApiCalculate(acm.Id, acm)
-			EffectiveApiHWUS++ //一旦该case对应的api存在数据库 证明该api为有效api 可以用来计算覆盖率
-		}
+		judgeApi(acm, one, constants.HaiWaiUS) //判断接口是否存在数据库中，并且进行入库操作
 	}
-	respData7.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWaiUS) //获取一个废弃数
-	str7 := strconv.FormatFloat(float64(float64(EffectiveApiHWUS)/haiwaiUSAllCount)*100, 'f', 2, 64)
-	respData7.DegreeOfCompletion = str7 + "%"
-	respData7.AllApi = int(haiwaiUSAllCount)
-	if haiwaiUSAllCount == 0 { //获取的接口总数为0 兼容 大于1 兼容
-		respData7.DegreeOfCompletion = "0%"
-	} else if (float64(EffectiveApiHWUS) / haiwaiUSAllCount) > 1 {
-		respData7.DegreeOfCompletion = "100%"
-	} else {
-		respData7.DegreeOfCompletion = str7 + "%"
-
-	}
+	EffectiveApiHWUS := acm.QueryCaseUse(constants.HaiWaiUS)
+	hwus.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWaiUS) //获取一个废弃数
+	hwus.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiHWUS, haiwaiUSAllCount)
 	//上周新增 在这里直接查后6条 因为这时还没入库
 	lastHwus, err := ac.QueryLast6ByBusiness("海外-US")
 	if err != nil {
 		logs.Error("从数据库查询后六条中数据出错")
 	}
-	respData7.LastWeekDegreeOfCompletion = lastHwus.DegreeOfCompletion
-	respDataList = append(respDataList, respData7)
+	hwus.LastWeekDegreeOfCompletion = lastHwus.DegreeOfCompletion
+	respDataList = append(respDataList, hwus)
 	return respDataList
 
 }
@@ -492,6 +385,26 @@ func (c *StatisticsController) getAllQuery() {
 
 }
 
+func judgeApi(acm models.AllActiveApiMongo, api string, businessCode int64) {
+	acm, isExist := acm.NewApiIsInDatabase(api, businessCode)
+	if isExist == true {
+		acm.Calculate = 0
+		acm.ChangeApiCalculate(acm.Id, acm)
+	}
+
+}
+
+func GetDegreeOfCompletion(active int, all float64) string {
+	str := strconv.FormatFloat(float64(float64(active)/all)*100, 'f', 2, 64)
+	if all == 0 {
+		return "0"
+	} else if float64(active)/all > 1 {
+		return "100%"
+	} else {
+		return str + "%"
+	}
+}
+
 func RemoveRepeatedElement(arr []string) (newArr []string) {
 	newArr = make([]string, 0)
 	for i := 0; i < len(arr); i++ {
@@ -529,7 +442,7 @@ func getFridayTime(nowTime time.Time) time.Time { //返回当前时间的上一�
 
 }
 
-func getAllApi() map[string]float64 {
+func getAllApi() map[string]float64 { //从graf增量添加数据
 	data := make(map[string]float64)
 	cookie := getLogin()
 	cookiehaiwai := getLoginHaiWai()
