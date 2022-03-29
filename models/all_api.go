@@ -145,3 +145,21 @@ func (a *AllActiveApiMongo) ChangeApiCalculate(api_name string, acm AllActiveApi
 	}
 	return err
 }
+
+func (a *AllActiveApiMongo) QueryByBusinessAll(businessCode int64) ([]AllActiveApiMongo, error) {
+	ms, db := db_proxy.Connect(db, "all_active_api")
+	defer ms.Close()
+
+	query := bson.M{"business_code": businessCode}
+	apiList := []AllActiveApiMongo{}
+	err := db.Find(query).All(&apiList)
+	if err != nil {
+		if err.Error() == "not found" {
+			err = nil
+			//return nil, nil
+			return nil, nil
+		}
+		logs.Error("QueryByBusiness 错误: %v", err)
+	}
+	return apiList, err
+}

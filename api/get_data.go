@@ -93,7 +93,7 @@ func (c *GetDataController) WriteToData() {
 	}
 	for _, business_code := range numbers {
 		mongo := models.AllActiveApiMongo{}
-		apiList, err := mongo.QueryByBusiness(business_code)
+		apiList, err := mongo.QueryByBusinessAll(business_code)
 		if err != nil {
 			log.Error("根据业务线获取全部接口出错")
 		}
@@ -105,8 +105,8 @@ func (c *GetDataController) WriteToData() {
 			f.SetCellValue("Sheet1", "A1", "id")
 			f.SetCellValue("Sheet1", "B1", "业务线")
 			f.SetCellValue("Sheet1", "C1", "接口名")
-			f.SetCellValue("Sheet1", "D1", "是否使用")
-			f.SetCellValue("Sheet1", "E1", "是否被统计")
+			f.SetCellValue("Sheet1", "D1", "是否废弃（1=废弃）")
+			f.SetCellValue("Sheet1", "E1", "是否被统计 1 = 参与统计")
 
 			line++
 			f.SetCellValue("Sheet1", fmt.Sprintf("A%d", line), oneApi.Id)

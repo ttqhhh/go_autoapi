@@ -240,6 +240,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	for _, one := range noRepeatShangyehuaList {
 		judgeApi(acm, one, constants.ShangYeHua) //判断接口是否存在数据库中，并且进行入库操作
 	}
+	syh.AllApi = int(shangyehuaAllCount)
 	EffectiveApiSYH := acm.QueryCaseUse(constants.ShangYeHua)
 	syh.UnUseApi = acm.GetAllUnUseApiCount(constants.ShangYeHua) //获取一个废弃数
 	syh.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiSYH, shangyehuaAllCount)
@@ -257,6 +258,7 @@ func (c *StatisticsController) GetAllApiGroupByBusiness() []respData {
 	for _, one := range noRepeatHaiwaiUSList {
 		judgeApi(acm, one, constants.HaiWaiUS) //判断接口是否存在数据库中，并且进行入库操作
 	}
+	hwus.AllApi = int(haiwaiUSAllCount)
 	EffectiveApiHWUS := acm.QueryCaseUse(constants.HaiWaiUS)
 	hwus.UnUseApi = acm.GetAllUnUseApiCount(constants.HaiWaiUS) //获取一个废弃数
 	hwus.DegreeOfCompletion = GetDegreeOfCompletion(EffectiveApiHWUS, haiwaiUSAllCount)
